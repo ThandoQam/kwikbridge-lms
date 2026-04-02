@@ -806,52 +806,74 @@ export default function App() {
     let updatedApp = { ...a };
 
     if (stepKey === "kyc") {
+      // Step 2: Identity verification + regulatory screening
+      // Checks: ID, PoA, Bank, CIPC against external systems + Sanctions + PEP
       const checks = [
-        { item:"ID Document", source:"Home Affairs API", doc: appDocs.find(d => d.type === "ID Document") },
-        { item:"Proof of Address", source:"Manual verification", doc: appDocs.find(d => d.type === "Proof of Address") },
-        { item:"Bank Confirmation", source:"Bank letter", doc: appDocs.find(d => d.type === "Bank Confirmation") },
-        { item:"Company Registration", source:"CIPC API", doc: appDocs.find(d => d.type === "Company Registration") },
+        { item:"ID Document", source:"Home Affairs API", doc: appDocs.find(d => d.type === "ID Document"), purpose:"Identity verification against Home Affairs database" },
+        { item:"Proof of Address", source:"Manual verification", doc: appDocs.find(d => d.type === "Proof of Address"), purpose:"Physical address confirmation (municipal account/utility bill within 3 months)" },
+        { item:"Bank Confirmation", source:"Bank verification", doc: appDocs.find(d => d.type === "Bank Confirmation"), purpose:"Bank account ownership and status confirmation" },
+        { item:"Company Registration", source:"CIPC API", doc: appDocs.find(d => d.type === "Company Registration"), purpose:"Business registration status verified against CIPC database" },
       ];
       const findings = checks.map(ch => ({
-        item: ch.item, source: ch.source,
+        item: ch.item, source: ch.source, purpose: ch.purpose,
         docId: ch.doc?.id || null,
         systemResult: ch.doc?.status === "Verified" ? "Pass" : ch.doc ? "Fail" : "Missing",
         status: "Pending Review",
-        detail: ch.doc?.status === "Verified" ? `${ch.doc.id} — Verified on ${fmt.date(ch.doc.verifiedAt)} by ${ch.doc.verifiedBy || "System"}`
-          : ch.doc ? `${ch.doc.id} — Status: ${ch.doc.status}. Requires officer verification.`
-          : "Not on file. Request from customer before sign-off.",
+        detail: ch.doc?.status === "Verified" ? `${ch.doc.id} — Verified on ${fmt.date(ch.doc.verifiedAt)} by ${ch.doc.verifiedBy || "System"}. ${ch.purpose}`
+          : ch.doc ? `${ch.doc.id} — Status: ${ch.doc.status}. ${ch.purpose}`
+          : `Not on file. Required for: ${ch.purpose}`,
         officerAction: null, officerNote: ""
       }));
-      findings.push({ item:"Sanctions Screening", source:"OFAC / UN / SA Consolidated Lists", systemResult:"Pass", status:"Pending Review", detail:"Automated screening returned no matches. Officer must confirm.", officerAction:null, officerNote:"" });
-      findings.push({ item:"PEP Screening", source:"PEP Database", systemResult:"Pass", status:"Pending Review", detail:"No politically exposed persons identified. Officer must confirm.", officerAction:null, officerNote:"" });
+      findings.push({ item:"Sanctions Screening", source:"OFAC / UN / SA Consolidated Lists", purpose:"AML compliance — check against international and domestic sanctions lists", systemResult: a.sanctionsFlag ? "Fail" : "Pass", status:"Pending Review", detail: a.sanctionsFlag ? "MATCH FOUND — review immediately." : "Automated screening returned no matches. Officer must confirm.", officerAction:null, officerNote:"" });
+      findings.push({ item:"PEP Screening", source:"PEP Database", purpose:"Politically exposed persons check on directors and shareholders", systemResult:"Pass", status:"Pending Review", detail:"No politically exposed persons identified among directors. Officer must confirm.", officerAction:null, officerNote:"" });
       w.kycComplete = false;
       w.kycFindings = findings;
       w.kycDate = Date.now();
       w.kycOfficer = null;
       w.sanctionsCleared = false;
-      newAudit.push(addAudit("KYC Checks Initiated", a.id, "System", `${checks.length + 2} automated checks run. Awaiting Loan Officer review and sign-off.`, "Compliance"));
+      newAudit.push(addAudit("KYC Checks Initiated", a.id, "System", `${checks.length + 2} identity/compliance checks run. Awaiting officer review.`, "Compliance"));
     }
 
     if (stepKey === "docs") {
-      const reqTypes = ["ID Document","Proof of Address","Bank Confirmation","Company Registration","Annual Financials","Business Plan"];
-      const findings = reqTypes.map(type => {
+      // Step 3: Application document completeness — excludes KYC docs (already verified in Step 2)
+      // Only checks financial, business, and supporting documents
+      const kycTypes = ["ID Document","Proof of Address","Bank Confirmation","Company Registration"];
+      const kycStatus = w.kycComplete ? "Verified in KYC (Step 2)" : "Pending KYC verification";
+      const reqTypes = ["Annual Financials","Business Plan"];
+      const findings = [];
+      // Show KYC doc status as inherited (read-only, no re-review)
+      kycTypes.forEach(type => {
+        const doc = appDocs.find(d => d.type === type);
+        const kycItem = (w.kycFindings||[]).find(f => f.item === type);
+        findings.push({
+          item: type, required: true, inherited: true,
+          systemResult: kycItem?.officerAction === "Confirmed" ? "Verified" : doc?.status === "Verified" ? "Verified" : w.kycComplete ? "Verified" : doc ? doc.status : "Missing",
+          status: w.kycComplete ? "Pass" : kycItem?.officerAction ? kycItem.status : "Pending KYC",
+          detail: w.kycComplete ? `Verified in Step 2 (KYC/FICA)${doc ? ` — ${doc.id}` : ""}` : `Awaiting KYC verification in Step 2${doc ? ` — ${doc.id}` : ""}`,
+          docId: doc?.id || null,
+          officerAction: w.kycComplete ? "Inherited" : null, officerNote: ""
+        });
+      });
+      // Application-specific documents requiring review
+      reqTypes.forEach(type => {
         const doc = appDocs.find(d => d.type === type || d.name.includes(type.split(" ")[0]));
-        return {
-          item: type, required: true,
+        findings.push({
+          item: type, required: true, inherited: false,
           systemResult: doc?.status === "Verified" ? "Verified" : doc?.status === "Under Review" ? "Under Review" : doc ? "Received" : "Missing",
           status: "Pending Review",
           detail: doc ? `${doc.id} — ${doc.status}${doc.verifiedBy ? ` by ${doc.verifiedBy}` : ""}` : "Not uploaded. Request from customer.",
           docId: doc?.id || null,
           officerAction: null, officerNote: ""
-        };
+        });
       });
-      const industryDocs = appDocs.filter(d => ["Industry License","Operating License","CIDB Registration"].includes(d.type));
-      industryDocs.forEach(d => findings.push({ item:d.type, required:false, systemResult:d.status, status:"Pending Review", detail:`${d.id} — ${d.status}`, docId:d.id, officerAction:null, officerNote:"" }));
+      // Industry-specific / optional documents
+      const industryDocs = appDocs.filter(d => ["Industry License","Operating License","CIDB Registration","BEE Certificate","Insurance","Title Deed"].includes(d.type));
+      industryDocs.forEach(d => findings.push({ item:d.type, required:false, inherited:false, systemResult:d.status, status:"Pending Review", detail:`${d.id} — ${d.status}`, docId:d.id, officerAction:null, officerNote:"" }));
       w.docsComplete = false;
       w.docsFindings = findings;
       w.docsDate = Date.now();
       w.docsOfficer = null;
-      newAudit.push(addAudit("Document Review Initiated", a.id, "System", `${findings.length} documents checked. Awaiting Loan Officer review and sign-off.`, "Underwriting"));
+      newAudit.push(addAudit("Document Review Initiated", a.id, "System", `${findings.length} documents checked (${kycTypes.length} inherited from KYC, ${reqTypes.length} requiring review). Awaiting sign-off.`, "Underwriting"));
     }
 
     if (stepKey === "sitevisit") {
@@ -2500,41 +2522,49 @@ export default function App() {
       const renderChecklist = (findings, stepKey) => {
         if (!findings || !Array.isArray(findings)) return null;
         const isActionable = isUW && (stepKey==="kyc"||stepKey==="docs");
-        const reqItems = findings.filter(f => stepKey==="docs" ? f.required!==false : true);
+        // For docs step: only non-inherited, required items need officer action
+        const reqItems = findings.filter(f => {
+          if (f.inherited) return false; // KYC docs inherited from step 2 — skip
+          if (stepKey==="docs" && f.required===false) return false;
+          return true;
+        });
         const allActioned = isActionable && reqItems.every(f => f.officerAction);
         return (<div>
           <div style={{ border:`1px solid ${C.border}` }}>
             {findings.map((f,i) => {
               const doc = f.docId ? (documents||[]).find(d=>d.id===f.docId) : null;
               const isExpanded = viewingDoc === `${stepKey}-${i}`;
+              const isInherited = f.inherited;
               return (
-              <div key={i} style={{ borderBottom:i<findings.length-1?`1px solid ${C.border}`:"none" }}>
+              <div key={i} style={{ borderBottom:i<findings.length-1?`1px solid ${C.border}`:"none", opacity:isInherited?0.6:1 }}>
                 <div style={{ display:"flex", gap:6, padding:"5px 8px", fontSize:11, alignItems:"center" }}>
-                  <span style={{ width:40, flexShrink:0, fontWeight:500, color: f.status==="Pass"||f.status==="Verified"||f.status==="Confirmed (Override)"?C.green : f.status==="Flagged"?C.amber : f.status==="Rejected"||f.status==="Fail"||f.status==="Missing"?C.red : C.textMuted }}>{f.officerAction?f.status:(f.systemResult||f.status)}</span>
-                  <span style={{ width:130, flexShrink:0, fontWeight:500, color:C.text, fontSize:11 }}>{f.item}</span>
-                  <span style={{ flex:1, color:C.textDim, fontSize:11 }}>{f.detail}{f.source?` (${f.source})`:""}</span>
-                  {/* View Document button — shows when doc is on file */}
-                  {doc && <button onClick={()=>setViewingDoc(isExpanded?null:`${stepKey}-${i}`)} style={{ padding:"1px 5px", fontSize:9, border:`1px solid ${C.border}`, background:isExpanded?C.surface2:"transparent", color:C.accent, cursor:"pointer", fontFamily:"inherit", fontWeight:isExpanded?600:400 }}>{isExpanded?"Close":"View"}</button>}
-                  {/* Request button — shown for Missing docs, changes to "Requested" after sent */}
-                  {!doc && f.systemResult==="Missing" && isUW && (() => {
+                  <span style={{ width:40, flexShrink:0, fontWeight:500, color: f.status==="Pass"||f.status==="Verified"||f.status==="Confirmed (Override)"?C.green : f.status==="Flagged"?C.amber : f.status==="Rejected"||f.status==="Fail"||f.status==="Missing"?C.red : f.status==="Pending KYC"?C.amber : C.textMuted }}>{f.officerAction?f.status:(f.systemResult||f.status)}</span>
+                  <span style={{ width:130, flexShrink:0, fontWeight:500, color:isInherited?C.textDim:C.text, fontSize:11 }}>{f.item}</span>
+                  <span style={{ flex:1, color:C.textDim, fontSize:11 }}>{f.detail}{f.source?` (${f.source})`:""}{f.purpose&&!isInherited?<span style={{ color:C.textMuted, fontSize:10 }}> — {f.purpose}</span>:""}</span>
+                  {/* View Document button */}
+                  {doc && !isInherited && <button onClick={()=>setViewingDoc(isExpanded?null:`${stepKey}-${i}`)} style={{ padding:"1px 5px", fontSize:9, border:`1px solid ${C.border}`, background:isExpanded?C.surface2:"transparent", color:C.accent, cursor:"pointer", fontFamily:"inherit", fontWeight:isExpanded?600:400 }}>{isExpanded?"Close":"View"}</button>}
+                  {/* Request button — shown for Missing non-inherited docs */}
+                  {!doc && !isInherited && f.systemResult==="Missing" && isUW && (() => {
                     const reqs = (w.docRequests||[]).filter(r=>r.docType===f.item);
                     const lastReq = reqs[reqs.length-1];
                     return lastReq
                       ? <span style={{ fontSize:9, color:C.textMuted, flexShrink:0 }}>Requested {fmt.date(lastReq.requestedAt)} by {lastReq.requestedBy}</span>
                       : <button onClick={()=>requestDocFromApplicant(a.id,f.item,"")} style={{ padding:"1px 5px", fontSize:9, border:`1px solid ${C.border}`, background:"transparent", color:C.text, cursor:"pointer", fontFamily:"inherit" }}>Request</button>;
                   })()}
-                  {/* Confirm / Flag / Reject actions */}
-                  {isActionable && !f.officerAction && (
+                  {/* Inherited indicator */}
+                  {isInherited && <span style={{ fontSize:9, color:C.textMuted, flexShrink:0, fontStyle:"italic" }}>from Step 2</span>}
+                  {/* Confirm / Flag / Reject — only for non-inherited items */}
+                  {isActionable && !isInherited && !f.officerAction && (
                     <div style={{ display:"flex", gap:3, flexShrink:0 }}>
                       <button onClick={()=>actionFindingItem(a.id,stepKey,i,"Confirmed","")} style={{ padding:"1px 5px", fontSize:9, border:`1px solid ${C.border}`, background:"transparent", color:C.green, cursor:"pointer", fontFamily:"inherit" }}>Confirm</button>
                       <button onClick={()=>actionFindingItem(a.id,stepKey,i,"Flagged","")} style={{ padding:"1px 5px", fontSize:9, border:`1px solid ${C.border}`, background:"transparent", color:C.amber, cursor:"pointer", fontFamily:"inherit" }}>Flag</button>
                       <button onClick={()=>actionFindingItem(a.id,stepKey,i,"Rejected","")} style={{ padding:"1px 5px", fontSize:9, border:`1px solid ${C.border}`, background:"transparent", color:C.red, cursor:"pointer", fontFamily:"inherit" }}>Reject</button>
                     </div>
                   )}
-                  {isActionable && f.officerAction && <span style={{ fontSize:9, color:C.textMuted, flexShrink:0 }}>{f.officerAction}</span>}
-                  {/* Doc-level approve/reject for both kyc and docs steps */}
-                  {doc && isUW && doc.status!=="Verified" && canDo("documents","approve") && <button onClick={()=>approveDocument(doc.id,a.id)} style={{ padding:"1px 5px", fontSize:9, border:`1px solid ${C.border}`, background:"transparent", color:C.green, cursor:"pointer", fontFamily:"inherit" }}>Approve Doc</button>}
-                  {doc && isUW && doc.status!=="Rejected" && canDo("documents","update") && <button onClick={()=>rejectDocument(doc.id,"Re-submission required.")} style={{ padding:"1px 5px", fontSize:9, border:`1px solid ${C.border}`, background:"transparent", color:C.red, cursor:"pointer", fontFamily:"inherit" }}>Reject Doc</button>}
+                  {isActionable && !isInherited && f.officerAction && <span style={{ fontSize:9, color:C.textMuted, flexShrink:0 }}>{f.officerAction}</span>}
+                  {/* Doc-level approve/reject — only for non-inherited items */}
+                  {doc && !isInherited && isUW && doc.status!=="Verified" && canDo("documents","approve") && <button onClick={()=>approveDocument(doc.id,a.id)} style={{ padding:"1px 5px", fontSize:9, border:`1px solid ${C.border}`, background:"transparent", color:C.green, cursor:"pointer", fontFamily:"inherit" }}>Approve Doc</button>}
+                  {doc && !isInherited && isUW && doc.status!=="Rejected" && canDo("documents","update") && <button onClick={()=>rejectDocument(doc.id,"Re-submission required.")} style={{ padding:"1px 5px", fontSize:9, border:`1px solid ${C.border}`, background:"transparent", color:C.red, cursor:"pointer", fontFamily:"inherit" }}>Reject Doc</button>}
                 </div>
                 {/* Expanded document detail panel */}
                 {isExpanded && doc && (
@@ -2586,12 +2616,12 @@ export default function App() {
       const renderStepBody = (s) => {
         if (s.key==="submitted") return <InfoGrid items={[["Applicant",c?.name],["Product",p?.name],["Amount",fmt.cur(a.amount)],["Term",`${a.term}m`],["Submitted",fmt.date(a.submitted)],["Purpose",a.purpose]]} />;
         if (s.key==="kyc") return (<div>
-          {!w.kycDate && <div style={{ fontSize:11, color:C.textMuted, marginBottom:6 }}>Run automated checks to verify identity, company registration, and sanctions. Results require your review and sign-off.</div>}
+          {!w.kycDate && <div style={{ fontSize:11, color:C.textMuted, marginBottom:6 }}>Verify applicant identity and regulatory compliance: ID against Home Affairs, company registration against CIPC, bank account confirmation, address verification, sanctions screening (OFAC/UN/SA), and PEP check. Each item requires your review and sign-off.</div>}
           {w.kycFindings && renderChecklist(w.kycFindings, "kyc")}
           {w.kycComplete && <div style={{ marginTop:4, fontSize:10, color:C.green }}>Signed off by {w.kycOfficer}</div>}
         </div>);
         if (s.key==="docs") return (<div>
-          {!w.docsDate && <div style={{ fontSize:11, color:C.textMuted, marginBottom:6 }}>Check document completeness. You can approve, reject, or request each document individually.</div>}
+          {!w.docsDate && <div style={{ fontSize:11, color:C.textMuted, marginBottom:6 }}>Check application document completeness. KYC documents (ID, PoA, Bank, Registration) carry forward from Step 2. This step verifies financial statements, business plan, and any industry-specific documents are on file and adequate for underwriting.</div>}
           {w.docsFindings && renderChecklist(w.docsFindings, "docs")}
           {isUW && <div style={{ marginTop:8, padding:"6px 8px", border:`1px solid ${C.border}` }}>
             <div style={{ fontSize:10, fontWeight:600, color:C.text, marginBottom:3 }}>Request Document from Applicant</div>
