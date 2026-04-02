@@ -594,28 +594,14 @@ export default function App() {
   }, [data]);
 
   // Reset: seed fresh data + push to Supabase
-  const reset = async () => {
+  const reset = () => {
     const d = seed();
-    // Clear ALL cached data first
-    try { await store.set(SK, ""); } catch {}
-    try { localStorage.removeItem(SK); } catch {}
-    // Set fresh data
     setData(d);
     setDetail(null);
     setModal(null);
     setPage("dashboard");
-    // Persist
-    try { await store.set(SK, JSON.stringify(d)); } catch {}
-    // Supabase push in background
-    (async () => {
-      try {
-        for (const [key, table] of Object.entries(TABLES)) {
-          await fetch(sb(table) + (key === "settings" ? "?id=eq.1" : "?id=neq.IMPOSSIBLE"), { method: "DELETE", headers: sbHeaders });
-          if (key === "settings") await sbUpsert(table, [{ ...toDb(d[key]), id: 1 }]);
-          else if (d[key]?.length) await sbUpsert(table, d[key].map(toDb));
-        }
-      } catch {}
-    })();
+    // Persist in background — don't await
+    store.set(SK, JSON.stringify(d)).catch(() => {});
   };
   const cust = id => data?.customers?.find(c => c.id === id);
   const prod = id => data?.products?.find(p => p.id === id);
