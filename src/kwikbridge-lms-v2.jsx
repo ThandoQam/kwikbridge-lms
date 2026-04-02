@@ -529,6 +529,7 @@ export default function App() {
   const [writeOffReason, setWriteOffReason] = useState("");
   const [auditFilter, setAuditFilter] = useState({category:"",user:"",entity:""});
   const [schedLoan, setSchedLoan] = useState(null);
+  const [viewingDoc, setViewingDoc] = useState(null);
   const role = currentUser.role;
   const canDo = (mod, action) => can(role, mod, action);
   const canDoAny = (mod, actions) => canAny(role, mod, actions);
@@ -802,10 +803,11 @@ export default function App() {
       ];
       const findings = checks.map(ch => ({
         item: ch.item, source: ch.source,
+        docId: ch.doc?.id || null,
         systemResult: ch.doc?.status === "Verified" ? "Pass" : ch.doc ? "Fail" : "Missing",
         status: "Pending Review",
-        detail: ch.doc?.status === "Verified" ? `Verified on ${fmt.date(ch.doc.verifiedAt)} by ${ch.doc.verifiedBy || "System"}`
-          : ch.doc ? `Document status: ${ch.doc.status}. Requires officer verification.`
+        detail: ch.doc?.status === "Verified" ? `${ch.doc.id} — Verified on ${fmt.date(ch.doc.verifiedAt)} by ${ch.doc.verifiedBy || "System"}`
+          : ch.doc ? `${ch.doc.id} — Status: ${ch.doc.status}. Requires officer verification.`
           : "Not on file. Request from customer before sign-off.",
         officerAction: null, officerNote: ""
       }));
@@ -2491,12 +2493,19 @@ export default function App() {
         const allActioned = isActionable && reqItems.every(f => f.officerAction);
         return (<div>
           <div style={{ border:`1px solid ${C.border}` }}>
-            {findings.map((f,i) => (
+            {findings.map((f,i) => {
+              const doc = f.docId ? (documents||[]).find(d=>d.id===f.docId) : null;
+              const isExpanded = viewingDoc === `${stepKey}-${i}`;
+              return (
               <div key={i} style={{ borderBottom:i<findings.length-1?`1px solid ${C.border}`:"none" }}>
                 <div style={{ display:"flex", gap:6, padding:"5px 8px", fontSize:11, alignItems:"center" }}>
                   <span style={{ width:40, flexShrink:0, fontWeight:500, color: f.status==="Pass"||f.status==="Verified"||f.status==="Confirmed (Override)"?C.green : f.status==="Flagged"?C.amber : f.status==="Rejected"||f.status==="Fail"||f.status==="Missing"?C.red : C.textMuted }}>{f.officerAction?f.status:(f.systemResult||f.status)}</span>
                   <span style={{ width:130, flexShrink:0, fontWeight:500, color:C.text, fontSize:11 }}>{f.item}</span>
                   <span style={{ flex:1, color:C.textDim, fontSize:11 }}>{f.detail}{f.source?` (${f.source})`:""}</span>
+                  {/* View Document button — shows when doc is on file */}
+                  {doc && <button onClick={()=>setViewingDoc(isExpanded?null:`${stepKey}-${i}`)} style={{ padding:"1px 5px", fontSize:9, border:`1px solid ${C.border}`, background:isExpanded?C.surface2:"transparent", color:C.accent, cursor:"pointer", fontFamily:"inherit", fontWeight:isExpanded?600:400 }}>{isExpanded?"Close":"View"}</button>}
+                  {!doc && f.systemResult==="Missing" && isUW && <button onClick={()=>requestDocFromApplicant(a.id,f.item,"")} style={{ padding:"1px 5px", fontSize:9, border:`1px solid ${C.border}`, background:"transparent", color:C.text, cursor:"pointer", fontFamily:"inherit" }}>Request</button>}
+                  {/* Confirm / Flag / Reject actions */}
                   {isActionable && !f.officerAction && (
                     <div style={{ display:"flex", gap:3, flexShrink:0 }}>
                       <button onClick={()=>actionFindingItem(a.id,stepKey,i,"Confirmed","")} style={{ padding:"1px 5px", fontSize:9, border:`1px solid ${C.border}`, background:"transparent", color:C.green, cursor:"pointer", fontFamily:"inherit" }}>Confirm</button>
@@ -2505,17 +2514,37 @@ export default function App() {
                     </div>
                   )}
                   {isActionable && f.officerAction && <span style={{ fontSize:9, color:C.textMuted, flexShrink:0 }}>{f.officerAction}</span>}
-                  {stepKey==="docs" && f.docId && isUW && (documents||[]).find(d=>d.id===f.docId)?.status!=="Verified" && <button onClick={()=>approveDocument(f.docId,a.id)} style={{ padding:"1px 5px", fontSize:9, border:`1px solid ${C.border}`, background:"transparent", color:C.green, cursor:"pointer", fontFamily:"inherit" }}>Approve Doc</button>}
-                  {stepKey==="docs" && f.docId && isUW && (documents||[]).find(d=>d.id===f.docId)?.status!=="Rejected" && <button onClick={()=>rejectDocument(f.docId,"Re-submission required.")} style={{ padding:"1px 5px", fontSize:9, border:`1px solid ${C.border}`, background:"transparent", color:C.red, cursor:"pointer", fontFamily:"inherit" }}>Reject Doc</button>}
-                  {stepKey==="docs" && !f.docId && isUW && <button onClick={()=>requestDocFromApplicant(a.id,f.item,"")} style={{ padding:"1px 5px", fontSize:9, border:`1px solid ${C.border}`, background:"transparent", color:C.text, cursor:"pointer", fontFamily:"inherit" }}>Request</button>}
+                  {/* Doc-level approve/reject for both kyc and docs steps */}
+                  {doc && isUW && doc.status!=="Verified" && canDo("documents","approve") && <button onClick={()=>approveDocument(doc.id,a.id)} style={{ padding:"1px 5px", fontSize:9, border:`1px solid ${C.border}`, background:"transparent", color:C.green, cursor:"pointer", fontFamily:"inherit" }}>Approve Doc</button>}
+                  {doc && isUW && doc.status!=="Rejected" && canDo("documents","update") && <button onClick={()=>rejectDocument(doc.id,"Re-submission required.")} style={{ padding:"1px 5px", fontSize:9, border:`1px solid ${C.border}`, background:"transparent", color:C.red, cursor:"pointer", fontFamily:"inherit" }}>Reject Doc</button>}
                 </div>
+                {/* Expanded document detail panel */}
+                {isExpanded && doc && (
+                  <div style={{ padding:"6px 8px 8px 46px", background:C.surface2, borderTop:`1px solid ${C.border}` }}>
+                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:6, fontSize:10 }}>
+                      <div><span style={{ color:C.textMuted }}>Document ID:</span> <span style={{ fontFamily:"monospace", fontWeight:500 }}>{doc.id}</span></div>
+                      <div><span style={{ color:C.textMuted }}>Name:</span> <span style={{ fontWeight:500 }}>{doc.name}</span></div>
+                      <div><span style={{ color:C.textMuted }}>Category:</span> {doc.category}</div>
+                      <div><span style={{ color:C.textMuted }}>Status:</span> <span style={{ fontWeight:600, color:doc.status==="Verified"?C.green:doc.status==="Rejected"?C.red:C.amber }}>{doc.status}</span></div>
+                      <div><span style={{ color:C.textMuted }}>Uploaded By:</span> {doc.uploadedBy||"—"}</div>
+                      <div><span style={{ color:C.textMuted }}>Uploaded:</span> {fmt.date(doc.uploadedAt)}</div>
+                      <div><span style={{ color:C.textMuted }}>Verified By:</span> {doc.verifiedBy||"—"}</div>
+                      <div><span style={{ color:C.textMuted }}>Verified:</span> {fmt.date(doc.verifiedAt)}</div>
+                      <div><span style={{ color:C.textMuted }}>Expiry:</span> {doc.expiryDate ? <span style={{ color: doc.expiryDate < now + 90*day ? C.red : C.textDim }}>{fmt.date(doc.expiryDate)}</span> : "None"}</div>
+                      <div style={{ gridColumn:"1/4" }}><span style={{ color:C.textMuted }}>File:</span> <span style={{ fontFamily:"monospace", fontSize:9 }}>{doc.fileRef||"—"}</span></div>
+                      {doc.notes && <div style={{ gridColumn:"1/4" }}><span style={{ color:C.textMuted }}>Notes:</span> {doc.notes}</div>}
+                    </div>
+                  </div>
+                )}
+                {/* Officer note input */}
                 {isActionable && f.officerAction && (
                   <div style={{ padding:"0 8px 4px 46px" }}>
                     <input value={f.officerNote||""} onChange={e=>updateFindingNote(a.id,stepKey,i,e.target.value)} placeholder="Note..." style={{ width:"100%", padding:"2px 5px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:10, fontFamily:"inherit", outline:"none", boxSizing:"border-box" }} />
                   </div>
                 )}
               </div>
-            ))}
+              );
+            })}
           </div>
           {isActionable && <div style={{ marginTop:6, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
             <span style={{ fontSize:10, color:C.textMuted }}>{allActioned?"Ready for sign-off.":`${reqItems.filter(f=>f.officerAction).length}/${reqItems.length} reviewed.`}</span>
