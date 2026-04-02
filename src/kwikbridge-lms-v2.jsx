@@ -676,6 +676,14 @@ export default function App() {
               return { ...a, workflow: w };
             });
           }
+          // Ensure essential data structures exist (guard against incomplete cached data)
+          if (!loaded.settings) {
+            const fresh = seed();
+            loaded.settings = fresh.settings;
+            migrated = true;
+          }
+          if (!loaded.documents) { loaded.documents = []; migrated = true; }
+          if (!loaded.statutoryReports) { loaded.statutoryReports = []; migrated = true; }
           if (migrated) { try { await window.storage.set(SK, JSON.stringify(loaded)); } catch {} }
           setData(loaded);
           return;
@@ -3486,7 +3494,7 @@ export default function App() {
         {!sideCollapsed && <div style={{ padding:"8px 12px 12px", borderTop:`1px solid ${C.border}` }}>
           <div style={{ fontSize:10, fontWeight:500, color:C.text, marginBottom:2 }}>{currentUser.name}</div>
           <div style={{ fontSize:9, color:C.textMuted, marginBottom:4 }}>{ROLES[role]?.label}</div>
-          <div style={{ fontSize:9, color:C.textMuted, lineHeight:1.5, letterSpacing:0.2 }}>ThandoQ & Associates<br/>NCR: {settings.ncrReg}<br/>Valid: {settings.ncrExpiry}</div>
+          <div style={{ fontSize:9, color:C.textMuted, lineHeight:1.5, letterSpacing:0.2 }}>ThandoQ & Associates<br/>NCR: {settings?.ncrReg||"—"}<br/>Valid: {settings?.ncrExpiry||"—"}</div>
           <button onClick={reset} style={{ marginTop:6, background:"none", border:`1px solid ${C.border}`, color:C.textMuted, borderRadius:2, padding:"2px 6px", fontSize:9, cursor:"pointer", fontFamily:"inherit" }}>Reset Demo</button>
         </div>}
       </aside>
