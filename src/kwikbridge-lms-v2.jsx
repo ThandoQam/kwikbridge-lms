@@ -25,6 +25,30 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
    ═══════════════════════════════════════════════════════════════════ */
 
 const SK = "kb-lms-v2";
+
+// ═══ SUPABASE CLIENT ═══
+const SUPABASE_URL = "https://yioqaluxgqxsifclydmd.supabase.co";
+const SUPABASE_KEY = "sb_publishable_5-mJwKTUJKxdZSTXZMJd-A_89ZkNWrM";
+const sb = (table) => `${SUPABASE_URL}/rest/v1/${table}`;
+const sbHeaders = { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json", "Prefer": "return=minimal" };
+const sbGet = async (table) => { const r = await fetch(sb(table) + "?order=id", { headers: sbHeaders }); return r.ok ? r.json() : []; };
+const sbUpsert = async (table, rows) => { if (!rows?.length) return; await fetch(sb(table), { method: "POST", headers: { ...sbHeaders, "Prefer": "resolution=merge-duplicates,return=minimal" }, body: JSON.stringify(rows) }); };
+const sbDelete = async (table, id) => { await fetch(sb(table) + `?id=eq.${encodeURIComponent(id)}`, { method: "DELETE", headers: sbHeaders }); };
+
+// Field mapping: app camelCase <-> DB snake_case
+const toSnake = s => s.replace(/([A-Z])/g, '_$1').toLowerCase();
+const toCamel = s => s.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+const mapKeys = (obj, fn) => { if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return obj; const out = {}; for (const [k, v] of Object.entries(obj)) out[fn(k)] = v; return out; };
+const toDb = row => mapKeys(row, toSnake);
+const fromDb = row => mapKeys(row, toCamel);
+
+// Table config: which tables exist and their field mappings
+const TABLES = {
+  customers: "customers", products: "products", applications: "applications",
+  loans: "loans", documents: "documents", collections: "collections",
+  alerts: "alerts", audit: "audit_trail", provisions: "provisions",
+  comms: "comms", statutoryReports: "statutory_reports", settings: "settings"
+};
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 const fmt = {
   date: d => d ? new Date(d).toLocaleDateString("en-ZA", { day: "2-digit", month: "short", year: "numeric" }) : "—",
@@ -494,41 +518,83 @@ export default function App() {
 
   useEffect(() => {
     (async () => {
+      // Try loading from Supabase first
       try {
-        const r = await window.storage.get(SK);
-        if (r?.value) {
-          const loaded = JSON.parse(r.value);
-          let migrated = false;
-          if (loaded.applications) {
-            loaded.applications = loaded.applications.map(a => {
-              if (!a.workflow) return a;
-              const w = { ...a.workflow };
-              let needsReset = false;
-              if (w.siteVisitFindings?.length > 0 && w.siteVisitFindings[0].detail !== undefined && w.siteVisitFindings[0].field === undefined) needsReset = true;
-              if (w.creditFindings?.length > 0 && w.creditFindings[0].detail !== undefined && w.creditFindings[0].analystNote === undefined) needsReset = true;
-              if (needsReset || (w.collateralAssessed && !w.collateralFindings?.[0]?.analystNote && w.collateralFindings?.length > 0)) {
-                w.siteVisitFindings = null; w.siteVisitDate = null; w.siteVisitComplete = false; w.siteVisitOfficer = null; w.siteVisitNotes = "";
-                w.creditFindings = null; w.creditDate = null; w.financialAnalysisComplete = false; w.creditPulled = false; w.creditBureauScore = null;
-                w.collateralFindings = null; w.collateralDate = null; w.collateralAssessed = false;
-                w.socialFindings = null; w.socialDate = null; w.socialVerified = false; w.socialOfficer = null;
-                migrated = true;
-              }
-              return { ...a, workflow: w };
-            });
+        const results = {};
+        let hasData = false;
+        for (const [key, table] of Object.entries(TABLES)) {
+          if (key === "settings") {
+            const rows = await sbGet(table);
+            results[key] = rows[0] ? fromDb(rows[0]) : null;
+          } else {
+            const rows = await sbGet(table);
+            results[key] = rows.map(fromDb);
+            if (rows.length > 0) hasData = true;
           }
-          if (migrated) { try { await window.storage.set(SK, JSON.stringify(loaded)); } catch {} }
-          setData(loaded);
+        }
+        if (hasData) {
+          // Ensure settings exists
+          if (!results.settings) results.settings = { companyName:"ThandoQ and Associates (Pty) Ltd", ncrReg:"NCRCP22396", ncrExpiry:"31 July 2026", branch:"East London, Nahoon Valley" };
+          setData(results);
           return;
         }
+      } catch (e) { console.log("Supabase load failed, falling back to local:", e); }
+      // Fallback: try window.storage
+      try {
+        const r = await window.storage.get(SK);
+        if (r?.value) { setData(JSON.parse(r.value)); return; }
       } catch {}
+      // Last resort: seed
       const d = seed();
-      try { await window.storage.set(SK, JSON.stringify(d)); } catch {}
       setData(d);
     })();
   }, []);
 
-  const save = useCallback(async next => { setData(next); try { await window.storage.set(SK, JSON.stringify(next)); } catch {} }, []);
-  const reset = async () => { const d = seed(); await save(d); setDetail(null); setModal(null); };
+  // Save: update in-memory state + persist to Supabase (async, non-blocking)
+  const save = useCallback(async next => {
+    const prev = data;
+    setData(next);
+    // Persist to Supabase in background — upsert changed tables
+    try {
+      for (const [key, table] of Object.entries(TABLES)) {
+        if (key === "settings") {
+          if (next[key] && JSON.stringify(next[key]) !== JSON.stringify(prev?.[key])) {
+            await sbUpsert(table, [{ ...toDb(next[key]), id: 1 }]);
+          }
+        } else if (next[key] && next[key] !== prev?.[key]) {
+          // Find new/changed rows by comparing IDs
+          const prevIds = new Set((prev?.[key] || []).map(r => JSON.stringify(r)));
+          const changed = next[key].filter(r => !prevIds.has(JSON.stringify(r)));
+          if (changed.length > 0) {
+            await sbUpsert(table, changed.map(toDb));
+          }
+        }
+      }
+    } catch (e) { console.log("Supabase save error (non-fatal):", e); }
+    // Also save to localStorage as fallback
+    try { await window.storage.set(SK, JSON.stringify(next)); } catch {}
+  }, [data]);
+
+  // Reset: seed fresh data + push to Supabase
+  const reset = async () => {
+    const d = seed();
+    setData(d);
+    setDetail(null);
+    setModal(null);
+    // Push seed data to Supabase
+    try {
+      for (const [key, table] of Object.entries(TABLES)) {
+        // Clear table first
+        await fetch(sb(table) + (key === "settings" ? "?id=eq.1" : "?id=neq.IMPOSSIBLE"), { method: "DELETE", headers: sbHeaders });
+        if (key === "settings") {
+          await sbUpsert(table, [{ ...toDb(d[key]), id: 1 }]);
+        } else if (d[key]?.length) {
+          await sbUpsert(table, d[key].map(toDb));
+        }
+      }
+    } catch (e) { console.log("Supabase reset error:", e); }
+    try { await window.storage.set(SK, JSON.stringify(d)); } catch {}
+  };
   const cust = id => data?.customers?.find(c => c.id === id);
   const prod = id => data?.products?.find(p => p.id === id);
   const loanForApp = appId => data?.loans?.find(l => l.appId === appId);
