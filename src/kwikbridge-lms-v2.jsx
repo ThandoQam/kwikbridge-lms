@@ -84,6 +84,8 @@ const PERMS = {
   documents:     { ADMIN:"view,create,update,delete,approve", EXEC:"view", CREDIT_HEAD:"view,approve", COMPLIANCE:"view,update,approve", CREDIT_SNR:"view,update", CREDIT:"view,update", LOAN_OFFICER:"view,create,update,approve", COLLECTIONS:"view", FINANCE:"view", AUDITOR:"view", VIEWER:"" },
   reports:       { ADMIN:"view,export", EXEC:"view,export", CREDIT_HEAD:"view,export", COMPLIANCE:"view,export", CREDIT_SNR:"view", CREDIT:"view", LOAN_OFFICER:"view", COLLECTIONS:"view", FINANCE:"view,export", AUDITOR:"view,export", VIEWER:"view,export" },
   comms:         { ADMIN:"view,create", EXEC:"view", CREDIT_HEAD:"view,create", COMPLIANCE:"view", CREDIT_SNR:"view,create", CREDIT:"view,create", LOAN_OFFICER:"view,create", COLLECTIONS:"view,create", FINANCE:"view", AUDITOR:"view", VIEWER:"" },
+  products:      { ADMIN:"view,create,update,delete", EXEC:"view", CREDIT_HEAD:"view,create,update", COMPLIANCE:"view", CREDIT_SNR:"view", CREDIT:"view", LOAN_OFFICER:"view", COLLECTIONS:"", FINANCE:"view", AUDITOR:"view", VIEWER:"" },
+  settings:      { ADMIN:"view,create,update,delete", EXEC:"view", CREDIT_HEAD:"", COMPLIANCE:"view", CREDIT_SNR:"", CREDIT:"", LOAN_OFFICER:"", COLLECTIONS:"", FINANCE:"view", AUDITOR:"view", VIEWER:"" },
 };
 
 // Approval authority by role (max loan amount)
@@ -128,12 +130,12 @@ function seed() {
   ];
 
   const products = [
-    { id:"P001", name:"SME Term Loan", minAmount:100000, maxAmount:5000000, minTerm:12, maxTerm:60, baseRate:14.5, description:"General purpose business finance for SMEs" },
-    { id:"P002", name:"Agri Finance", minAmount:200000, maxAmount:10000000, minTerm:12, maxTerm:84, baseRate:13.0, description:"Agricultural and agro-processing finance" },
-    { id:"P003", name:"Innovation Loan", minAmount:250000, maxAmount:3000000, minTerm:24, maxTerm:60, baseRate:15.0, description:"Technology and innovation business finance" },
-    { id:"P004", name:"Trade Finance", minAmount:100000, maxAmount:8000000, minTerm:3, maxTerm:12, baseRate:12.5, description:"Short-term trade and import/export finance" },
-    { id:"P005", name:"Asset Finance", minAmount:50000, maxAmount:5000000, minTerm:12, maxTerm:60, baseRate:13.5, description:"Equipment and asset acquisition finance" },
-    { id:"P006", name:"Empowerment Finance", minAmount:100000, maxAmount:3000000, minTerm:12, maxTerm:72, baseRate:12.0, description:"Preferential rates for qualifying BEE enterprises" },
+    { id:"P001", name:"SME Term Loan", minAmount:100000, maxAmount:5000000, minTerm:12, maxTerm:60, baseRate:14.5, description:"General purpose business finance for SMEs", repaymentType:"Amortising", arrangementFee:1.5, commitmentFee:0.5, gracePeriod:0, maxLTV:80, minDSCR:1.25, eligibleBEE:[1,2,3,4], eligibleIndustries:["All"], status:"Active", createdBy:"U001", createdAt:now-365*day },
+    { id:"P002", name:"Agri Finance", minAmount:200000, maxAmount:10000000, minTerm:12, maxTerm:84, baseRate:13.0, description:"Agricultural and agro-processing finance", repaymentType:"Seasonal", arrangementFee:1.0, commitmentFee:0.5, gracePeriod:3, maxLTV:70, minDSCR:1.2, eligibleBEE:[1,2,3,4], eligibleIndustries:["Agriculture","Food Processing"], status:"Active", createdBy:"U001", createdAt:now-365*day },
+    { id:"P003", name:"Innovation Loan", minAmount:250000, maxAmount:3000000, minTerm:24, maxTerm:60, baseRate:15.0, description:"Technology and innovation business finance", repaymentType:"Amortising", arrangementFee:2.0, commitmentFee:0.5, gracePeriod:6, maxLTV:60, minDSCR:1.3, eligibleBEE:[1,2,3], eligibleIndustries:["Technology","Professional Services"], status:"Active", createdBy:"U001", createdAt:now-365*day },
+    { id:"P004", name:"Trade Finance", minAmount:100000, maxAmount:8000000, minTerm:3, maxTerm:12, baseRate:12.5, description:"Short-term trade and import/export finance", repaymentType:"Bullet", arrangementFee:1.5, commitmentFee:1.0, gracePeriod:0, maxLTV:90, minDSCR:1.15, eligibleBEE:[1,2,3,4], eligibleIndustries:["All"], status:"Active", createdBy:"U001", createdAt:now-365*day },
+    { id:"P005", name:"Asset Finance", minAmount:50000, maxAmount:5000000, minTerm:12, maxTerm:60, baseRate:13.5, description:"Equipment and asset acquisition finance", repaymentType:"Amortising", arrangementFee:1.0, commitmentFee:0, gracePeriod:0, maxLTV:80, minDSCR:1.2, eligibleBEE:[1,2,3,4], eligibleIndustries:["All"], status:"Active", createdBy:"U001", createdAt:now-365*day },
+    { id:"P006", name:"Empowerment Finance", minAmount:100000, maxAmount:3000000, minTerm:12, maxTerm:72, baseRate:12.0, description:"Preferential rates for qualifying BEE enterprises", repaymentType:"Amortising", arrangementFee:0.5, commitmentFee:0, gracePeriod:3, maxLTV:85, minDSCR:1.15, eligibleBEE:[1,2], eligibleIndustries:["All"], status:"Active", createdBy:"U001", createdAt:now-365*day },
   ];
 
   const applications = [
@@ -547,6 +549,8 @@ export default function App() {
     { key: "documents", label: "Documents", icon: I.documents },
     { key: "reports", label: "Reports", icon: I.reports },
     { key: "comms", label: "Communications", icon: I.comms, count: comms.length },
+    { key: "products", label: "Products", icon: I.loans },
+    { key: "settings", label: "Settings", icon: I.governance },
   ].filter(n => canDo(n.key, "view"));
 
   const markRead = id => save({ ...data, alerts: alerts.map(a => a.id === id ? { ...a, read: true } : a) });
@@ -923,6 +927,8 @@ export default function App() {
       case "documents": return <Documents />;
       case "reports": return <Reports />;
       case "comms": return <Comms />;
+      case "products": return <Products />;
+      case "settings": return <Settings />;
       default: return <Dashboard />;
     }
   }
@@ -2060,26 +2066,237 @@ export default function App() {
         </SectionCard>}
       </div>);
     }
+  // ═══ PRODUCT MANAGEMENT ═══
+  const saveProduct = (prod) => {
+    if (!canDo("products","create") && !canDo("products","update")) { alert("Permission denied."); return; }
+    const isNew = !products.find(p => p.id === prod.id);
+    if (isNew) {
+      save({ ...data, products: [...products, { ...prod, id:`P${String(products.length+1).padStart(3,"0")}`, createdBy:currentUser.id, createdAt:Date.now() }], audit:[...audit, addAudit("Product Created", prod.name, currentUser.name, `New product: ${prod.name}. Rate: ${prod.baseRate}%. Range: ${fmt.cur(prod.minAmount)}-${fmt.cur(prod.maxAmount)}.`, "Configuration")] });
+    } else {
+      save({ ...data, products: products.map(p => p.id === prod.id ? { ...p, ...prod } : p), audit:[...audit, addAudit("Product Updated", prod.id, currentUser.name, `Product ${prod.name} updated.`, "Configuration")] });
+    }
+  };
+  const toggleProductStatus = (prodId) => {
+    if (!canDo("products","update")) { alert("Permission denied."); return; }
+    const p = products.find(x => x.id === prodId);
+    if (!p) return;
+    const newStatus = p.status === "Active" ? "Suspended" : "Active";
+    save({ ...data, products: products.map(x => x.id === prodId ? { ...x, status: newStatus } : x), audit:[...audit, addAudit(`Product ${newStatus}`, prodId, currentUser.name, `${p.name} status changed to ${newStatus}.`, "Configuration")] });
+  };
+
+  function Products() {
+    const [editing, setEditing] = useState(null);
+    const [pForm, setPForm] = useState(null);
+    const blank = { name:"", description:"", minAmount:100000, maxAmount:5000000, minTerm:12, maxTerm:60, baseRate:14.5, repaymentType:"Amortising", arrangementFee:1.0, commitmentFee:0.5, gracePeriod:0, maxLTV:80, minDSCR:1.25, eligibleBEE:[1,2,3,4], eligibleIndustries:["All"], status:"Active" };
+    const startEdit = (p) => { setPForm({...p}); setEditing(p.id); };
+    const startNew = () => { setPForm({...blank}); setEditing("new"); };
+    const cancelEdit = () => { setPForm(null); setEditing(null); };
+    const handleSave = () => {
+      if (!pForm.name) return;
+      if (editing === "new") saveProduct(pForm);
+      else saveProduct({ ...pForm, id: editing });
+      cancelEdit();
+    };
+
+    return (<div>
+      <div style={{ display:"flex", justifyContent:"space-between", marginBottom:20 }}>
+        <div><h2 style={{ margin:0, fontSize:22, fontWeight:700, color:C.text }}>Loan Products</h2><p style={{ margin:"4px 0 0", fontSize:13, color:C.textMuted }}>Product catalog configuration — rates, terms, fees, eligibility</p></div>
+        {canDo("products","create") && <Btn onClick={startNew} icon={I.plus}>New Product</Btn>}
+      </div>
+
+      {/* Edit/Create form */}
+      {pForm && (
+        <SectionCard title={editing === "new" ? "Create New Product" : `Edit: ${pForm.name}`}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:10 }}>
+            <Field label="Product Name"><Input value={pForm.name} onChange={e=>setPForm({...pForm,name:e.target.value})} /></Field>
+            <Field label="Repayment Type"><Select value={pForm.repaymentType} onChange={e=>setPForm({...pForm,repaymentType:e.target.value})} options={["Amortising","Bullet","Balloon","Seasonal"].map(v=>({value:v,label:v}))} /></Field>
+            <Field label="Status"><Select value={pForm.status} onChange={e=>setPForm({...pForm,status:e.target.value})} options={["Active","Suspended","Retired"].map(v=>({value:v,label:v}))} /></Field>
+          </div>
+          <Field label="Description"><Textarea value={pForm.description} onChange={e=>setPForm({...pForm,description:e.target.value})} rows={2} /></Field>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:10, marginBottom:10 }}>
+            <Field label="Min Amount (R)"><Input type="number" value={pForm.minAmount} onChange={e=>setPForm({...pForm,minAmount:+e.target.value})} /></Field>
+            <Field label="Max Amount (R)"><Input type="number" value={pForm.maxAmount} onChange={e=>setPForm({...pForm,maxAmount:+e.target.value})} /></Field>
+            <Field label="Min Term (m)"><Input type="number" value={pForm.minTerm} onChange={e=>setPForm({...pForm,minTerm:+e.target.value})} /></Field>
+            <Field label="Max Term (m)"><Input type="number" value={pForm.maxTerm} onChange={e=>setPForm({...pForm,maxTerm:+e.target.value})} /></Field>
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr 1fr", gap:10, marginBottom:10 }}>
+            <Field label="Base Rate %"><Input type="number" value={pForm.baseRate} onChange={e=>setPForm({...pForm,baseRate:+e.target.value})} /></Field>
+            <Field label="Arrangement Fee %"><Input type="number" value={pForm.arrangementFee} onChange={e=>setPForm({...pForm,arrangementFee:+e.target.value})} /></Field>
+            <Field label="Commitment Fee %"><Input type="number" value={pForm.commitmentFee} onChange={e=>setPForm({...pForm,commitmentFee:+e.target.value})} /></Field>
+            <Field label="Grace Period (m)"><Input type="number" value={pForm.gracePeriod} onChange={e=>setPForm({...pForm,gracePeriod:+e.target.value})} /></Field>
+            <Field label="Max LTV %"><Input type="number" value={pForm.maxLTV} onChange={e=>setPForm({...pForm,maxLTV:+e.target.value})} /></Field>
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
+            <Field label="Min DSCR"><Input type="number" value={pForm.minDSCR} onChange={e=>setPForm({...pForm,minDSCR:+e.target.value})} step="0.05" /></Field>
+            <Field label="Eligible BEE Levels (comma-sep)"><Input value={(pForm.eligibleBEE||[]).join(",")} onChange={e=>setPForm({...pForm,eligibleBEE:e.target.value.split(",").map(Number).filter(Boolean)})} /></Field>
+          </div>
+          <div style={{ display:"flex", gap:8, marginTop:12 }}>
+            <Btn onClick={handleSave}>Save Product</Btn>
+            <Btn variant="ghost" onClick={cancelEdit}>Cancel</Btn>
+          </div>
+        </SectionCard>
+      )}
+
+      {/* Product catalog table */}
+      <Table columns={[
+        { label:"Product", render:r=><div><div style={{ fontWeight:600, fontSize:12 }}>{r.name}</div><div style={{ fontSize:10, color:C.textMuted }}>{r.description}</div></div> },
+        { label:"Type", render:r=><span style={{ fontSize:11 }}>{r.repaymentType||"Amortising"}</span> },
+        { label:"Rate", render:r=><span style={{ fontSize:12, fontWeight:600 }}>{r.baseRate}%</span> },
+        { label:"Amount Range", render:r=><span style={{ fontSize:11 }}>{fmt.cur(r.minAmount)} – {fmt.cur(r.maxAmount)}</span> },
+        { label:"Term", render:r=><span style={{ fontSize:11 }}>{r.minTerm}–{r.maxTerm}m</span> },
+        { label:"Fees", render:r=><span style={{ fontSize:10, color:C.textDim }}>Arr: {r.arrangementFee||0}% · Com: {r.commitmentFee||0}%</span> },
+        { label:"LTV/DSCR", render:r=><span style={{ fontSize:10, color:C.textDim }}>LTV≤{r.maxLTV||80}% · DSCR≥{r.minDSCR||1.2}x</span> },
+        { label:"BEE", render:r=><span style={{ fontSize:10 }}>{(r.eligibleBEE||[]).join(",")}</span> },
+        { label:"Status", render:r=>statusBadge(r.status||"Active") },
+        { label:"Actions", render:r=><div style={{ display:"flex", gap:4 }}>
+          {canDo("products","update") && <Btn size="sm" variant="ghost" onClick={e=>{e.stopPropagation();startEdit(r)}}>Edit</Btn>}
+          {canDo("products","update") && <Btn size="sm" variant={r.status==="Active"?"ghost":"secondary"} onClick={e=>{e.stopPropagation();toggleProductStatus(r.id)}}>{r.status==="Active"?"Suspend":"Activate"}</Btn>}
+        </div> },
+      ]} rows={products} />
+    </div>);
+  }
+
+  // ═══ SETTINGS & ADMINISTRATION ═══
+  function Settings() {
+    const [editCompany, setEditCompany] = useState(false);
+    const [sForm, setSForm] = useState({...(settings||{})});
+    const handleSaveSettings = () => {
+      if (!canDo("settings","update")) { alert("Permission denied."); return; }
+      save({ ...data, settings: sForm, audit:[...audit, addAudit("Settings Updated", "System", currentUser.name, "Company settings modified.", "Configuration")] });
+      setEditCompany(false);
+    };
+
+    return (<div>
+      <h2 style={{ margin:"0 0 4px", fontSize:22, fontWeight:700, color:C.text }}>System Administration</h2>
+      <p style={{ margin:"0 0 20px", fontSize:13, color:C.textMuted }}>Company details, user management, approval matrix & system configuration</p>
+
+      {/* Company Details */}
+      <SectionCard title="Company Details" actions={canDo("settings","update") && !editCompany ? <Btn size="sm" variant="ghost" onClick={()=>{setSForm({...(settings||{})});setEditCompany(true)}}>Edit</Btn> : null}>
+        {!editCompany ? (
+          <InfoGrid items={[
+            ["Company Name", settings?.companyName],
+            ["NCR Registration", settings?.ncrReg],
+            ["NCR Expiry", settings?.ncrExpiry],
+            ["Branch", settings?.branch],
+            ["Financial Year-End", settings?.yearEnd],
+            ["Address", settings?.address || "East London, Nahoon Valley"],
+          ]} />
+        ) : (
+          <div>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
+              <Field label="Company Name"><Input value={sForm.companyName||""} onChange={e=>setSForm({...sForm,companyName:e.target.value})} /></Field>
+              <Field label="NCR Registration"><Input value={sForm.ncrReg||""} onChange={e=>setSForm({...sForm,ncrReg:e.target.value})} /></Field>
+              <Field label="NCR Expiry"><Input value={sForm.ncrExpiry||""} onChange={e=>setSForm({...sForm,ncrExpiry:e.target.value})} /></Field>
+              <Field label="Branch"><Input value={sForm.branch||""} onChange={e=>setSForm({...sForm,branch:e.target.value})} /></Field>
+              <Field label="Year-End"><Input value={sForm.yearEnd||""} onChange={e=>setSForm({...sForm,yearEnd:e.target.value})} /></Field>
+              <Field label="Address"><Input value={sForm.address||""} onChange={e=>setSForm({...sForm,address:e.target.value})} /></Field>
+            </div>
+            <div style={{ display:"flex", gap:8 }}><Btn onClick={handleSaveSettings}>Save</Btn><Btn variant="ghost" onClick={()=>setEditCompany(false)}>Cancel</Btn></div>
+          </div>
+        )}
+      </SectionCard>
+
+      {/* System Users */}
+      <SectionCard title={`System Users (${SYSTEM_USERS.length})`}>
+        <Table columns={[
+          { label:"ID", render:r=><span style={{ fontFamily:"monospace", fontSize:11 }}>{r.id}</span> },
+          { label:"Name", render:r=><div style={{ display:"flex", alignItems:"center", gap:6 }}><div style={{ width:22, height:22, borderRadius:2, background:C.surface2, border:`1px solid ${C.border}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:9, fontWeight:600, color:C.textDim }}>{r.initials}</div><span style={{ fontWeight:500 }}>{r.name}</span></div> },
+          { label:"Email", render:r=><span style={{ fontSize:11, color:C.textDim }}>{r.email}</span> },
+          { label:"Role", render:r=><Badge>{ROLES[r.role]?.label || r.role}</Badge> },
+          { label:"Tier", render:r=><span style={{ fontSize:11 }}>{ROLES[r.role]?.tier}</span> },
+          { label:"Approval Limit", render:r=>APPROVAL_LIMITS[r.role] ? (APPROVAL_LIMITS[r.role] === Infinity ? "Unlimited" : fmt.cur(APPROVAL_LIMITS[r.role])) : <span style={{ color:C.textMuted }}>—</span> },
+        ]} rows={SYSTEM_USERS} />
+      </SectionCard>
+
+      {/* Approval Authority Matrix */}
+      <SectionCard title="Approval Authority Matrix">
+        <Table columns={[
+          { label:"Role", render:r=><span style={{ fontWeight:500 }}>{ROLES[r.role]?.label}</span> },
+          { label:"Max Amount", render:r=>r.limit === Infinity ? "Unlimited" : r.limit > 0 ? fmt.cur(r.limit) : <span style={{ color:C.textMuted }}>No approval authority</span> },
+          { label:"Tier", render:r=>String(ROLES[r.role]?.tier) },
+        ]} rows={Object.keys(ROLES).map(k => ({ role:k, limit: APPROVAL_LIMITS[k] || 0 }))} />
+      </SectionCard>
+
+      {/* Product Summary */}
+      <SectionCard title={`Product Catalog Summary (${products.length})`} actions={<Btn size="sm" variant="ghost" onClick={()=>setPage("products")}>Manage Products {I.chev}</Btn>}>
+        <Table columns={[
+          { label:"Product", render:r=><span style={{ fontWeight:500 }}>{r.name}</span> },
+          { label:"Rate", render:r=>`${r.baseRate}%` },
+          { label:"Range", render:r=>`${fmt.cur(r.minAmount)} – ${fmt.cur(r.maxAmount)}` },
+          { label:"Status", render:r=>statusBadge(r.status||"Active") },
+        ]} rows={products} />
+      </SectionCard>
+
+      {/* RBAC Permission Matrix */}
+      {canDo("settings","view") && (
+        <SectionCard title="RBAC Permission Matrix">
+          <div style={{ overflowX:"auto" }}>
+            <table style={{ width:"100%", borderCollapse:"collapse", fontSize:10 }}>
+              <thead><tr style={{ borderBottom:`2px solid ${C.border}` }}>
+                <th style={{ textAlign:"left", padding:"4px 6px", fontWeight:600, color:C.text }}>Module</th>
+                {Object.keys(ROLES).map(r=><th key={r} style={{ textAlign:"center", padding:"4px 3px", fontWeight:500, color:C.textDim, fontSize:9 }}>{r.replace("_"," ")}</th>)}
+              </tr></thead>
+              <tbody>{Object.keys(PERMS).map(mod=>(
+                <tr key={mod} style={{ borderBottom:`1px solid ${C.border}` }}>
+                  <td style={{ padding:"3px 6px", fontWeight:500, color:C.text }}>{mod}</td>
+                  {Object.keys(ROLES).map(r=><td key={r} style={{ textAlign:"center", padding:"3px 2px", color:PERMS[mod]?.[r]?C.textDim:C.border, fontSize:9 }}>{PERMS[mod]?.[r]||"—"}</td>)}
+                </tr>
+              ))}</tbody>
+            </table>
+          </div>
+        </SectionCard>
+      )}
+    </div>);
+  }
+
     return null;
   }
 
   // ═══ MODALS ═══
   function NewAppModal() {
-    const [form, setForm] = useState({ custId: customers[0]?.id, product: products[0]?.id, amount: "", term: "36", purpose: "" });
+    const [form, setForm] = useState({ custId: customers[0]?.id, product: products.find(p=>p.status==="Active")?.id || products[0]?.id, amount: "", term: "36", purpose: "" });
     const p = prod(form.product);
+    const c = cust(form.custId);
+    const activeProducts = products.filter(pr => pr.status === "Active");
+    // Validation
+    const amt = +form.amount;
+    const trm = +form.term;
+    const errors = [];
+    if (p && amt) {
+      if (amt < p.minAmount) errors.push(`Below minimum (${fmt.cur(p.minAmount)})`);
+      if (amt > p.maxAmount) errors.push(`Exceeds maximum (${fmt.cur(p.maxAmount)})`);
+    }
+    if (p && trm) {
+      if (trm < p.minTerm) errors.push(`Term below minimum (${p.minTerm}m)`);
+      if (trm > p.maxTerm) errors.push(`Term exceeds maximum (${p.maxTerm}m)`);
+    }
+    if (p && c && p.eligibleBEE && !p.eligibleBEE.includes(0) && !(p.eligibleIndustries||[]).includes("All")) {
+      if (c.beeLevel && !p.eligibleBEE.includes(c.beeLevel)) errors.push(`Customer BEE Level ${c.beeLevel} not eligible (requires ${p.eligibleBEE.join(",")})`);
+    }
+    if (p && p.eligibleBEE && !(p.eligibleBEE.length===4) && c?.beeLevel && !p.eligibleBEE.includes(c.beeLevel)) {
+      errors.push(`BEE Level ${c.beeLevel} not eligible for ${p.name} (requires Level ${p.eligibleBEE.join(",")})`);
+    }
+    const canSubmit = form.amount && form.purpose && errors.length === 0;
+
     return (
-      <Modal open={modal === "newApp"} onClose={() => setModal(null)} title="New Loan Application" width={540}>
-        <Field label="Customer"><Select value={form.custId} onChange={e=>setForm({...form,custId:e.target.value})} options={customers.map(c=>({value:c.id,label:c.name}))} /></Field>
-        <Field label="Loan Product"><Select value={form.product} onChange={e=>setForm({...form,product:e.target.value})} options={products.map(p=>({value:p.id,label:`${p.name} (${p.baseRate}%)`}))} /></Field>
-        {p && <div style={{ background:C.surface2, padding:10, marginBottom:16, fontSize:11, color:C.textDim, border:`1px solid ${C.border}` }}>{p.description} · Range: {fmt.cur(p.minAmount)} – {fmt.cur(p.maxAmount)} · Term: {p.minTerm}–{p.maxTerm}m</div>}
+      <Modal open={modal === "newApp"} onClose={() => setModal(null)} title="New Loan Application" width={560}>
+        <Field label="Customer"><Select value={form.custId} onChange={e=>setForm({...form,custId:e.target.value})} options={customers.map(c=>({value:c.id,label:`${c.name} (BEE ${c.beeLevel})`}))} /></Field>
+        <Field label="Loan Product"><Select value={form.product} onChange={e=>setForm({...form,product:e.target.value})} options={activeProducts.map(p=>({value:p.id,label:`${p.name} (${p.baseRate}%, ${p.repaymentType||"Amortising"})`}))} /></Field>
+        {p && <div style={{ background:C.surface2, padding:10, marginBottom:12, fontSize:11, color:C.textDim, border:`1px solid ${C.border}`, lineHeight:1.6 }}>
+          {p.description}<br/>
+          Range: {fmt.cur(p.minAmount)} – {fmt.cur(p.maxAmount)} · Term: {p.minTerm}–{p.maxTerm}m · Grace: {p.gracePeriod||0}m<br/>
+          Fees: Arrangement {p.arrangementFee||0}% · Commitment {p.commitmentFee||0}% · Max LTV: {p.maxLTV||80}% · Min DSCR: {p.minDSCR||1.2}x<br/>
+          BEE Eligibility: Level {(p.eligibleBEE||[]).join(", ")}
+        </div>}
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-          <Field label="Amount (R)"><Input type="number" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} placeholder="e.g. 500000" /></Field>
-          <Field label="Term (months)"><Input type="number" value={form.term} onChange={e=>setForm({...form,term:e.target.value})} placeholder="e.g. 36" /></Field>
+          <Field label="Amount (R)"><Input type="number" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} placeholder={p?`${fmt.cur(p.minAmount)} – ${fmt.cur(p.maxAmount)}`:"e.g. 500000"} /></Field>
+          <Field label="Term (months)"><Input type="number" value={form.term} onChange={e=>setForm({...form,term:e.target.value})} placeholder={p?`${p.minTerm} – ${p.maxTerm}`:"e.g. 36"} /></Field>
         </div>
+        {errors.length > 0 && <div style={{ background:"#fff5f5", border:`1px solid ${C.red}`, padding:"6px 10px", marginBottom:12, fontSize:11, color:C.red }}>{errors.map((e,i)=><div key={i}>{e}</div>)}</div>}
         <Field label="Purpose of Loan"><Textarea value={form.purpose} onChange={e=>setForm({...form,purpose:e.target.value})} placeholder="Describe the purpose..." rows={3} /></Field>
-        <div style={{ display:"flex", gap:12, marginTop:20 }}>
+        <div style={{ display:"flex", gap:12, marginTop:16 }}>
           <Btn variant="ghost" onClick={()=>setModal(null)} style={{ flex:1 }}>Cancel</Btn>
-          <Btn onClick={()=>{if(form.amount&&form.purpose)submitApp(form)}} disabled={!form.amount||!form.purpose}>Submit Application</Btn>
+          <Btn onClick={()=>{if(canSubmit){submitApp(form);setModal(null)}}} disabled={!canSubmit}>Submit Application</Btn>
         </div>
       </Modal>
     );
