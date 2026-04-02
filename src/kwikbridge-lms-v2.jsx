@@ -518,34 +518,41 @@ export default function App() {
 
   useEffect(() => {
     (async () => {
-      // Try loading from Supabase first
+      // Try Supabase with a 3-second timeout
       try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 3000);
+        const sbGetWithTimeout = async (table) => {
+          const r = await fetch(sb(table) + "?order=id", { headers: sbHeaders, signal: controller.signal });
+          return r.ok ? r.json() : [];
+        };
         const results = {};
         let hasData = false;
         for (const [key, table] of Object.entries(TABLES)) {
           if (key === "settings") {
-            const rows = await sbGet(table);
+            const rows = await sbGetWithTimeout(table);
             results[key] = rows[0] ? fromDb(rows[0]) : null;
           } else {
-            const rows = await sbGet(table);
+            const rows = await sbGetWithTimeout(table);
             results[key] = rows.map(fromDb);
             if (rows.length > 0) hasData = true;
           }
         }
+        clearTimeout(timeout);
         if (hasData) {
-          // Ensure settings exists
           if (!results.settings) results.settings = { companyName:"ThandoQ and Associates (Pty) Ltd", ncrReg:"NCRCP22396", ncrExpiry:"31 July 2026", branch:"East London, Nahoon Valley" };
           setData(results);
           return;
         }
-      } catch (e) { console.log("Supabase load failed, falling back to local:", e); }
-      // Fallback: try window.storage
+      } catch (e) { console.log("Supabase load skipped:", e.name); }
+      // Fallback: window.storage
       try {
         const r = await window.storage.get(SK);
         if (r?.value) { setData(JSON.parse(r.value)); return; }
       } catch {}
       // Last resort: seed
       const d = seed();
+      try { await window.storage.set(SK, JSON.stringify(d)); } catch {}
       setData(d);
     })();
   }, []);
@@ -581,19 +588,19 @@ export default function App() {
     setData(d);
     setDetail(null);
     setModal(null);
-    // Push seed data to Supabase
-    try {
-      for (const [key, table] of Object.entries(TABLES)) {
-        // Clear table first
-        await fetch(sb(table) + (key === "settings" ? "?id=eq.1" : "?id=neq.IMPOSSIBLE"), { method: "DELETE", headers: sbHeaders });
-        if (key === "settings") {
-          await sbUpsert(table, [{ ...toDb(d[key]), id: 1 }]);
-        } else if (d[key]?.length) {
-          await sbUpsert(table, d[key].map(toDb));
-        }
-      }
-    } catch (e) { console.log("Supabase reset error:", e); }
+    setPage("dashboard");
+    // Persist locally first (instant)
     try { await window.storage.set(SK, JSON.stringify(d)); } catch {}
+    // Then try Supabase in background (may fail in sandboxed environments)
+    (async () => {
+      try {
+        for (const [key, table] of Object.entries(TABLES)) {
+          await fetch(sb(table) + (key === "settings" ? "?id=eq.1" : "?id=neq.IMPOSSIBLE"), { method: "DELETE", headers: sbHeaders });
+          if (key === "settings") await sbUpsert(table, [{ ...toDb(d[key]), id: 1 }]);
+          else if (d[key]?.length) await sbUpsert(table, d[key].map(toDb));
+        }
+      } catch {}
+    })();
   };
   const cust = id => data?.customers?.find(c => c.id === id);
   const prod = id => data?.products?.find(p => p.id === id);
