@@ -879,6 +879,24 @@ export default function App() {
     const w = { ...(a.workflow||{}), siteVisitNotes: notes };
     save({ ...data, applications: applications.map(x => x.id === appId ? { ...x, workflow: w } : x) });
   };
+  const saveSiteVisitField = (appId, fieldIndex, value) => {
+    const a = applications.find(x => x.id === appId);
+    if (!a) return;
+    const w = { ...(a.workflow || {}) };
+    const findings = [...(w.siteVisitFindings || [])];
+    if (findings[fieldIndex]) findings[fieldIndex] = { ...findings[fieldIndex], value };
+    w.siteVisitFindings = findings;
+    save({ ...data, applications: applications.map(x => x.id === appId ? { ...x, workflow: w } : x) });
+  };
+  const saveSiteVisitRating = (appId, fieldIndex, rating) => {
+    const a = applications.find(x => x.id === appId);
+    if (!a) return;
+    const w = { ...(a.workflow || {}) };
+    const findings = [...(w.siteVisitFindings || [])];
+    if (findings[fieldIndex]) findings[fieldIndex] = { ...findings[fieldIndex], rating };
+    w.siteVisitFindings = findings;
+    save({ ...data, applications: applications.map(x => x.id === appId ? { ...x, workflow: w } : x) });
+  };
 
   const runDDStep = (appId, stepKey) => {
     const a = applications.find(x => x.id === appId);
@@ -963,19 +981,23 @@ export default function App() {
     }
 
     if (stepKey === "sitevisit") {
-      const findings = [
-        { item:"Premises Inspection", detail:`Visited ${c?.address}. Premises are ${c?.industry === "Construction" ? "an operational yard with equipment storage" : c?.industry === "Agriculture" ? "a working farm with crop/livestock areas" : "a commercial premises suitable for stated operations"}.` },
-        { item:"Operational Activity", detail:`Business is actively trading. ${c?.employees || 0} staff observed on site. Equipment and inventory consistent with stated operations.` },
-        { item:"Management Interview", detail:`Interview conducted with ${c?.contact} (${c?.years || 0} years experience). Management demonstrates ${c?.riskCategory === "Low" ? "strong" : c?.riskCategory === "Medium" ? "adequate" : "developing"} understanding of business operations, market dynamics, and financial management.` },
-        { item:"Infrastructure Assessment", detail:`Facilities are ${c?.revenue > 5000000 ? "well-maintained and adequate for current and projected volumes" : "functional and adequate for current operations. Expansion may require additional investment"}.` },
-        { item:"Revenue Verification", detail:`Stated annual revenue of ${fmt.cur(c?.revenue || 0)} is ${c?.employees > 20 ? "consistent" : "broadly consistent"} with observed activity levels, staffing, and industry benchmarks for ${c?.sector || c?.industry}.` },
-        { item:"Risk Observations", detail: c?.riskCategory === "High" ? "Concentration risk noted — significant revenue dependence on limited number of contracts. Cash flow timing mismatch between project milestones and debt service dates." : c?.riskCategory === "Medium" ? "Moderate seasonal cash flow variation observed. Customer aware and manages through working capital facility." : "No material risk factors observed beyond normal business risk for the sector." },
+      // Generate blank structured assessment form — officer fills in after actual visit
+      const existing = w.siteVisitFindings || [];
+      const findings = existing.length > 0 ? existing : [
+        { item:"Visit Details", field:"visitDetails", value:"", placeholder:`Date of visit, address visited (${c?.address}), attendees, duration` },
+        { item:"Premises Inspection", field:"premises", value:"", placeholder:"Describe physical premises — condition, suitability, ownership/lease, signage, access" },
+        { item:"Operational Activity", field:"operations", value:"", placeholder:"Staff observed on site, active trading evidence, equipment/inventory, workflow" },
+        { item:"Management Interview", field:"management", value:"", placeholder:`Interview with ${c?.contact} — experience, capability, strategy, understanding of financials` },
+        { item:"Infrastructure & Capacity", field:"infrastructure", value:"", placeholder:"Facilities condition, adequacy for current/projected volumes, technology, maintenance" },
+        { item:"Revenue Verification", field:"revenue", value:"", placeholder:`Stated revenue ${fmt.cur(c?.revenue||0)} — consistency with observed activity, stock levels, foot traffic` },
+        { item:"Risk Observations", field:"risks", value:"", placeholder:"Concerns, red flags, concentration risk, dependency, environmental, compliance issues" },
+        { item:"Overall Assessment", field:"assessment", value:"", rating:"", placeholder:"Summary recommendation — satisfactory / concerns noted / unsatisfactory" },
       ];
       w.siteVisitComplete = false;
       w.siteVisitFindings = findings;
       w.siteVisitDate = Date.now();
       w.siteVisitOfficer = null;
-      newAudit.push(addAudit("Site Visit Completed", a.id, "Loan Officer – J. Ndaba", `Site visit at ${c?.address}. ${c?.employees} staff on site. ${findings.length} areas assessed.`, "Underwriting"));
+      newAudit.push(addAudit("Site Visit Form Created", a.id, currentUser.name, `Site visit assessment form initiated for ${c?.name} at ${c?.address}.`, "Underwriting"));
     }
 
     if (stepKey === "credit") {
@@ -2745,16 +2767,53 @@ export default function App() {
           </div>}
           {w.docsComplete && <div style={{ marginTop:4, fontSize:10, color:C.green }}>Signed off by {w.docsOfficer}</div>}
         </div>);
-        if (s.key==="sitevisit") return (<div>
-          {!w.siteVisitDate && <div style={{ fontSize:11, color:C.textMuted, marginBottom:6 }}>Generate site visit findings template, add your observations, then sign off.</div>}
-          {w.siteVisitFindings && renderReadOnly(w.siteVisitFindings)}
-          {isUW && <div style={{ marginTop:6 }}>
-            <div style={{ fontSize:10, fontWeight:600, color:C.text, marginBottom:3 }}>Officer Observations</div>
-            <textarea value={w.siteVisitNotes||""} onChange={e=>saveSiteVisitNotes(a.id,e.target.value)} placeholder="Site visit observations, management impressions, concerns..." rows={3} style={{ width:"100%", padding:"5px 6px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:11, fontFamily:"inherit", outline:"none", resize:"vertical", boxSizing:"border-box", lineHeight:1.5 }} />
+        if (s.key==="sitevisit") {
+          const findings = w.siteVisitFindings || [];
+          const filledCount = findings.filter(f => f.value && f.value.trim().length > 10).length;
+          const allFilled = findings.length > 0 && findings.every(f => f.value && f.value.trim().length > 5);
+          return (<div>
+          {!w.siteVisitDate && <div style={{ fontSize:11, color:C.textMuted, marginBottom:6 }}>Click "Generate Findings" to create the site visit assessment form. Complete each field after the physical visit, then sign off.</div>}
+          {findings.length > 0 && <div>
+            <div style={{ fontSize:10, color:C.textMuted, marginBottom:6 }}>{filledCount}/{findings.length} sections completed{allFilled ? " — ready for sign-off" : ""}</div>
+            <div style={{ border:`1px solid ${C.border}` }}>
+              {findings.map((f, i) => (
+                <div key={i} style={{ padding:"8px 10px", borderBottom:i<findings.length-1?`1px solid ${C.border}`:"none" }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
+                    <span style={{ fontSize:11, fontWeight:600, color:C.text }}>{f.item}</span>
+                    {f.value && f.value.trim().length > 5 ? <span style={{ fontSize:9, color:C.green }}>Completed</span> : <span style={{ fontSize:9, color:C.amber }}>Required</span>}
+                  </div>
+                  {isUW && !w.siteVisitComplete ? (
+                    <textarea value={f.value||""} onChange={e=>saveSiteVisitField(a.id,i,e.target.value)} placeholder={f.placeholder||""} rows={2} style={{ width:"100%", padding:"4px 6px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:11, fontFamily:"inherit", outline:"none", resize:"vertical", boxSizing:"border-box", lineHeight:1.5 }} />
+                  ) : (
+                    <div style={{ fontSize:11, color:f.value ? C.textDim : C.textMuted, lineHeight:1.5, fontStyle:f.value?"normal":"italic" }}>{f.value || "Not completed"}</div>
+                  )}
+                  {f.item === "Overall Assessment" && isUW && !w.siteVisitComplete && (
+                    <div style={{ display:"flex", gap:6, marginTop:4 }}>
+                      {["Satisfactory","Concerns Noted","Unsatisfactory"].map(r => (
+                        <button key={r} onClick={()=>saveSiteVisitRating(a.id,i,r)} style={{ padding:"2px 8px", fontSize:10, border:`1px solid ${f.rating===r?C.text:C.border}`, background:f.rating===r?C.text:"transparent", color:f.rating===r?"#fff":C.textDim, cursor:"pointer", fontFamily:"inherit" }}>{r}</button>
+                      ))}
+                    </div>
+                  )}
+                  {f.item === "Overall Assessment" && f.rating && (
+                    <div style={{ fontSize:10, marginTop:3, fontWeight:500, color:f.rating==="Satisfactory"?C.green:f.rating==="Unsatisfactory"?C.red:C.amber }}>Rating: {f.rating}</div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>}
-          {isUW && w.siteVisitDate && !w.siteVisitComplete && <div style={{ marginTop:4, display:"flex", justifyContent:"flex-end" }}><Btn size="sm" onClick={()=>signOffStep(a.id,"sitevisit")}>Sign Off</Btn></div>}
+          {isUW && <div style={{ marginTop:8 }}>
+            <div style={{ fontSize:10, fontWeight:600, color:C.text, marginBottom:3 }}>Additional Notes</div>
+            <textarea value={w.siteVisitNotes||""} onChange={e=>saveSiteVisitNotes(a.id,e.target.value)} placeholder="Any additional observations not covered above..." rows={2} style={{ width:"100%", padding:"5px 6px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:11, fontFamily:"inherit", outline:"none", resize:"vertical", boxSizing:"border-box", lineHeight:1.5 }} />
+          </div>}
+          {isUW && w.siteVisitDate && !w.siteVisitComplete && (
+            <div style={{ marginTop:6, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+              <span style={{ fontSize:10, color:allFilled?C.green:C.amber }}>{allFilled ? "All sections completed. Ready for sign-off." : `${filledCount}/${findings.length} completed. Complete all sections to sign off.`}</span>
+              <Btn size="sm" onClick={()=>signOffStep(a.id,"sitevisit")} disabled={!allFilled}>Sign Off</Btn>
+            </div>
+          )}
           {w.siteVisitComplete && <div style={{ marginTop:4, fontSize:10, color:C.green }}>Signed off by {w.siteVisitOfficer}</div>}
         </div>);
+        }
         if (s.key==="credit") return (<div>
           {!w.creditDate && <div style={{ fontSize:11, color:C.textMuted, marginBottom:6 }}>Pull credit bureau report, run affordability and ratio analysis. Review results and confirm.</div>}
           {w.creditFindings && renderReadOnly(w.creditFindings)}
