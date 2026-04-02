@@ -509,7 +509,26 @@ export default function App() {
   const [notifOpen, setNotifOpen] = useState(false);
   const [modal, setModal] = useState(null);
   const [sideCollapsed, setSideCollapsed] = useState(false);
-  const [currentUser, setCurrentUser] = useState(SYSTEM_USERS[0]); // default: Admin
+  const [currentUser, setCurrentUser] = useState(SYSTEM_USERS[0]);
+  // Hoisted state for detail views and page forms (fixes React Rules of Hooks)
+  const [detailEditing, setDetailEditing] = useState(false);
+  const [detailForm, setDetailForm] = useState({});
+  const [detailBeeForm, setDetailBeeForm] = useState({level:3,expiry:""});
+  const [expandedStep, setExpandedStep] = useState(null);
+  const [notifForm, setNotifForm] = useState({subject:"",body:""});
+  const [reqDocType, setReqDocType] = useState("");
+  const [prodEditing, setProdEditing] = useState(null);
+  const [prodForm, setProdForm] = useState(null);
+  const [settingsEditing, setSettingsEditing] = useState(false);
+  const [settingsForm, setSettingsForm] = useState({});
+  const [withdrawId, setWithdrawId] = useState(null);
+  const [withdrawReason, setWithdrawReason] = useState("");
+  const [actionModal, setActionModal] = useState(null);
+  const [ptpForm, setPtpForm] = useState({date:"",amount:"",notes:""});
+  const [restructForm, setRestructForm] = useState({type:"Term Extension",detail:"",approver:"Credit Committee"});
+  const [writeOffReason, setWriteOffReason] = useState("");
+  const [auditFilter, setAuditFilter] = useState({category:"",user:"",entity:""});
+  const [schedLoan, setSchedLoan] = useState(null);
   const role = currentUser.role;
   const canDo = (mod, action) => can(role, mod, action);
   const canDoAny = (mod, actions) => canAny(role, mod, actions);
@@ -1358,8 +1377,6 @@ export default function App() {
   // ═══ 3. ORIGINATION ═══
   function Origination() {
     const [tab, setTab] = useState("all");
-    const [withdrawId, setWithdrawId] = useState(null);
-    const [withdrawReason, setWithdrawReason] = useState("");
     const tabs = [
       { key:"all", label:"All", count:applications.length },
       { key:"Submitted", label:"Submitted", count:applications.filter(a=>a.status==="Submitted").length },
@@ -1490,7 +1507,6 @@ export default function App() {
   // ═══ 6. SERVICING ═══
   function Servicing() {
     const [tab, setTab] = useState("upcoming");
-    const [schedLoan, setSchedLoan] = useState(null);
     const activeLoans = loans.filter(l => l.status === "Active");
     const overdue = activeLoans.filter(l => l.dpd > 0);
     const allPmts = loans.flatMap(l => l.payments.map(p => ({ ...p, loanId: l.id }))).sort((a,b) => b.date - a.date);
@@ -1607,10 +1623,6 @@ export default function App() {
     const activeLoans = loans.filter(l => l.status === "Active");
     const delinquent = activeLoans.filter(l => l.dpd > 0);
     const [tab, setTab] = useState("accounts");
-    const [actionModal, setActionModal] = useState(null); // {loanId, type}
-    const [ptpForm, setPtpForm] = useState({date:"",amount:"",notes:""});
-    const [restructForm, setRestructForm] = useState({type:"Term Extension",detail:"",approver:"Credit Committee"});
-    const [writeOffReason, setWriteOffReason] = useState("");
     const ptps = collections.filter(c=>c.ptpDate);
     const pendingWriteOffs = collections.filter(c=>c.writeOff);
     const early = delinquent.filter(l=>l.dpd<=30);
@@ -1780,7 +1792,6 @@ export default function App() {
   // ═══ 9. GOVERNANCE ═══
   function Governance() {
     const [tab, setTab] = useState("audit");
-    const [auditFilter, setAuditFilter] = useState({ category:"", user:"", entity:"" });
     const categories = [...new Set(audit.map(a=>a.category).filter(Boolean))].sort();
     const users = [...new Set(audit.map(a=>a.user).filter(Boolean))].sort();
     let filteredAudit = [...audit].sort((a,b)=>b.ts-a.ts);
@@ -2335,9 +2346,6 @@ export default function App() {
       const ca = applications.filter(a=>a.custId===c.id);
       const cl = loans.filter(l=>l.custId===c.id);
       const custDocs = (documents||[]).filter(d=>d.custId===c.id);
-      const [editing, setEditing] = useState(false);
-      const [eForm, setEForm] = useState({...c});
-      const [beeForm, setBeeForm] = useState({ level:c.beeLevel, expiry:c.beeExpiry ? new Date(c.beeExpiry).toISOString().split("T")[0] : "" });
 
       const ficaActions = {
         "Pending": [{ label:"Start KYC Review", target:"Under Review" }],
@@ -2355,30 +2363,30 @@ export default function App() {
         </div>
 
         {/* Profile — read or edit */}
-        <SectionCard title="Customer Profile" actions={canDo("customers","update") && !editing ? <Btn size="sm" variant="ghost" onClick={()=>{setEForm({...c});setEditing(true)}}>Edit</Btn> : null}>
-          {!editing ? (
+        <SectionCard title="Customer Profile" actions={canDo("customers","update") && !detailEditing ? <Btn size="sm" variant="ghost" onClick={()=>{setDetailForm({...c});setDetailEditing(true)}}>Edit</Btn> : null}>
+          {!detailEditing ? (
             <InfoGrid items={[["Contact",c.contact],["Email",c.email],["Phone",c.phone],["ID Number",c.idNum],["Reg Number",c.regNum],["Address",c.address],["Annual Revenue",fmt.cur(c.revenue)],["Employees",c.employees],["Years in Business",c.years],["Sector",c.sector],["BEE Expiry",fmt.date(c.beeExpiry)],["FICA Date",fmt.date(c.ficaDate)],["Created",fmt.date(c.created)]]} />
           ) : (
             <div>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:10 }}>
-                <Field label="Business Name"><Input value={eForm.name} onChange={e=>setEForm({...eForm,name:e.target.value})} /></Field>
-                <Field label="Contact"><Input value={eForm.contact} onChange={e=>setEForm({...eForm,contact:e.target.value})} /></Field>
-                <Field label="Email"><Input value={eForm.email} onChange={e=>setEForm({...eForm,email:e.target.value})} /></Field>
+                <Field label="Business Name"><Input value={detailForm.name} onChange={e=>setDetailForm({...detailForm,name:e.target.value})} /></Field>
+                <Field label="Contact"><Input value={detailForm.contact} onChange={e=>setDetailForm({...detailForm,contact:e.target.value})} /></Field>
+                <Field label="Email"><Input value={detailForm.email} onChange={e=>setDetailForm({...detailForm,email:e.target.value})} /></Field>
               </div>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:10, marginBottom:10 }}>
-                <Field label="Phone"><Input value={eForm.phone} onChange={e=>setEForm({...eForm,phone:e.target.value})} /></Field>
-                <Field label="Industry"><Select value={eForm.industry} onChange={e=>setEForm({...eForm,industry:e.target.value})} options={["Retail","Agriculture","Technology","Construction","Food Processing","Transport","Manufacturing","Professional Services","Other"].map(v=>({value:v,label:v}))} /></Field>
-                <Field label="Revenue"><Input type="number" value={eForm.revenue} onChange={e=>setEForm({...eForm,revenue:+e.target.value})} /></Field>
-                <Field label="Employees"><Input type="number" value={eForm.employees} onChange={e=>setEForm({...eForm,employees:+e.target.value})} /></Field>
+                <Field label="Phone"><Input value={detailForm.phone} onChange={e=>setDetailForm({...detailForm,phone:e.target.value})} /></Field>
+                <Field label="Industry"><Select value={detailForm.industry} onChange={e=>setDetailForm({...detailForm,industry:e.target.value})} options={["Retail","Agriculture","Technology","Construction","Food Processing","Transport","Manufacturing","Professional Services","Other"].map(v=>({value:v,label:v}))} /></Field>
+                <Field label="Revenue"><Input type="number" value={detailForm.revenue} onChange={e=>setDetailForm({...detailForm,revenue:+e.target.value})} /></Field>
+                <Field label="Employees"><Input type="number" value={detailForm.employees} onChange={e=>setDetailForm({...detailForm,employees:+e.target.value})} /></Field>
               </div>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:10 }}>
-                <Field label="Address"><Input value={eForm.address} onChange={e=>setEForm({...eForm,address:e.target.value})} /></Field>
-                <Field label="Province"><Select value={eForm.province} onChange={e=>setEForm({...eForm,province:e.target.value})} options={["Eastern Cape","Western Cape","Gauteng","KwaZulu-Natal","Free State","North West","Limpopo","Mpumalanga","Northern Cape"].map(v=>({value:v,label:v}))} /></Field>
-                <Field label="Risk Category"><Select value={eForm.riskCategory} onChange={e=>setEForm({...eForm,riskCategory:e.target.value})} options={["Low","Medium","High"].map(v=>({value:v,label:v}))} /></Field>
+                <Field label="Address"><Input value={detailForm.address} onChange={e=>setDetailForm({...detailForm,address:e.target.value})} /></Field>
+                <Field label="Province"><Select value={detailForm.province} onChange={e=>setDetailForm({...detailForm,province:e.target.value})} options={["Eastern Cape","Western Cape","Gauteng","KwaZulu-Natal","Free State","North West","Limpopo","Mpumalanga","Northern Cape"].map(v=>({value:v,label:v}))} /></Field>
+                <Field label="Risk Category"><Select value={detailForm.riskCategory} onChange={e=>setDetailForm({...detailForm,riskCategory:e.target.value})} options={["Low","Medium","High"].map(v=>({value:v,label:v}))} /></Field>
               </div>
               <div style={{ display:"flex", gap:8 }}>
-                <Btn onClick={()=>{updateCustomer(c.id,eForm);setEditing(false)}}>Save Changes</Btn>
-                <Btn variant="ghost" onClick={()=>setEditing(false)}>Cancel</Btn>
+                <Btn onClick={()=>{updateCustomer(c.id,detailForm);setDetailEditing(false)}}>Save Changes</Btn>
+                <Btn variant="ghost" onClick={()=>setDetailEditing(false)}>Cancel</Btn>
               </div>
             </div>
           )}
@@ -2410,15 +2418,15 @@ export default function App() {
               <div style={{ fontSize:11, color:C.textMuted }}>{c.beeExpiry ? `Expires: ${fmt.date(c.beeExpiry)}${c.beeExpiry < now + 90*day ? " ⚠ Expiring soon" : ""}` : "No expiry date"}</div>
             </div>
             {canDoAny("customers",["update"]) && <div style={{ display:"flex", gap:6, marginLeft:"auto" }}>
-              {c.beeStatus !== "Verified" && <Btn size="sm" onClick={()=>updateBeeStatus(c.id,"Verified",beeForm.level,beeForm.expiry)}>Verify BEE</Btn>}
+              {c.beeStatus !== "Verified" && <Btn size="sm" onClick={()=>updateBeeStatus(c.id,"Verified",detailBeeForm.level,detailBeeForm.expiry)}>Verify BEE</Btn>}
               {c.beeStatus === "Verified" && <Btn size="sm" variant="secondary" onClick={()=>updateBeeStatus(c.id,"Expired",null,null)}>Mark Expired</Btn>}
               <Btn size="sm" variant="ghost" onClick={()=>updateBeeStatus(c.id,"Pending Review",null,null)}>Reset</Btn>
             </div>}
           </div>
           {canDoAny("customers",["update"]) && (
             <div style={{ display:"flex", gap:10, alignItems:"flex-end" }}>
-              <Field label="BEE Level"><Select value={beeForm.level} onChange={e=>setBeeForm({...beeForm,level:e.target.value})} options={[1,2,3,4,5,6,7,8].map(v=>({value:v,label:`Level ${v}`}))} /></Field>
-              <Field label="Certificate Expiry"><Input type="date" value={beeForm.expiry} onChange={e=>setBeeForm({...beeForm,expiry:e.target.value})} /></Field>
+              <Field label="BEE Level"><Select value={detailBeeForm.level} onChange={e=>setDetailBeeForm({...detailBeeForm,level:e.target.value})} options={[1,2,3,4,5,6,7,8].map(v=>({value:v,label:`Level ${v}`}))} /></Field>
+              <Field label="Certificate Expiry"><Input type="date" value={detailBeeForm.expiry} onChange={e=>setDetailBeeForm({...detailBeeForm,expiry:e.target.value})} /></Field>
             </div>
           )}
         </SectionCard>
@@ -2463,9 +2471,6 @@ export default function App() {
       const isDecided = ["Approved","Declined"].includes(a.status);
       const appDocs = (documents||[]).filter(d => d.custId === a.custId && (d.appId === a.id || !d.appId));
       const allDDComplete = w.kycComplete && w.docsComplete && w.siteVisitComplete && w.financialAnalysisComplete && w.collateralAssessed && w.socialVerified;
-      const [expandedStep, setExpandedStep] = useState(null);
-      const [notifForm, setNotifForm] = useState({subject:"",body:""});
-      const [reqDocType, setReqDocType] = useState("");
 
       const steps = [
         { key:"submitted", label:"1. Application Received", done:true, hasData:true },
@@ -2778,16 +2783,14 @@ export default function App() {
   };
 
   function Products() {
-    const [editing, setEditing] = useState(null);
-    const [pForm, setPForm] = useState(null);
     const blank = { name:"", description:"", minAmount:100000, maxAmount:5000000, minTerm:12, maxTerm:60, baseRate:14.5, repaymentType:"Amortising", arrangementFee:1.0, commitmentFee:0.5, gracePeriod:0, maxLTV:80, minDSCR:1.25, eligibleBEE:[1,2,3,4], eligibleIndustries:["All"], status:"Active" };
-    const startEdit = (p) => { setPForm({...p}); setEditing(p.id); };
-    const startNew = () => { setPForm({...blank}); setEditing("new"); };
-    const cancelEdit = () => { setPForm(null); setEditing(null); };
+    const startEdit = (p) => { setProdForm({...p}); setProdEditing(p.id); };
+    const startNew = () => { setProdForm({...blank}); setProdEditing("new"); };
+    const cancelEdit = () => { setProdForm(null); setProdEditing(null); };
     const handleSave = () => {
-      if (!pForm.name) return;
-      if (editing === "new") saveProduct(pForm);
-      else saveProduct({ ...pForm, id: editing });
+      if (!prodForm.name) return;
+      if (prodEditing === "new") saveProduct(prodForm);
+      else saveProduct({ ...prodForm, id: prodEditing });
       cancelEdit();
     };
 
@@ -2798,30 +2801,30 @@ export default function App() {
       </div>
 
       {/* Edit/Create form */}
-      {pForm && (
-        <SectionCard title={editing === "new" ? "Create New Product" : `Edit: ${pForm.name}`}>
+      {prodForm && (
+        <SectionCard title={prodEditing === "new" ? "Create New Product" : `Edit: ${prodForm.name}`}>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:10 }}>
-            <Field label="Product Name"><Input value={pForm.name} onChange={e=>setPForm({...pForm,name:e.target.value})} /></Field>
-            <Field label="Repayment Type"><Select value={pForm.repaymentType} onChange={e=>setPForm({...pForm,repaymentType:e.target.value})} options={["Amortising","Bullet","Balloon","Seasonal"].map(v=>({value:v,label:v}))} /></Field>
-            <Field label="Status"><Select value={pForm.status} onChange={e=>setPForm({...pForm,status:e.target.value})} options={["Active","Suspended","Retired"].map(v=>({value:v,label:v}))} /></Field>
+            <Field label="Product Name"><Input value={prodForm.name} onChange={e=>setProdForm({...prodForm,name:e.target.value})} /></Field>
+            <Field label="Repayment Type"><Select value={prodForm.repaymentType} onChange={e=>setProdForm({...prodForm,repaymentType:e.target.value})} options={["Amortising","Bullet","Balloon","Seasonal"].map(v=>({value:v,label:v}))} /></Field>
+            <Field label="Status"><Select value={prodForm.status} onChange={e=>setProdForm({...prodForm,status:e.target.value})} options={["Active","Suspended","Retired"].map(v=>({value:v,label:v}))} /></Field>
           </div>
-          <Field label="Description"><Textarea value={pForm.description} onChange={e=>setPForm({...pForm,description:e.target.value})} rows={2} /></Field>
+          <Field label="Description"><Textarea value={prodForm.description} onChange={e=>setProdForm({...prodForm,description:e.target.value})} rows={2} /></Field>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:10, marginBottom:10 }}>
-            <Field label="Min Amount (R)"><Input type="number" value={pForm.minAmount} onChange={e=>setPForm({...pForm,minAmount:+e.target.value})} /></Field>
-            <Field label="Max Amount (R)"><Input type="number" value={pForm.maxAmount} onChange={e=>setPForm({...pForm,maxAmount:+e.target.value})} /></Field>
-            <Field label="Min Term (m)"><Input type="number" value={pForm.minTerm} onChange={e=>setPForm({...pForm,minTerm:+e.target.value})} /></Field>
-            <Field label="Max Term (m)"><Input type="number" value={pForm.maxTerm} onChange={e=>setPForm({...pForm,maxTerm:+e.target.value})} /></Field>
+            <Field label="Min Amount (R)"><Input type="number" value={prodForm.minAmount} onChange={e=>setProdForm({...prodForm,minAmount:+e.target.value})} /></Field>
+            <Field label="Max Amount (R)"><Input type="number" value={prodForm.maxAmount} onChange={e=>setProdForm({...prodForm,maxAmount:+e.target.value})} /></Field>
+            <Field label="Min Term (m)"><Input type="number" value={prodForm.minTerm} onChange={e=>setProdForm({...prodForm,minTerm:+e.target.value})} /></Field>
+            <Field label="Max Term (m)"><Input type="number" value={prodForm.maxTerm} onChange={e=>setProdForm({...prodForm,maxTerm:+e.target.value})} /></Field>
           </div>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr 1fr", gap:10, marginBottom:10 }}>
-            <Field label="Base Rate %"><Input type="number" value={pForm.baseRate} onChange={e=>setPForm({...pForm,baseRate:+e.target.value})} /></Field>
-            <Field label="Arrangement Fee %"><Input type="number" value={pForm.arrangementFee} onChange={e=>setPForm({...pForm,arrangementFee:+e.target.value})} /></Field>
-            <Field label="Commitment Fee %"><Input type="number" value={pForm.commitmentFee} onChange={e=>setPForm({...pForm,commitmentFee:+e.target.value})} /></Field>
-            <Field label="Grace Period (m)"><Input type="number" value={pForm.gracePeriod} onChange={e=>setPForm({...pForm,gracePeriod:+e.target.value})} /></Field>
-            <Field label="Max LTV %"><Input type="number" value={pForm.maxLTV} onChange={e=>setPForm({...pForm,maxLTV:+e.target.value})} /></Field>
+            <Field label="Base Rate %"><Input type="number" value={prodForm.baseRate} onChange={e=>setProdForm({...prodForm,baseRate:+e.target.value})} /></Field>
+            <Field label="Arrangement Fee %"><Input type="number" value={prodForm.arrangementFee} onChange={e=>setProdForm({...prodForm,arrangementFee:+e.target.value})} /></Field>
+            <Field label="Commitment Fee %"><Input type="number" value={prodForm.commitmentFee} onChange={e=>setProdForm({...prodForm,commitmentFee:+e.target.value})} /></Field>
+            <Field label="Grace Period (m)"><Input type="number" value={prodForm.gracePeriod} onChange={e=>setProdForm({...prodForm,gracePeriod:+e.target.value})} /></Field>
+            <Field label="Max LTV %"><Input type="number" value={prodForm.maxLTV} onChange={e=>setProdForm({...prodForm,maxLTV:+e.target.value})} /></Field>
           </div>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
-            <Field label="Min DSCR"><Input type="number" value={pForm.minDSCR} onChange={e=>setPForm({...pForm,minDSCR:+e.target.value})} step="0.05" /></Field>
-            <Field label="Eligible BEE Levels (comma-sep)"><Input value={(pForm.eligibleBEE||[]).join(",")} onChange={e=>setPForm({...pForm,eligibleBEE:e.target.value.split(",").map(Number).filter(Boolean)})} /></Field>
+            <Field label="Min DSCR"><Input type="number" value={prodForm.minDSCR} onChange={e=>setProdForm({...prodForm,minDSCR:+e.target.value})} step="0.05" /></Field>
+            <Field label="Eligible BEE Levels (comma-sep)"><Input value={(prodForm.eligibleBEE||[]).join(",")} onChange={e=>setProdForm({...prodForm,eligibleBEE:e.target.value.split(",").map(Number).filter(Boolean)})} /></Field>
           </div>
           <div style={{ display:"flex", gap:8, marginTop:12 }}>
             <Btn onClick={handleSave}>Save Product</Btn>
@@ -2851,12 +2854,10 @@ export default function App() {
 
   // ═══ SETTINGS & ADMINISTRATION ═══
   function Settings() {
-    const [editCompany, setEditCompany] = useState(false);
-    const [sForm, setSForm] = useState({...(settings||{})});
     const handleSaveSettings = () => {
       if (!canDo("settings","update")) { alert("Permission denied."); return; }
-      save({ ...data, settings: sForm, audit:[...audit, addAudit("Settings Updated", "System", currentUser.name, "Company settings modified.", "Configuration")] });
-      setEditCompany(false);
+      save({ ...data, settings: settingsForm, audit:[...audit, addAudit("Settings Updated", "System", currentUser.name, "Company settings modified.", "Configuration")] });
+      setSettingsEditing(false);
     };
 
     return (<div>
@@ -2864,8 +2865,8 @@ export default function App() {
       <p style={{ margin:"0 0 20px", fontSize:13, color:C.textMuted }}>Company details, user management, approval matrix & system configuration</p>
 
       {/* Company Details */}
-      <SectionCard title="Company Details" actions={canDo("settings","update") && !editCompany ? <Btn size="sm" variant="ghost" onClick={()=>{setSForm({...(settings||{})});setEditCompany(true)}}>Edit</Btn> : null}>
-        {!editCompany ? (
+      <SectionCard title="Company Details" actions={canDo("settings","update") && !settingsEditing ? <Btn size="sm" variant="ghost" onClick={()=>{setSettingsForm({...(settings||{})});setSettingsEditing(true)}}>Edit</Btn> : null}>
+        {!settingsEditing ? (
           <InfoGrid items={[
             ["Company Name", settings?.companyName],
             ["NCR Registration", settings?.ncrReg],
@@ -2877,14 +2878,14 @@ export default function App() {
         ) : (
           <div>
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
-              <Field label="Company Name"><Input value={sForm.companyName||""} onChange={e=>setSForm({...sForm,companyName:e.target.value})} /></Field>
-              <Field label="NCR Registration"><Input value={sForm.ncrReg||""} onChange={e=>setSForm({...sForm,ncrReg:e.target.value})} /></Field>
-              <Field label="NCR Expiry"><Input value={sForm.ncrExpiry||""} onChange={e=>setSForm({...sForm,ncrExpiry:e.target.value})} /></Field>
-              <Field label="Branch"><Input value={sForm.branch||""} onChange={e=>setSForm({...sForm,branch:e.target.value})} /></Field>
-              <Field label="Year-End"><Input value={sForm.yearEnd||""} onChange={e=>setSForm({...sForm,yearEnd:e.target.value})} /></Field>
-              <Field label="Address"><Input value={sForm.address||""} onChange={e=>setSForm({...sForm,address:e.target.value})} /></Field>
+              <Field label="Company Name"><Input value={settingsForm.companyName||""} onChange={e=>setSettingsForm({...settingsForm,companyName:e.target.value})} /></Field>
+              <Field label="NCR Registration"><Input value={settingsForm.ncrReg||""} onChange={e=>setSettingsForm({...settingsForm,ncrReg:e.target.value})} /></Field>
+              <Field label="NCR Expiry"><Input value={settingsForm.ncrExpiry||""} onChange={e=>setSettingsForm({...settingsForm,ncrExpiry:e.target.value})} /></Field>
+              <Field label="Branch"><Input value={settingsForm.branch||""} onChange={e=>setSettingsForm({...settingsForm,branch:e.target.value})} /></Field>
+              <Field label="Year-End"><Input value={settingsForm.yearEnd||""} onChange={e=>setSettingsForm({...settingsForm,yearEnd:e.target.value})} /></Field>
+              <Field label="Address"><Input value={settingsForm.address||""} onChange={e=>setSettingsForm({...settingsForm,address:e.target.value})} /></Field>
             </div>
-            <div style={{ display:"flex", gap:8 }}><Btn onClick={handleSaveSettings}>Save</Btn><Btn variant="ghost" onClick={()=>setEditCompany(false)}>Cancel</Btn></div>
+            <div style={{ display:"flex", gap:8 }}><Btn onClick={handleSaveSettings}>Save</Btn><Btn variant="ghost" onClick={()=>setSettingsEditing(false)}>Cancel</Btn></div>
           </div>
         )}
       </SectionCard>
