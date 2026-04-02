@@ -553,7 +553,13 @@ export default function App() {
       // Fallback: window.storage
       try {
         const r = await store.get(SK);
-        if (r?.value) { setData(JSON.parse(r.value)); return; }
+        if (r?.value) {
+          const loaded = JSON.parse(r.value);
+          // Check if cached data has the current schema (qaSignedOff on apps)
+          const hasCurrentSchema = loaded.applications?.some(a => a.qaSignedOff !== undefined);
+          if (hasCurrentSchema) { setData(loaded); return; }
+          // Outdated cache — discard and re-seed
+        }
       } catch {}
       // Last resort: seed
       const d = seed();
@@ -590,13 +596,17 @@ export default function App() {
   // Reset: seed fresh data + push to Supabase
   const reset = async () => {
     const d = seed();
+    // Clear ALL cached data first
+    try { await store.set(SK, ""); } catch {}
+    try { localStorage.removeItem(SK); } catch {}
+    // Set fresh data
     setData(d);
     setDetail(null);
     setModal(null);
     setPage("dashboard");
-    // Persist locally first (instant)
+    // Persist
     try { await store.set(SK, JSON.stringify(d)); } catch {}
-    // Then try Supabase in background (may fail in sandboxed environments)
+    // Supabase push in background
     (async () => {
       try {
         for (const [key, table] of Object.entries(TABLES)) {
