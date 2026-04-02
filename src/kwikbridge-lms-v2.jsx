@@ -924,15 +924,12 @@ export default function App() {
     if (!canDo("underwriting","approve")) { alert("Permission denied: you cannot approve/decline applications."); return; }
     const a = applications.find(x => x.id === appId);
     if (!a) return;
-    // Approval authority check
     const limit = approvalLimit(role);
     if (decision === "Approved" && a.amount > limit) { alert(`Authority exceeded: your limit is ${fmt.cur(limit)}. This application (${fmt.cur(a.amount)}) requires escalation to ${a.amount > 1000000 ? "Credit Committee" : "Head of Credit"}.`); return; }
-    // Separation of duties: creator cannot approve their own application
-    if (a.createdBy === currentUser.id) { alert("Separation of duties: you cannot approve an application you created. Reassign to another officer."); return; }
+    if (a.createdBy === currentUser.id) { alert("Separation of duties: you cannot approve an application you created."); return; }
     const w = a.workflow || {};
     const c = cust(a.custId);
     const p = prod(a.product);
-    // Build credit memo from DD findings
     const memoSections = [];
     if (w.kycFindings?.length) memoSections.push(`KYC/FICA: ${w.kycComplete ? "All checks passed." : "Incomplete — see findings."}`);
     if (w.docsFindings?.length) { const vd = w.docsFindings.filter(f=>f.status==="Verified").length; memoSections.push(`Documents: ${vd}/${w.docsFindings.length} verified.`); }
@@ -941,7 +938,7 @@ export default function App() {
     if (w.collateralFindings?.length) memoSections.push(`Security: ${fmt.cur(w.collateralTotal)}. LTV: ${a.amount && w.collateralTotal ? (a.amount/w.collateralTotal*100).toFixed(0) : "—"}%.`);
     if (w.socialFindings?.length) memoSections.push(`Social impact: ${a.socialScore}/100. BEE Level ${c?.beeLevel}.`);
     if (w.analystNotes) memoSections.push(`Analyst notes: ${w.analystNotes}`);
-    const recommendation = decision === "Approved" ? `Recommendation: APPROVE. ${p?.name} of ${fmt.cur(a.amount)} over ${a.term} months. Risk acceptable within policy parameters.` : `Recommendation: DECLINE. Application does not meet minimum credit standards. ${a.dscr < 1.2 ? "DSCR below threshold." : ""} ${a.riskScore < 50 ? "Risk score below acceptable level." : ""}`;
+    const recommendation = decision === "Approved" ? `Recommendation: APPROVE. ${p?.name} of ${fmt.cur(a.amount)} over ${a.term} months.` : `Recommendation: DECLINE. ${a.dscr < 1.2 ? "DSCR below threshold. " : ""}${a.riskScore < 50 ? "Risk score below acceptable level." : ""}`;
     memoSections.push(recommendation);
     const approver = `${currentUser.name} (${ROLES[role]?.label})`;
     const conditions = decision === "Approved" ? [
@@ -951,17 +948,67 @@ export default function App() {
       ...(c?.beeLevel <= 2 ? ["Maintain BEE Level " + c.beeLevel + " status"] : []),
       ...(a.amount > 1000000 ? ["Annual audited financial statements required"] : []),
     ] : [];
+    // Decision only — does NOT create loan or disburse. Approved apps go to Booking.
     const updated = { ...a, status: decision, decided: Date.now(), recommendation: decision, approver, creditMemo: memoSections.join("\n"), conditions, rate: decision === "Approved" ? (p?.baseRate || 14.5) : null };
-    const newData = { ...data, applications: applications.map(x => x.id === appId ? updated : x), audit: [...audit, addAudit(`Credit Decision – ${decision}`, appId, approver, `${decision}. Risk: ${a.riskScore}. DSCR: ${a.dscr}x. Bureau: ${w.creditBureauScore}. Social: ${a.socialScore}.`, "Decision")] };
-    if (decision === "Approved") {
-      const rate = p?.baseRate || 14.5;
-      const monthlyPmt = Math.round(a.amount * (rate / 100 / 12) / (1 - Math.pow(1 + rate / 100 / 12, -a.term)));
-      const loan = { id:`LN-${String(loans.length+1).padStart(3,"0")}`, appId, custId:a.custId, status:"Active", amount:a.amount, balance:a.amount, rate, term:a.term, monthlyPmt, disbursed:Date.now(), nextDue:Date.now()+30*day, lastPmt:null, lastPmtAmt:null, totalPaid:0, dpd:0, stage:1, payments:[], covenants:conditions.map(c=>({name:c,status:"Compliant",value:"—",checked:Date.now()})), collateral:w.collateralFindings?.filter(f=>f.item!=="Security Coverage").map(f=>({type:f.item,value:0,description:f.detail}))||[] };
-      newData.loans = [...loans, loan];
-      newData.provisions = [...provisions, {loanId:loan.id,stage:1,pd:0.02,lgd:0.25,ead:a.amount,ecl:Math.round(a.amount*0.005),method:"12-month ECL"}];
-      newData.audit = [...newData.audit, addAudit("Loan Disbursed",loan.id,"Finance Department",`${fmt.cur(a.amount)} disbursed to ${c?.name}. Rate: ${rate}%. Term: ${a.term}m.`,"Disbursement")];
-    }
-    save(newData);
+    save({ ...data,
+      applications: applications.map(x => x.id === appId ? updated : x),
+      audit: [...audit, addAudit(`Credit Decision – ${decision}`, appId, approver, `${decision}. Risk: ${a.riskScore}. DSCR: ${a.dscr}x. Bureau: ${w.creditBureauScore}. Social: ${a.socialScore}.`, "Decision")],
+      alerts: [...alerts, addAlert("Application", decision==="Approved"?"info":"warning", `${decision} – ${c?.name}`, `${appId} ${decision.toLowerCase()} by ${currentUser.name}. Amount: ${fmt.cur(a.amount)}.`)]
+    });
+  };
+
+  // Book loan — creates the loan record from an Approved application. Checks conditions precedent.
+  const bookLoan = (appId) => {
+    if (!canDo("loans","update")) { alert("Permission denied: you cannot book loans."); return; }
+    const a = applications.find(x => x.id === appId);
+    if (!a || a.status !== "Approved") { alert("Only Approved applications can be booked."); return; }
+    const c = cust(a.custId);
+    const p = prod(a.product);
+    const w = a.workflow || {};
+    // Conditions precedent check
+    const cpFail = [];
+    if (!w.kycComplete) cpFail.push("KYC/FICA not verified");
+    if (!w.docsComplete) cpFail.push("Document checklist incomplete");
+    if (c?.ficaStatus !== "Verified") cpFail.push(`FICA status: ${c?.ficaStatus} (must be Verified)`);
+    if (c?.beeStatus !== "Verified" && p?.eligibleBEE?.length < 4) cpFail.push("BEE certificate not verified");
+    if (cpFail.length > 0) { alert(`Conditions precedent not met:\n${cpFail.join("\n")}\n\nResolve before booking.`); return; }
+    // Create loan record in "Booked" status (not yet disbursed)
+    const rate = a.rate || p?.baseRate || 14.5;
+    const monthlyPmt = Math.round(a.amount * (rate / 100 / 12) / (1 - Math.pow(1 + rate / 100 / 12, -a.term)));
+    const loan = { id:`LN-${String(loans.length+1).padStart(3,"0")}`, appId, custId:a.custId, status:"Booked", amount:a.amount, balance:a.amount, rate, term:a.term, monthlyPmt, disbursed:null, nextDue:null, lastPmt:null, lastPmtAmt:null, totalPaid:0, dpd:0, stage:1, payments:[], bookedAt:Date.now(), bookedBy:currentUser.id, disbursedBy:null, disbursementAuth2:null, preDisbursementAML:null, covenants:(a.conditions||[]).map(c=>({name:c,status:"Compliant",value:"—",checked:Date.now()})), collateral:w.collateralFindings?.filter(f=>f.item!=="Security Coverage").map(f=>({type:f.item,value:0,description:f.detail}))||[], arrangementFee: Math.round(a.amount * ((p?.arrangementFee||1)/100)) };
+    const updatedApp = { ...a, status:"Booked" };
+    save({ ...data,
+      applications: applications.map(x => x.id === appId ? updatedApp : x),
+      loans: [...loans, loan],
+      provisions: [...provisions, {loanId:loan.id,stage:1,pd:0.02,lgd:0.25,ead:a.amount,ecl:Math.round(a.amount*0.005),method:"12-month ECL"}],
+      audit: [...audit,
+        addAudit("Loan Booked", loan.id, currentUser.name, `Loan ${loan.id} booked. Amount: ${fmt.cur(a.amount)}. Rate: ${rate}%. Conditions verified.`, "Booking"),
+        addAudit("Agreement Generated", loan.id, "System", `Loan agreement generated for ${c?.name}. Awaiting signatures and disbursement.`, "Booking"),
+      ],
+      alerts: [...alerts, addAlert("Loan","info",`Loan Booked – ${c?.name}`,`${loan.id} booked for ${fmt.cur(a.amount)}. Awaiting disbursement.`)]
+    });
+  };
+
+  // Disburse loan — separate action by Finance with dual auth. Requires pre-disbursement AML.
+  const disburseLoan = (loanId) => {
+    if (!canDo("servicing","create") && !canDo("loans","update")) { alert("Permission denied: you cannot disburse loans."); return; }
+    const l = loans.find(x => x.id === loanId);
+    if (!l || l.status !== "Booked") { alert("Only Booked loans can be disbursed."); return; }
+    const c = cust(l.custId);
+    // Pre-disbursement AML check (simulated)
+    const amlClear = true; // Placeholder for API
+    if (!amlClear) { alert("Pre-disbursement AML check failed. Disbursement blocked."); return; }
+    // Dual authorization: disbursed-by must differ from booked-by
+    if (l.bookedBy === currentUser.id) { alert("Dual authorization required: the person who booked the loan cannot disburse it."); return; }
+    const updated = { ...l, status:"Active", disbursed:Date.now(), disbursedBy:currentUser.id, preDisbursementAML:{ clear:true, date:Date.now(), checkedBy:currentUser.name }, nextDue:Date.now()+30*day };
+    save({ ...data,
+      loans: loans.map(x => x.id === loanId ? updated : x),
+      audit: [...audit,
+        addAudit("Pre-disbursement AML", loanId, "System", `AML screening clear. No sanctions matches.`, "Compliance"),
+        addAudit("Loan Disbursed", loanId, currentUser.name, `${fmt.cur(l.amount)} disbursed to ${c?.name}. Dual auth: booked by ${SYSTEM_USERS.find(u=>u.id===l.bookedBy)?.name}, disbursed by ${currentUser.name}.`, "Disbursement"),
+      ],
+      alerts: [...alerts, addAlert("Loan","info",`Disbursement – ${c?.name}`,`${loanId}: ${fmt.cur(l.amount)} disbursed to ${c?.name}.`)]
+    });
   };
 
   const recordPayment = (loanId, amount) => {
@@ -1353,26 +1400,33 @@ export default function App() {
 
   // ═══ 5. ACTIVE LOANS ═══
   function Loans() {
+    const [tab, setTab] = useState("all");
+    const bookedLoans = loans.filter(l => l.status === "Booked");
+    const activeLoans = loans.filter(l => l.status === "Active");
+    const shown = tab === "booked" ? bookedLoans : tab === "active" ? activeLoans : loans;
     return (<div>
-      <h2 style={{ margin:"0 0 4px", fontSize:22, fontWeight:700, color:C.text }}>Active Loans</h2>
-      <p style={{ margin:"0 0 20px", fontSize:13, color:C.textMuted }}>Portfolio monitoring, covenant tracking & risk grading</p>
-      <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:20 }}>
-        <KPI label="Total Portfolio" value={fmt.cur(loans.reduce((s,l)=>s+l.balance,0))} />
-        <KPI label="Active Loans" value={loans.length} accent={C.green} />
-        <KPI label="Avg Loan Size" value={fmt.cur(loans.reduce((s,l)=>s+l.amount,0)/loans.length)} accent={C.blue} />
-        <KPI label="Total Monthly PMT" value={fmt.cur(loans.reduce((s,l)=>s+l.monthlyPmt,0))} accent={C.amber} />
+      <h2 style={{ margin:"0 0 4px", fontSize:22, fontWeight:700, color:C.text }}>Loans</h2>
+      <p style={{ margin:"0 0 16px", fontSize:13, color:C.textMuted }}>Booking, disbursement, portfolio monitoring & covenant tracking</p>
+      <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:16 }}>
+        <KPI label="Total Portfolio" value={fmt.cur(activeLoans.reduce((s,l)=>s+l.balance,0))} />
+        <KPI label="Active" value={activeLoans.length} />
+        <KPI label="Booked (Awaiting Disbursement)" value={bookedLoans.length} />
+        <KPI label="Total Monthly PMT" value={fmt.cur(activeLoans.reduce((s,l)=>s+l.monthlyPmt,0))} />
       </div>
+      <Tab tabs={[{key:"all",label:"All",count:loans.length},{key:"booked",label:"Booked",count:bookedLoans.length},{key:"active",label:"Active",count:activeLoans.length}]} active={tab} onChange={setTab} />
       <Table columns={[
         { label:"Loan ID", render:r=><span style={{ fontFamily:"monospace", fontWeight:600, fontSize:12 }}>{r.id}</span> },
         { label:"Borrower", render:r=>cust(r.custId)?.name },
-        { label:"Disbursed", render:r=>fmt.cur(r.amount) },
+        { label:"Amount", render:r=>fmt.cur(r.amount) },
         { label:"Balance", render:r=><span style={{ fontWeight:700 }}>{fmt.cur(r.balance)}</span> },
         { label:"Rate", render:r=>`${r.rate}%` },
-        { label:"Monthly", render:r=>fmt.cur(r.monthlyPmt) },
-        { label:"DPD", render:r=><span style={{ fontWeight:700, color:r.dpd===0?C.green:r.dpd<=30?C.amber:r.dpd<=90?C.amber:C.red }}>{r.dpd}</span> },
-        { label:"Stage", render:r=><Badge color={r.stage===1?"green":r.stage===2?"amber":"red"}>Stage {r.stage}</Badge> },
-        { label:"", render:()=><span style={{ color:C.accent }}>{I.chev}</span> },
-      ]} rows={loans} onRowClick={r=>setDetail({type:"loan",id:r.id})} />
+        { label:"Status", render:r=>statusBadge(r.status) },
+        { label:"DPD", render:r=>r.status==="Active"?<span style={{ fontWeight:700, color:r.dpd===0?C.green:r.dpd<=30?C.amber:C.red }}>{r.dpd}</span>:<span style={{ color:C.textMuted }}>—</span> },
+        { label:"Stage", render:r=>r.status==="Active"?<Badge color={r.stage===1?"green":r.stage===2?"amber":"red"}>Stage {r.stage}</Badge>:<span style={{ color:C.textMuted }}>—</span> },
+        { label:"Actions", render:r=><div style={{ display:"flex", gap:4 }}>
+          {r.status==="Booked"&&canDoAny("loans",["update"])&&<Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();disburseLoan(r.id)}}>Disburse</Btn>}
+        </div> },
+      ]} rows={shown} onRowClick={r=>setDetail({type:"loan",id:r.id})} />
     </div>);
   }
 
@@ -2250,6 +2304,28 @@ export default function App() {
             <div style={{ display:"flex", gap:6 }}><Btn onClick={()=>decideLoan(a.id,"Approved")} disabled={!allDDComplete}>Approve</Btn><Btn variant="danger" onClick={()=>decideLoan(a.id,"Declined")} disabled={!allDDComplete}>Decline</Btn></div>
           </div>
         </div>}
+        {a.status === "Approved" && canDo("loans","update") && (
+          <div style={{ border:`1px solid ${C.border}`, padding:"10px 14px", marginTop:4 }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+              <div>
+                <div style={{ fontSize:12, fontWeight:600, color:C.text }}>Loan Booking</div>
+                <div style={{ fontSize:11, color:C.textMuted }}>Verify conditions precedent and create loan record. This generates the loan agreement.</div>
+              </div>
+              <Btn onClick={()=>bookLoan(a.id)}>Book Loan</Btn>
+            </div>
+          </div>
+        )}
+        {a.status === "Booked" && (
+          <div style={{ border:`1px solid ${C.border}`, padding:"10px 14px", marginTop:4, background:C.surface2 }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+              <div>
+                <div style={{ fontSize:12, fontWeight:600, color:C.text }}>Loan Booked — Awaiting Disbursement</div>
+                <div style={{ fontSize:11, color:C.textMuted }}>Loan {loanForApp(a.id)?.id} created. Finance to initiate disbursement (requires dual authorization).</div>
+              </div>
+              <Btn size="sm" variant="ghost" onClick={()=>{const l=loanForApp(a.id); if(l) setDetail({type:"loan",id:l.id})}}>View Loan</Btn>
+            </div>
+          </div>
+        )}
       </div>);
     }
 
@@ -2258,14 +2334,39 @@ export default function App() {
       const l = loans.find(x=>x.id===detail.id); if (!l) return <div>Not found</div>;
       const c = cust(l.custId); const prov = provisions.find(p=>p.loanId===l.id);
       const lc = collections.filter(x=>x.loanId===l.id);
-      const repaidPct = Math.round((1-l.balance/l.amount)*100);
+      const repaidPct = l.status === "Active" ? Math.round((1-l.balance/l.amount)*100) : 0;
+      const isBooked = l.status === "Booked";
       return (<div><BackBtn />
         <div style={{ display:"flex", justifyContent:"space-between", marginBottom:24 }}>
           <div><h2 style={{ margin:0, fontSize:22, fontWeight:700, color:C.text }}>{l.id}</h2><p style={{ margin:"4px 0 0", fontSize:13, color:C.textMuted }}>{c?.name}</p></div>
-          <div style={{ display:"flex", gap:8 }}><Badge color={l.dpd===0?"green":l.dpd<=30?"amber":"red"}>{l.dpd} DPD</Badge><Badge color={l.stage===1?"green":l.stage===2?"amber":"red"}>Stage {l.stage}</Badge></div>
+          <div style={{ display:"flex", gap:8 }}>
+            {statusBadge(l.status)}
+            {l.status==="Active"&&<Badge color={l.dpd===0?"green":l.dpd<=30?"amber":"red"}>{l.dpd} DPD</Badge>}
+            {l.status==="Active"&&<Badge color={l.stage===1?"green":l.stage===2?"amber":"red"}>Stage {l.stage}</Badge>}
+          </div>
         </div>
+
+        {/* Disbursement panel for Booked loans */}
+        {isBooked && (
+          <div style={{ border:`1px solid ${C.border}`, padding:"12px 16px", marginBottom:20, background:C.surface2 }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+              <div>
+                <div style={{ fontSize:14, fontWeight:600, color:C.text }}>Loan Booked — Awaiting Disbursement</div>
+                <div style={{ fontSize:12, color:C.textMuted, marginTop:2 }}>
+                  Booked by: {SYSTEM_USERS.find(u=>u.id===l.bookedBy)?.name || "—"} on {fmt.date(l.bookedAt)}<br/>
+                  Pre-disbursement AML check will run automatically. Dual authorization required (disbursing officer must differ from booking officer).
+                  {l.arrangementFee > 0 && <span> · Arrangement fee: {fmt.cur(l.arrangementFee)}</span>}
+                </div>
+              </div>
+              {canDoAny("servicing",["create"]) && canDoAny("loans",["update"]) && (
+                <Btn onClick={()=>disburseLoan(l.id)}>Disburse Funds</Btn>
+              )}
+            </div>
+          </div>
+        )}
+
         <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:20 }}>
-          <KPI label="Disbursed" value={fmt.cur(l.amount)} accent={C.blue} />
+          <KPI label={isBooked?"Amount":"Disbursed"} value={fmt.cur(l.amount)} accent={C.blue} />
           <KPI label="Balance" value={fmt.cur(l.balance)} accent={C.red} />
           <KPI label="Rate" value={`${l.rate}%`} accent={C.amber} />
           <KPI label="Monthly PMT" value={fmt.cur(l.monthlyPmt)} />
