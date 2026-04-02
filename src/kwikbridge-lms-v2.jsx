@@ -1780,50 +1780,107 @@ export default function App() {
   // ═══ 9. GOVERNANCE ═══
   function Governance() {
     const [tab, setTab] = useState("audit");
+    const [auditFilter, setAuditFilter] = useState({ category:"", user:"", entity:"" });
+    const categories = [...new Set(audit.map(a=>a.category).filter(Boolean))].sort();
+    const users = [...new Set(audit.map(a=>a.user).filter(Boolean))].sort();
+    let filteredAudit = [...audit].sort((a,b)=>b.ts-a.ts);
+    if (auditFilter.category) filteredAudit = filteredAudit.filter(a=>a.category===auditFilter.category);
+    if (auditFilter.user) filteredAudit = filteredAudit.filter(a=>a.user===auditFilter.user);
+    if (auditFilter.entity) filteredAudit = filteredAudit.filter(a=>a.entity?.toLowerCase().includes(auditFilter.entity.toLowerCase()));
+
+    const controlPoints = [
+      { control:"FICA Verification", module:"Onboarding", status: customers.every(c=>c.ficaStatus==="Verified") ? "All Verified" : `${customers.filter(c=>c.ficaStatus!=="Verified").length} pending`, ok: customers.filter(c=>c.ficaStatus!=="Verified").length === 0 },
+      { control:"Approval Authority Limits", module:"Underwriting", status:"Enforced in code", ok:true },
+      { control:"Separation of Duties", module:"Underwriting", status:"Creator ≠ Approver enforced", ok:true },
+      { control:"Dual Disbursement Auth", module:"Disbursement", status:"Booker ≠ Disburser enforced", ok:true },
+      { control:"Sanctions Screening", module:"Origination", status: applications.some(a=>a.sanctionsFlag) ? "HITS DETECTED" : "All clear", ok: !applications.some(a=>a.sanctionsFlag) },
+      { control:"BEE Certificate Monitoring", module:"Compliance", status: `${customers.filter(c=>c.beeExpiry&&c.beeExpiry<now+90*day).length} expiring within 90 days`, ok: customers.filter(c=>c.beeExpiry&&c.beeExpiry<now+90*day).length === 0 },
+      { control:"RBAC Enforcement", module:"System-wide", status:`${Object.keys(PERMS).length} modules × ${Object.keys(ROLES).length} roles`, ok:true },
+      { control:"Immutable Audit Trail", module:"System-wide", status:`${audit.length} entries recorded`, ok:true },
+      { control:"NCR Statutory Reporting", module:"Compliance", status: `${(statutoryReports||[]).filter(r=>r.status!=="Submitted").length} pending`, ok: (statutoryReports||[]).filter(r=>r.status!=="Submitted"&&new Date(r.dueDate)<new Date()).length === 0 },
+      { control:"IFRS 9 Provisioning", module:"Finance", status: `${provisions.length} loans provisioned. ECL: ${fmt.cur(provisions.reduce((s,p)=>s+p.ecl,0))}`, ok:true },
+    ];
+
     return (<div>
       <h2 style={{ margin:"0 0 4px", fontSize:22, fontWeight:700, color:C.text }}>Governance, Risk & Compliance</h2>
-      <p style={{ margin:"0 0 20px", fontSize:13, color:C.textMuted }}>Audit trail, approval authorities, regulatory compliance & risk appetite</p>
-      <Tab tabs={[{key:"audit",label:"Audit Trail",count:audit.length},{key:"authority",label:"Approval Matrix"},{key:"regulatory",label:"Regulatory"},{key:"alerts",label:"All Alerts",count:alerts.length}]} active={tab} onChange={setTab} />
-      {tab==="audit" && <Table columns={[
-        { label:"Timestamp", render:r=>fmt.dateTime(r.ts) },
-        { label:"Category", render:r=><Badge color={r.category==="Risk"||r.category==="Collections"?"red":r.category==="Compliance"?"amber":r.category==="Decision"?"purple":"cyan"}>{r.category}</Badge> },
-        { label:"Action", render:r=><span style={{ fontWeight:600 }}>{r.action}</span> },
-        { label:"Entity", render:r=><span style={{ fontFamily:"monospace", fontSize:11 }}>{r.entity}</span> },
-        { label:"User", key:"user" },
-        { label:"Detail", render:r=><span style={{ fontSize:11, color:C.textDim, maxWidth:300, overflow:"hidden", textOverflow:"ellipsis", display:"inline-block", whiteSpace:"nowrap" }}>{r.detail}</span> },
-      ]} rows={[...audit].sort((a,b)=>b.ts-a.ts)} />}
-      {tab==="authority" && <SectionCard title="Credit Approval Authority Matrix">
+      <p style={{ margin:"0 0 16px", fontSize:13, color:C.textMuted }}>Audit trail, control points, approval authorities, regulatory compliance & alerts</p>
+      <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:16 }}>
+        <KPI label="Audit Entries" value={audit.length} />
+        <KPI label="Controls Active" value={controlPoints.filter(c=>c.ok).length} sub={`of ${controlPoints.length}`} />
+        <KPI label="Unread Alerts" value={alerts.filter(a=>!a.read).length} />
+        <KPI label="Critical Alerts" value={alerts.filter(a=>a.severity==="critical"&&!a.read).length} />
+      </div>
+      <Tab tabs={[
+        {key:"audit",label:"Audit Trail",count:audit.length},
+        {key:"controls",label:"Control Points",count:controlPoints.length},
+        {key:"authority",label:"Approval Matrix"},
+        {key:"regulatory",label:"Regulatory Framework"},
+        {key:"alerts",label:"All Alerts",count:alerts.length},
+      ]} active={tab} onChange={setTab} />
+
+      {tab==="audit" && <div>
+        <div style={{ display:"flex", gap:8, marginBottom:10 }}>
+          <select value={auditFilter.category} onChange={e=>setAuditFilter({...auditFilter,category:e.target.value})} style={{ padding:"4px 6px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:11, fontFamily:"inherit" }}>
+            <option value="">All Categories</option>
+            {categories.map(c=><option key={c} value={c}>{c}</option>)}
+          </select>
+          <select value={auditFilter.user} onChange={e=>setAuditFilter({...auditFilter,user:e.target.value})} style={{ padding:"4px 6px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:11, fontFamily:"inherit" }}>
+            <option value="">All Users</option>
+            {users.map(u=><option key={u} value={u}>{u}</option>)}
+          </select>
+          <input value={auditFilter.entity} onChange={e=>setAuditFilter({...auditFilter,entity:e.target.value})} placeholder="Filter by entity ID..." style={{ padding:"4px 6px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:11, fontFamily:"inherit", width:160 }} />
+          {(auditFilter.category||auditFilter.user||auditFilter.entity) && <Btn size="sm" variant="ghost" onClick={()=>setAuditFilter({category:"",user:"",entity:""})}>Clear</Btn>}
+          <span style={{ fontSize:10, color:C.textMuted, alignSelf:"center" }}>{filteredAudit.length} of {audit.length} entries</span>
+        </div>
         <Table columns={[
-          { label:"Authority Level", key:"level" },
-          { label:"Approval Limit", key:"limit" },
-          { label:"Scope", key:"scope" },
-        ]} rows={[
-          { level:"Credit Analyst", limit:"Up to R250,000", scope:"Standard SME loans within policy" },
-          { level:"Senior Credit Analyst", limit:"Up to R500,000", scope:"Standard loans, minor policy exceptions" },
-          { level:"Head of Credit", limit:"Up to R1,000,000", scope:"All products, moderate risk" },
-          { level:"Credit Committee", limit:"Above R1,000,000", scope:"Large loans, high risk, policy exceptions" },
-          { level:"Board Credit Committee", limit:"Unlimited", scope:"Strategic decisions, major policy changes" },
-        ]} />
+          { label:"Timestamp", render:r=>fmt.dateTime(r.ts) },
+          { label:"Category", render:r=><Badge color={r.category==="Risk"||r.category==="Collections"?"red":r.category==="Compliance"?"amber":r.category==="Decision"?"purple":"cyan"}>{r.category}</Badge> },
+          { label:"Action", render:r=><span style={{ fontWeight:600 }}>{r.action}</span> },
+          { label:"Entity", render:r=><span style={{ fontFamily:"monospace", fontSize:11 }}>{r.entity}</span> },
+          { label:"User", key:"user" },
+          { label:"Detail", render:r=><span style={{ fontSize:11, color:C.textDim, maxWidth:300, overflow:"hidden", textOverflow:"ellipsis", display:"inline-block", whiteSpace:"nowrap" }}>{r.detail}</span> },
+        ]} rows={filteredAudit.slice(0,50)} />
+        {filteredAudit.length > 50 && <div style={{ fontSize:11, color:C.textMuted, marginTop:8 }}>Showing 50 of {filteredAudit.length} entries. Use filters to narrow.</div>}
+      </div>}
+
+      {tab==="controls" && <div>
+        <Table columns={[
+          { label:"Control", render:r=><span style={{ fontWeight:600 }}>{r.control}</span> },
+          { label:"Module", render:r=><span style={{ fontSize:11, color:C.textDim }}>{r.module}</span> },
+          { label:"Status", render:r=><span style={{ fontSize:12, color:r.ok?C.green:C.red, fontWeight:500 }}>{r.status}</span> },
+          { label:"Health", render:r=>r.ok ? <Badge color="green">OK</Badge> : <Badge color="red">Attention</Badge> },
+        ]} rows={controlPoints} />
+      </div>}
+
+      {tab==="authority" && <SectionCard title="Credit Approval Authority Matrix (Live)">
+        <Table columns={[
+          { label:"Role", render:r=><span style={{ fontWeight:500 }}>{ROLES[r.role]?.label}</span> },
+          { label:"Approval Limit", render:r=>r.limit===Infinity ? "Unlimited" : r.limit > 0 ? fmt.cur(r.limit) : <span style={{ color:C.textMuted }}>No approval authority</span> },
+          { label:"Current Users", render:r=>SYSTEM_USERS.filter(u=>u.role===r.role).map(u=>u.name).join(", ") || <span style={{ color:C.textMuted }}>—</span> },
+          { label:"Tier", render:r=>ROLES[r.role]?.tier },
+        ]} rows={Object.keys(ROLES).map(k=>({role:k,limit:APPROVAL_LIMITS[k]||0}))} />
       </SectionCard>}
+
       {tab==="regulatory" && <div>
         <SectionCard title="Regulatory Status">
           <InfoGrid items={[
             ["NCR Registration", settings.ncrReg],
             ["NCR Expiry", settings.ncrExpiry],
-            ["FICA Compliance", "Active"],
+            ["FICA Compliance", customers.every(c=>c.ficaStatus==="Verified") ? "Fully Compliant" : `${customers.filter(c=>c.ficaStatus!=="Verified").length} customers pending`],
             ["POPIA Compliance", "Active"],
             ["NCA Registration", "Active – Section 40"],
-            ["Last NCR Return", "Q4 2025"],
+            ["BEE Monitoring", `${customers.filter(c=>c.beeStatus==="Verified").length}/${customers.length} verified`],
+            ["Last NCR Submission", (statutoryReports||[]).filter(r=>r.status==="Submitted").sort((a,b)=>new Date(b.submittedDate||0)-new Date(a.submittedDate||0))[0]?.name || "—"],
           ]} />
         </SectionCard>
         <SectionCard title="Regulatory Framework">
           {[
-            ["National Credit Act (NCA) 34 of 2005","Governs credit agreements, affordability assessments, consumer protection"],
-            ["Financial Intelligence Centre Act (FICA) 38 of 2001","KYC/CDD, suspicious transaction reporting, record keeping"],
-            ["Protection of Personal Information Act (POPIA) 4 of 2013","Data privacy, consent, data subject rights"],
-            ["Companies Act 71 of 2008","Corporate governance, director responsibilities"],
-            ["BB-BEE Act 53 of 2003","Empowerment verification, transformation reporting"],
-            ["Debt Collectors Act 114 of 1998","Collection conduct standards, registration requirements"],
+            ["National Credit Act (NCA) 34 of 2005","Governs credit agreements, affordability assessments, consumer protection. Enforced: affordability checks in underwriting, NCA demand letters in collections."],
+            ["Financial Intelligence Centre Act (FICA) 38 of 2001","KYC/CDD, suspicious transaction reporting. Enforced: FICA status workflow on customers, sanctions screening on applications."],
+            ["Protection of Personal Information Act (POPIA) 4 of 2013","Data privacy, consent. Enforced: data access via RBAC, audit trail on all data changes."],
+            ["Companies Act 71 of 2008","Corporate governance, director responsibilities. Enforced: approval authority matrix, separation of duties."],
+            ["BB-BEE Act 53 of 2003","Empowerment verification. Enforced: BEE verification workflow, eligibility checks in product selection."],
+            ["Debt Collectors Act 114 of 1998","Collection conduct standards. Enforced: staged collections, NCA-compliant demand process."],
           ].map(([name, desc], i) => (
             <div key={i} style={{ padding:"10px 0", borderBottom:`1px solid ${C.border}` }}>
               <div style={{ fontSize:13, fontWeight:600, color:C.accent }}>{name}</div>
@@ -1832,14 +1889,22 @@ export default function App() {
           ))}
         </SectionCard>
       </div>}
-      {tab==="alerts" && <Table columns={[
-        { label:"Date", render:r=>fmt.dateTime(r.ts) },
-        { label:"Severity", render:r=><Badge color={r.severity==="critical"?"red":r.severity==="warning"?"amber":"blue"}>{r.severity}</Badge> },
-        { label:"Type", render:r=><Badge color="cyan">{r.type}</Badge> },
-        { label:"Title", render:r=><span style={{ fontWeight:600 }}>{r.title}</span> },
-        { label:"Message", render:r=><span style={{ fontSize:11, color:C.textDim, maxWidth:300, overflow:"hidden", textOverflow:"ellipsis", display:"inline-block", whiteSpace:"nowrap" }}>{r.msg}</span> },
-        { label:"Status", render:r=>r.read?<Badge color="slate">Read</Badge>:<Badge color="amber">Unread</Badge> },
-      ]} rows={[...alerts].sort((a,b)=>b.ts-a.ts)} />}
+
+      {tab==="alerts" && <div>
+        <div style={{ display:"flex", gap:8, marginBottom:10 }}>
+          <span style={{ fontSize:11, color:C.textMuted }}>{alerts.filter(a=>!a.read).length} unread of {alerts.length} total</span>
+          {canDo("governance","update") && alerts.some(a=>!a.read) && <Btn size="sm" variant="ghost" onClick={()=>save({...data,alerts:alerts.map(a=>({...a,read:true}))})}>Mark All Read</Btn>}
+        </div>
+        <Table columns={[
+          { label:"Date", render:r=>fmt.dateTime(r.ts) },
+          { label:"Severity", render:r=><Badge color={r.severity==="critical"?"red":r.severity==="warning"?"amber":"blue"}>{r.severity}</Badge> },
+          { label:"Type", render:r=><Badge color="cyan">{r.type}</Badge> },
+          { label:"Title", render:r=><span style={{ fontWeight:600 }}>{r.title}</span> },
+          { label:"Message", render:r=><span style={{ fontSize:11, color:C.textDim, maxWidth:300, overflow:"hidden", textOverflow:"ellipsis", display:"inline-block", whiteSpace:"nowrap" }}>{r.msg}</span> },
+          { label:"Status", render:r=>r.read?<Badge color="slate">Read</Badge>:<Badge color="amber">Unread</Badge> },
+          { label:"", render:r=>!r.read && canDo("governance","update") ? <Btn size="sm" variant="ghost" onClick={e=>{e.stopPropagation();markRead(r.id)}}>Dismiss</Btn> : null },
+        ]} rows={[...alerts].sort((a,b)=>b.ts-a.ts)} />
+      </div>}
     </div>);
   }
 
@@ -2171,38 +2236,70 @@ export default function App() {
 
   // ═══ 11. REPORTS ═══
   function Reports() {
-    const totalBook = loans.reduce((s,l)=>s+l.balance,0);
+    const activeLoans = loans.filter(l=>l.status==="Active");
+    const totalBook = activeLoans.reduce((s,l)=>s+l.balance,0);
     const totalECL = provisions.reduce((s,p)=>s+p.ecl,0);
+    const allPmts = loans.flatMap(l=>l.payments.map(p=>({...p,loanId:l.id})));
+    const delinquent = activeLoans.filter(l=>l.dpd>0);
+
+    const exportCSV = (title, headers, rows) => {
+      const csv = [headers.join(","), ...rows.map(r=>r.map(c=>`"${String(c||"").replace(/"/g,'""')}"`).join(","))].join("\n");
+      const blob = new Blob([csv], {type:"text/csv"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a"); a.href=url; a.download=`${title.replace(/\s+/g,"_")}_${new Date().toISOString().split("T")[0]}.csv`; a.click();
+      URL.revokeObjectURL(url);
+    };
+
     return (<div>
-      <h2 style={{ margin:"0 0 4px", fontSize:22, fontWeight:700, color:C.text }}>Reports & Analytics</h2>
-      <p style={{ margin:"0 0 20px", fontSize:13, color:C.textMuted }}>Portfolio performance, risk analysis, regulatory & impact reporting</p>
+      <div style={{ display:"flex", justifyContent:"space-between", marginBottom:16 }}>
+        <div><h2 style={{ margin:0, fontSize:22, fontWeight:700, color:C.text }}>Reports & Analytics</h2><p style={{ margin:"4px 0 0", fontSize:13, color:C.textMuted }}>Portfolio performance, risk analysis, collections, servicing & impact reporting</p></div>
+        {canDo("reports","export") && <div style={{ display:"flex", gap:6 }}>
+          <Btn size="sm" variant="secondary" onClick={()=>exportCSV("Portfolio_Report",["Loan ID","Borrower","Amount","Balance","Rate","DPD","Stage","Status"],loans.map(l=>[l.id,cust(l.custId)?.name,l.amount,l.balance,l.rate,l.dpd,l.stage,l.status]))}>Export Portfolio</Btn>
+          <Btn size="sm" variant="secondary" onClick={()=>exportCSV("Audit_Trail",["Timestamp","Category","Action","Entity","User","Detail"],audit.map(a=>[fmt.dateTime(a.ts),a.category,a.action,a.entity,a.user,a.detail]))}>Export Audit</Btn>
+        </div>}
+      </div>
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
         <SectionCard title="Portfolio Summary">
-          {[["Total Loan Book",fmt.cur(totalBook)],["Active Loans",loans.length],["Total Disbursed",fmt.cur(loans.reduce((s,l)=>s+l.amount,0))],["Weighted Avg Rate",`${(loans.reduce((s,l)=>s+l.rate,0)/loans.length).toFixed(1)}%`],["Total ECL Provision",fmt.cur(totalECL)],["ECL Coverage",fmt.pct(totalECL/totalBook)],["Stage 1 %",fmt.pct(loans.filter(l=>l.stage===1).length/loans.length,0)],["Stage 2+ %",fmt.pct(loans.filter(l=>l.stage>=2).length/loans.length,0)]].map(([l,v],i) => (
-            <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"8px 0", borderBottom:`1px solid ${C.border}` }}>
+          {[["Total Loan Book",fmt.cur(totalBook)],["Active Loans",activeLoans.length],["Booked (Awaiting Disbursement)",loans.filter(l=>l.status==="Booked").length],["Settled",loans.filter(l=>l.status==="Settled").length],["Written Off",loans.filter(l=>l.status==="Written Off").length],["Total Disbursed",fmt.cur(loans.reduce((s,l)=>s+l.amount,0))],["Weighted Avg Rate",`${activeLoans.length?(activeLoans.reduce((s,l)=>s+l.rate,0)/activeLoans.length).toFixed(1):0}%`],["Total ECL",fmt.cur(totalECL)],["ECL Coverage",totalBook>0?fmt.pct(totalECL/totalBook):"0%"]].map(([l,v],i) => (
+            <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"6px 0", borderBottom:`1px solid ${C.border}` }}>
               <span style={{ fontSize:12, color:C.textDim }}>{l}</span><span style={{ fontSize:13, fontWeight:700, color:C.text }}>{v}</span>
             </div>
           ))}
         </SectionCard>
-        <SectionCard title="Concentration Analysis">
-          {Object.entries(loans.reduce((acc, l) => { const c = cust(l.custId); const ind = c?.industry || "Unknown"; acc[ind] = (acc[ind]||0) + l.balance; return acc; }, {})).sort((a,b)=>b[1]-a[1]).map(([ind, bal], i) => (
-            <div key={i} style={{ marginBottom:10 }}>
-              <div style={{ display:"flex", justifyContent:"space-between", fontSize:12, color:C.textDim, marginBottom:4 }}><span>{ind}</span><span>{fmt.cur(bal)} ({fmt.pct(bal/totalBook,0)})</span></div>
-              <ProgressBar value={bal} max={totalBook} color={C.accent} />
+        <SectionCard title="Concentration by Industry">
+          {Object.entries(activeLoans.reduce((acc, l) => { const ind = cust(l.custId)?.industry || "Unknown"; acc[ind] = (acc[ind]||0) + l.balance; return acc; }, {})).sort((a,b)=>b[1]-a[1]).map(([ind, bal], i) => (
+            <div key={i} style={{ marginBottom:8 }}>
+              <div style={{ display:"flex", justifyContent:"space-between", fontSize:12, color:C.textDim, marginBottom:3 }}><span>{ind}</span><span>{fmt.cur(bal)} ({totalBook>0?fmt.pct(bal/totalBook,0):"0%"})</span></div>
+              <ProgressBar value={bal} max={totalBook||1} color={C.accent} />
             </div>
           ))}
         </SectionCard>
-        <SectionCard title="Application Outcome Analysis">
-          {["Approved","Declined","Submitted","Underwriting"].map(s => {
+        <SectionCard title="Collections Summary">
+          {[["Delinquent Accounts",delinquent.length],["Total Arrears",fmt.cur(delinquent.reduce((s,l)=>s+l.balance,0))],["Early (1-30 DPD)",delinquent.filter(l=>l.dpd<=30).length],["Mid (31-90 DPD)",delinquent.filter(l=>l.dpd>30&&l.dpd<=90).length],["Late (91+ DPD)",delinquent.filter(l=>l.dpd>90).length],["Collection Actions (Total)",collections.length],["Active PTPs",collections.filter(c=>c.ptpDate&&c.ptpDate>Date.now()).length],["Write-Off Proposals",collections.filter(c=>c.writeOff).length]].map(([l,v],i) => (
+            <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"6px 0", borderBottom:`1px solid ${C.border}` }}>
+              <span style={{ fontSize:12, color:C.textDim }}>{l}</span><span style={{ fontSize:13, fontWeight:700, color:typeof v==="number"&&v>0?C.red:C.text }}>{v}</span>
+            </div>
+          ))}
+        </SectionCard>
+        <SectionCard title="Servicing Summary">
+          {[["Payments Processed",allPmts.length],["Total Collected",fmt.cur(allPmts.reduce((s,p)=>s+p.amount,0))],["Interest Collected",fmt.cur(allPmts.reduce((s,p)=>s+(p.interest||0),0))],["Principal Collected",fmt.cur(allPmts.reduce((s,p)=>s+(p.principal||0),0))],["Monthly Receivable",fmt.cur(activeLoans.reduce((s,l)=>s+l.monthlyPmt,0))],["Overdue Accounts",delinquent.length]].map(([l,v],i) => (
+            <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"6px 0", borderBottom:`1px solid ${C.border}` }}>
+              <span style={{ fontSize:12, color:C.textDim }}>{l}</span><span style={{ fontSize:13, fontWeight:700, color:C.text }}>{v}</span>
+            </div>
+          ))}
+        </SectionCard>
+        <SectionCard title="Application Outcomes">
+          {["Approved","Declined","Submitted","Underwriting","Booked","Withdrawn"].map(s => {
             const count = applications.filter(a => a.status === s).length;
-            return (<div key={s} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 0", borderBottom:`1px solid ${C.border}` }}>
-              {statusBadge(s)}<div><span style={{ fontSize:16, fontWeight:700, color:C.text }}>{count}</span><span style={{ fontSize:11, color:C.textMuted, marginLeft:8 }}>({fmt.pct(count/applications.length,0)})</span></div>
+            if (count === 0) return null;
+            return (<div key={s} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"6px 0", borderBottom:`1px solid ${C.border}` }}>
+              {statusBadge(s)}<div><span style={{ fontSize:16, fontWeight:700, color:C.text }}>{count}</span><span style={{ fontSize:11, color:C.textMuted, marginLeft:8 }}>({applications.length>0?fmt.pct(count/applications.length,0):"0%"})</span></div>
             </div>);
           })}
         </SectionCard>
-        <SectionCard title="Development Impact Summary">
-          {[["Total Jobs Supported",fmt.num(customers.reduce((s,c)=>s+c.employees,0))],["BEE Level 1 Clients",customers.filter(c=>c.beeLevel===1).length],["Avg Social Impact Score",Math.round(applications.filter(a=>a.socialScore).reduce((s,a)=>s+a.socialScore,0)/(applications.filter(a=>a.socialScore).length||1))],["Empowerment Exposure",fmt.cur(loans.filter(l=>cust(l.custId)?.beeLevel<=2).reduce((s,l)=>s+l.balance,0))],["Provinces Covered",new Set(customers.map(c=>c.province)).size],["Industries Covered",new Set(customers.map(c=>c.industry)).size]].map(([l,v],i) => (
-            <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"8px 0", borderBottom:`1px solid ${C.border}` }}>
+        <SectionCard title="Development Impact">
+          {[["Total Jobs Supported",fmt.num(customers.reduce((s,c)=>s+c.employees,0))],["BEE Level 1 Clients",customers.filter(c=>c.beeLevel===1).length],["BEE Level 1-2 Exposure",fmt.cur(activeLoans.filter(l=>cust(l.custId)?.beeLevel<=2).reduce((s,l)=>s+l.balance,0))],["Avg Social Impact Score",Math.round(applications.filter(a=>a.socialScore).reduce((s,a)=>s+a.socialScore,0)/(applications.filter(a=>a.socialScore).length||1))],["Provinces Covered",new Set(customers.map(c=>c.province)).size],["Industries Covered",new Set(customers.map(c=>c.industry)).size]].map(([l,v],i) => (
+            <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"6px 0", borderBottom:`1px solid ${C.border}` }}>
               <span style={{ fontSize:12, color:C.textDim }}>{l}</span><span style={{ fontSize:13, fontWeight:700, color:C.accent }}>{v}</span>
             </div>
           ))}
