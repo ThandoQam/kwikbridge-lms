@@ -766,8 +766,19 @@ export default function App() {
     if (!canDo("comms","create")) { alert("Permission denied: you cannot send communications."); return; }
     const a = applications.find(x => x.id === appId);
     const c = cust(a?.custId);
-    const notification = { id:uid(), custId:a?.custId, loanId:null, channel:"Email", direction:"Outbound", from:currentUser.name, subject:`Document Request – ${docType}`, body:message || `Dear ${c?.contact}, please submit the following document for your application ${appId}: ${docType}. Upload via the KwikBridge portal or email to documents@kwikbridge.co.za. Regards, KwikBridge Lending Operations.`, ts:Date.now() };
-    save({ ...data, comms:[...comms, notification], audit:[...audit, addAudit("Document Requested", appId, currentUser.name, `Request sent to ${c?.contact} for: ${docType}.`, "Underwriting")] });
+    const body = message || `Dear ${c?.contact},\n\nPlease submit the following document for your loan application ${appId}:\n\n  → ${docType}\n\nYou may upload via the KwikBridge portal or email to documents@kwikbridge.co.za.\n\nIf you have any questions, contact your Loan Officer.\n\nRegards,\n${currentUser.name}\nKwikBridge Lending Operations`;
+    const notification = { id:uid(), custId:a?.custId, loanId:null, channel:"Email", direction:"Outbound", from:currentUser.name, subject:`Document Request – ${docType}`, body, ts:Date.now(), relatedTo:appId, docType };
+    // Track the request in the application workflow
+    const w = { ...(a?.workflow||{}) };
+    const requests = w.docRequests || [];
+    requests.push({ docType, requestedBy:currentUser.name, requestedAt:Date.now(), status:"Sent", commId:notification.id });
+    w.docRequests = requests;
+    save({ ...data,
+      applications: applications.map(x => x.id === appId ? { ...x, workflow: w } : x),
+      comms:[...comms, notification],
+      audit:[...audit, addAudit("Document Requested", appId, currentUser.name, `${docType} requested from ${c?.contact} via email.`, "Underwriting")],
+      alerts:[...alerts, addAlert("Application","info",`Doc Requested – ${c?.name}`,`${docType} requested for ${appId}. Awaiting submission.`)]
+    });
   };
   const sendNotification = (appId, subject, body) => {
     if (!canDo("comms","create")) { alert("Permission denied."); return; }
@@ -2504,7 +2515,14 @@ export default function App() {
                   <span style={{ flex:1, color:C.textDim, fontSize:11 }}>{f.detail}{f.source?` (${f.source})`:""}</span>
                   {/* View Document button — shows when doc is on file */}
                   {doc && <button onClick={()=>setViewingDoc(isExpanded?null:`${stepKey}-${i}`)} style={{ padding:"1px 5px", fontSize:9, border:`1px solid ${C.border}`, background:isExpanded?C.surface2:"transparent", color:C.accent, cursor:"pointer", fontFamily:"inherit", fontWeight:isExpanded?600:400 }}>{isExpanded?"Close":"View"}</button>}
-                  {!doc && f.systemResult==="Missing" && isUW && <button onClick={()=>requestDocFromApplicant(a.id,f.item,"")} style={{ padding:"1px 5px", fontSize:9, border:`1px solid ${C.border}`, background:"transparent", color:C.text, cursor:"pointer", fontFamily:"inherit" }}>Request</button>}
+                  {/* Request button — shown for Missing docs, changes to "Requested" after sent */}
+                  {!doc && f.systemResult==="Missing" && isUW && (() => {
+                    const reqs = (w.docRequests||[]).filter(r=>r.docType===f.item);
+                    const lastReq = reqs[reqs.length-1];
+                    return lastReq
+                      ? <span style={{ fontSize:9, color:C.textMuted, flexShrink:0 }}>Requested {fmt.date(lastReq.requestedAt)} by {lastReq.requestedBy}</span>
+                      : <button onClick={()=>requestDocFromApplicant(a.id,f.item,"")} style={{ padding:"1px 5px", fontSize:9, border:`1px solid ${C.border}`, background:"transparent", color:C.text, cursor:"pointer", fontFamily:"inherit" }}>Request</button>;
+                  })()}
                   {/* Confirm / Flag / Reject actions */}
                   {isActionable && !f.officerAction && (
                     <div style={{ display:"flex", gap:3, flexShrink:0 }}>
