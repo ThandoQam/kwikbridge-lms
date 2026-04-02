@@ -618,31 +618,85 @@ export default function App() {
     if (!canDo("origination","create")) { alert("Permission denied: you cannot create applications."); return; }
     const c = cust(form.custId);
     const p = prod(form.product);
-    // Validation gate: FICA must be Verified or Under Review
     if (c?.ficaStatus === "Pending") { alert(`Cannot submit: ${c.name} FICA status is Pending. Initiate KYC review first.`); return; }
     if (c?.ficaStatus === "Failed") { alert(`Cannot submit: ${c.name} FICA verification failed. Re-submit KYC before applying.`); return; }
     if (c?.ficaStatus === "Expired") { alert(`Cannot submit: ${c.name} FICA has expired. Renew verification first.`); return; }
-    // Duplicate check: no open application for same customer + product
-    const existing = applications.find(a => a.custId === form.custId && a.product === form.product && ["Submitted","Underwriting"].includes(a.status));
+    const existing = applications.find(a => a.custId === form.custId && a.product === form.product && ["Draft","Submitted","Underwriting"].includes(a.status));
     if (existing) { alert(`Duplicate: ${c?.name} already has an active ${p?.name} application (${existing.id}, status: ${existing.status}).`); return; }
-    // Product status check
     if (p?.status !== "Active") { alert(`Product ${p?.name} is ${p?.status}. Only Active products can accept applications.`); return; }
 
-    const app = { id:`APP-${String(applications.length+1).padStart(3,"0")}`, custId:form.custId, status:"Submitted", product:form.product, amount:+form.amount, term:+form.term, purpose:form.purpose, rate:null, riskScore:null, dscr:null, currentRatio:null, debtEquity:null, socialScore:null, recommendation:null, approver:null, creditMemo:null, submitted:Date.now(), decided:null, conditions:[], assignedTo:null, createdBy:currentUser.id, sanctionsFlag:false, sanctionsDate:null, withdrawnAt:null, withdrawnBy:null };
-    // Auto sanctions screening (simulated — clear for all seed customers, flag if name contains test patterns)
-    const sanctionsHit = false; // Placeholder for API integration
-    app.sanctionsFlag = sanctionsHit;
-    app.sanctionsDate = Date.now();
+    // Application created in DRAFT — requires QA sign-off before it becomes Submitted
+    const expiresAt = Date.now() + 30 * day; // 30-day expiry for Draft applications
+    const app = { id:`APP-${String(applications.length+1).padStart(3,"0")}`, custId:form.custId, status:"Draft", product:form.product, amount:+form.amount, term:+form.term, purpose:form.purpose, rate:null, riskScore:null, dscr:null, currentRatio:null, debtEquity:null, socialScore:null, recommendation:null, approver:null, creditMemo:null, submitted:null, decided:null, conditions:[], assignedTo:null, createdBy:currentUser.id, createdAt:Date.now(), expiresAt, sanctionsFlag:false, sanctionsDate:null, withdrawnAt:null, withdrawnBy:null, qaSignedOff:false, qaOfficer:null, qaDate:null, qaFindings:null };
 
-    let newAlerts = [...alerts, addAlert("Application", "info", `New Application – ${c?.name}`, `${app.id} for ${fmt.cur(form.amount)} submitted.`)];
-    let newAudit = [...audit,
-      addAudit("Application Submitted", app.id, currentUser.name, `New ${p?.name} application for ${fmt.cur(form.amount)} by ${c?.name}. FICA: ${c?.ficaStatus}. BEE: Level ${c?.beeLevel}.`, "Origination"),
-      addAudit("Sanctions Screening", app.id, "System", `Automated screening: ${sanctionsHit ? "MATCH FOUND — flagged for review" : "Clear. No matches."}`, "Compliance"),
-    ];
-    if (sanctionsHit) newAlerts.push(addAlert("Compliance","critical",`Sanctions Hit – ${c?.name}`,`${app.id}: potential sanctions match. Immediate review required.`));
-
-    save({ ...data, applications: [...applications, app], audit: newAudit, alerts: newAlerts });
+    save({ ...data,
+      applications: [...applications, app],
+      audit: [...audit, addAudit("Application Created (Draft)", app.id, currentUser.name, `Draft ${p?.name} application for ${fmt.cur(form.amount)} by ${c?.name}. Expires: ${fmt.date(expiresAt)}. Requires QA sign-off.`, "Origination")],
+      alerts: [...alerts, addAlert("Application", "info", `Draft Application – ${c?.name}`, `${app.id} created. QA & document check required before submission.`)]
+    });
     setModal(null);
+  };
+
+  // QA & Sign-off: validates mandatory docs, fields, and formally submits the application
+  const qaSignOffApplication = (appId) => {
+    if (!canDo("origination","update")) { alert("Permission denied."); return; }
+    const a = applications.find(x => x.id === appId);
+    if (!a || a.status !== "Draft") { alert("Only Draft applications can be QA'd and submitted."); return; }
+    const c = cust(a.custId);
+    const p = prod(a.product);
+    const custDocs = (documents||[]).filter(d => d.custId === a.custId && (d.appId === a.id || !d.appId));
+
+    // Mandatory document check
+    const mandatoryTypes = ["ID Document","Proof of Address","Bank Confirmation","Company Registration"];
+    const missing = [];
+    const incomplete = [];
+    mandatoryTypes.forEach(type => {
+      const doc = custDocs.find(d => d.type === type);
+      if (!doc) missing.push(type);
+      else if (doc.status === "Pending" || doc.status === "Rejected") incomplete.push(`${type} (${doc.status})`);
+    });
+
+    // Field validation
+    const fieldErrors = [];
+    if (!a.amount || a.amount <= 0) fieldErrors.push("Loan amount is required");
+    if (!a.term || a.term <= 0) fieldErrors.push("Loan term is required");
+    if (!a.purpose) fieldErrors.push("Purpose of loan is required");
+    if (p && a.amount < p.minAmount) fieldErrors.push(`Amount below product minimum (${fmt.cur(p.minAmount)})`);
+    if (p && a.amount > p.maxAmount) fieldErrors.push(`Amount exceeds product maximum (${fmt.cur(p.maxAmount)})`);
+
+    // Expiry check
+    if (a.expiresAt && a.expiresAt < Date.now()) { alert(`Application ${appId} has expired (${fmt.date(a.expiresAt)}). It can no longer be submitted.`); return; }
+
+    const qaFindings = { mandatoryDocs: mandatoryTypes.map(type => { const doc = custDocs.find(d=>d.type===type); return { type, docId:doc?.id||null, status:doc?.status||"Missing", onFile:!!doc }; }), missingDocs: missing, incompleteDocs: incomplete, fieldErrors, passedAt: null, officer: null };
+
+    if (missing.length > 0 || incomplete.length > 0 || fieldErrors.length > 0) {
+      // QA fails — record findings but don't submit
+      qaFindings.result = "Failed";
+      save({ ...data,
+        applications: applications.map(x => x.id === appId ? { ...x, qaFindings, qaSignedOff: false } : x),
+        audit: [...audit, addAudit("QA Failed", appId, currentUser.name, `QA check failed. Missing: ${missing.join(", ")||"none"}. Incomplete: ${incomplete.join(", ")||"none"}. Field errors: ${fieldErrors.join(", ")||"none"}.`, "Origination")],
+      });
+      alert(`QA check failed:\n${missing.length ? `Missing documents: ${missing.join(", ")}\n` : ""}${incomplete.length ? `Incomplete: ${incomplete.join(", ")}\n` : ""}${fieldErrors.length ? `Validation: ${fieldErrors.join(", ")}` : ""}`);
+      return;
+    }
+
+    // QA passes — sanctions screening + formal submission
+    const sanctionsHit = false; // Placeholder for API
+    qaFindings.result = "Passed";
+    qaFindings.passedAt = Date.now();
+    qaFindings.officer = currentUser.name;
+
+    save({ ...data,
+      applications: applications.map(x => x.id === appId ? { ...x, status: "Submitted", submitted: Date.now(), qaSignedOff: true, qaOfficer: currentUser.name, qaDate: Date.now(), qaFindings, sanctionsFlag: sanctionsHit, sanctionsDate: Date.now() } : x),
+      audit: [...audit,
+        addAudit("QA Sign-Off", appId, currentUser.name, `QA passed. All mandatory documents on file. Application formally submitted.`, "Origination"),
+        addAudit("Sanctions Screening", appId, "System", `Automated screening: ${sanctionsHit ? "MATCH FOUND" : "Clear. No matches."}.`, "Compliance"),
+      ],
+      alerts: [...alerts,
+        addAlert("Application", "info", `Application Submitted – ${c?.name}`, `${appId} passed QA and formally submitted. Ready for assignment.`),
+        ...(sanctionsHit ? [addAlert("Compliance","critical",`Sanctions Hit – ${c?.name}`,`${appId}: potential match. Immediate review required.`)] : []),
+      ]
+    });
   };
 
   // Assign application to a user
@@ -659,7 +713,7 @@ export default function App() {
   const withdrawApplication = (appId, reason) => {
     if (!canDo("origination","update")) { alert("Permission denied."); return; }
     const a = applications.find(x => x.id === appId);
-    if (!a || !["Submitted","Underwriting"].includes(a.status)) { alert("Only Submitted or Underwriting applications can be withdrawn."); return; }
+    if (!a || !["Draft","Submitted","Underwriting"].includes(a.status)) { alert("Only Draft, Submitted or Underwriting applications can be withdrawn."); return; }
     save({ ...data,
       applications: applications.map(x => x.id === appId ? { ...x, status: "Withdrawn", withdrawnAt: Date.now(), withdrawnBy: currentUser.id } : x),
       audit: [...audit, addAudit("Application Withdrawn", appId, currentUser.name, `Withdrawn. Reason: ${reason || "No reason provided"}.`, "Origination")],
@@ -669,6 +723,9 @@ export default function App() {
 
   const moveToUnderwriting = appId => {
     if (!canDo("underwriting","update")) { alert("Permission denied."); return; }
+    const a = applications.find(x => x.id === appId);
+    if (!a || a.status !== "Submitted") { alert("Only Submitted applications (post-QA sign-off) can move to Underwriting."); return; }
+    if (!a.qaSignedOff) { alert("QA sign-off required before underwriting can begin."); return; }
     const emptyWF = { kycComplete:false, kycFindings:[], kycDate:null, kycOfficer:null, docsComplete:false, docsFindings:[], docsDate:null, docsOfficer:null, siteVisitComplete:false, siteVisitFindings:[], siteVisitDate:null, siteVisitOfficer:null, siteVisitNotes:"", creditPulled:false, creditBureauScore:null, creditDate:null, creditFindings:[], financialAnalysisComplete:false, financialDate:null, socialVerified:false, socialFindings:[], socialDate:null, socialOfficer:null, collateralAssessed:false, collateralFindings:[], collateralDate:null, collateralTotal:0, sanctionsCleared:false, sanctionsDate:null, analystNotes:"", creditMemoSections:[] };
     save({ ...data,
       applications: applications.map(a => a.id === appId ? { ...a, status: "Underwriting", workflow: a.workflow || emptyWF, assignedTo: currentUser.id } : a),
@@ -1412,8 +1469,11 @@ export default function App() {
   // ═══ 3. ORIGINATION ═══
   function Origination() {
     const [tab, setTab] = useState("all");
+    const drafts = applications.filter(a=>a.status==="Draft");
+    const expiredDrafts = drafts.filter(a=>a.expiresAt && a.expiresAt < Date.now());
     const tabs = [
       { key:"all", label:"All", count:applications.length },
+      { key:"Draft", label:"Draft (QA Pending)", count:drafts.length },
       { key:"Submitted", label:"Submitted", count:applications.filter(a=>a.status==="Submitted").length },
       { key:"Underwriting", label:"Underwriting", count:applications.filter(a=>a.status==="Underwriting").length },
       { key:"Approved", label:"Approved", count:applications.filter(a=>a.status==="Approved").length },
@@ -1425,18 +1485,17 @@ export default function App() {
 
     return (<div>
       <div style={{ display:"flex", justifyContent:"space-between", marginBottom:16 }}>
-        <div><h2 style={{ margin:0, fontSize:22, fontWeight:700, color:C.text }}>Loan Origination</h2><p style={{ margin:"4px 0 0", fontSize:13, color:C.textMuted }}>Application intake, validation, assignment & pipeline management</p></div>
+        <div><h2 style={{ margin:0, fontSize:22, fontWeight:700, color:C.text }}>Loan Origination</h2><p style={{ margin:"4px 0 0", fontSize:13, color:C.textMuted }}>Application intake, QA & document validation, assignment & pipeline management</p></div>
         {canDo("origination","create") && <Btn onClick={() => setModal("newApp")} icon={I.plus}>New Application</Btn>}
       </div>
 
-      {/* KPI summary */}
       <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:16 }}>
-        <KPI label="Pipeline" value={applications.filter(a=>["Submitted","Underwriting"].includes(a.status)).length} sub="active" />
+        <KPI label="Drafts (QA Pending)" value={drafts.length} sub={expiredDrafts.length > 0 ? `${expiredDrafts.length} expired` : ""} />
         <KPI label="Submitted" value={applications.filter(a=>a.status==="Submitted").length} sub="awaiting DD" />
-        <KPI label="Underwriting" value={applications.filter(a=>a.status==="Underwriting").length} sub="in progress" />
+        <KPI label="Underwriting" value={applications.filter(a=>a.status==="Underwriting").length} />
+        <KPI label="Pipeline Value" value={fmt.cur(applications.filter(a=>["Draft","Submitted","Underwriting"].includes(a.status)).reduce((s,a)=>s+a.amount,0))} />
         <KPI label="Approved" value={applications.filter(a=>a.status==="Approved").length} />
         <KPI label="Declined" value={applications.filter(a=>a.status==="Declined").length} />
-        <KPI label="Pipeline Value" value={fmt.cur(applications.filter(a=>["Submitted","Underwriting"].includes(a.status)).reduce((s,a)=>s+a.amount,0))} />
       </div>
 
       <Tab tabs={tabs} active={tab} onChange={setTab} />
@@ -1446,7 +1505,7 @@ export default function App() {
         { label:"Product", render:r=>prod(r.product)?.name || r.product },
         { label:"Amount", render:r=>fmt.cur(r.amount) },
         { label:"Term", render:r=>`${r.term}m` },
-        { label:"Submitted", render:r=>fmt.date(r.submitted) },
+        { label:"Date", render:r=>fmt.date(r.submitted || r.createdAt) },
         { label:"Assigned To", render:r=>{
           const u = SYSTEM_USERS.find(x=>x.id===r.assignedTo);
           if (u) return <span style={{ fontSize:11 }}>{u.name}</span>;
@@ -1457,14 +1516,17 @@ export default function App() {
             {assignableUsers.map(u=><option key={u.id} value={u.id}>{u.name}</option>)}
           </select>;
         }},
-        { label:"Sanctions", render:r=>r.sanctionsFlag ? <Badge color="red">Hit</Badge> : r.sanctionsDate ? <span style={{ fontSize:10, color:C.green }}>Clear</span> : <span style={{ fontSize:10, color:C.textMuted }}>—</span> },
-        { label:"Status", render:r=>statusBadge(r.status) },
+        { label:"QA", render:r=> r.qaSignedOff ? <span style={{ fontSize:10, color:C.green }}>Passed</span> : r.qaFindings?.result==="Failed" ? <span style={{ fontSize:10, color:C.red }}>Failed</span> : r.status==="Draft" ? <span style={{ fontSize:10, color:C.amber }}>Pending</span> : <span style={{ fontSize:10, color:C.textMuted }}>—</span> },
+        { label:"Status", render:r=>{
+          if (r.status==="Draft" && r.expiresAt && r.expiresAt < Date.now()) return <Badge color="red">Expired</Badge>;
+          return statusBadge(r.status);
+        }},
         { label:"Actions", render:r=><div style={{ display:"flex", gap:4 }}>
-          {["Submitted","Underwriting"].includes(r.status) && canDo("origination","update") && <Btn size="sm" variant="ghost" onClick={e=>{e.stopPropagation();setWithdrawId(r.id)}}>Withdraw</Btn>}
+          {r.status==="Draft" && !(r.expiresAt && r.expiresAt < Date.now()) && canDo("origination","update") && <Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();qaSignOffApplication(r.id)}}>QA & Submit</Btn>}
+          {["Draft","Submitted","Underwriting"].includes(r.status) && canDo("origination","update") && <Btn size="sm" variant="ghost" onClick={e=>{e.stopPropagation();setWithdrawId(r.id)}}>Withdraw</Btn>}
         </div> },
       ]} rows={filtered} onRowClick={r=>setDetail({type:"application",id:r.id})} />
 
-      {/* Withdraw modal */}
       <Modal open={!!withdrawId} onClose={()=>setWithdrawId(null)} title={`Withdraw Application ${withdrawId}`} width={420}>
         <div style={{ fontSize:12, color:C.textDim, marginBottom:12 }}>This will cancel the application. The customer can re-apply later.</div>
         <Field label="Reason for withdrawal"><Textarea value={withdrawReason} onChange={e=>setWithdrawReason(e.target.value)} rows={3} placeholder="Customer request / Duplicate / Failed validation..." /></Field>
@@ -2508,7 +2570,7 @@ export default function App() {
       const allDDComplete = w.kycComplete && w.docsComplete && w.siteVisitComplete && w.financialAnalysisComplete && w.collateralAssessed && w.socialVerified;
 
       const steps = [
-        { key:"submitted", label:"1. Application Received", done:true, hasData:true },
+        { key:"submitted", label:"1. Application Received & QA", done:!!a.qaSignedOff, hasData:true, detail: a.qaSignedOff ? `QA passed ${fmt.date(a.qaDate)} by ${a.qaOfficer}` : a.qaFindings?.result === "Failed" ? "QA failed — resolve issues" : "Awaiting QA sign-off" },
         { key:"kyc", label:"2. KYC/FICA & Sanctions", done:w.kycComplete, hasData:!!w.kycDate, canRun:isUW, gateOk:true, runLabel:w.kycDate?"Re-run Checks":"Run Automated Checks" },
         { key:"docs", label:"3. Document Completeness Review", done:w.docsComplete, hasData:!!w.docsDate, canRun:isUW, gateOk:true, runLabel:w.docsDate?"Re-check":"Run Document Check" },
         { key:"sitevisit", label:"4. Site Visit & Management Interview", done:w.siteVisitComplete, hasData:!!w.siteVisitDate, canRun:isUW, gateOk:true, runLabel:w.siteVisitDate?"Re-generate":"Generate Findings" },
@@ -2614,7 +2676,29 @@ export default function App() {
       };
 
       const renderStepBody = (s) => {
-        if (s.key==="submitted") return <InfoGrid items={[["Applicant",c?.name],["Product",p?.name],["Amount",fmt.cur(a.amount)],["Term",`${a.term}m`],["Submitted",fmt.date(a.submitted)],["Purpose",a.purpose]]} />;
+        if (s.key==="submitted") return (<div>
+          <InfoGrid items={[["Applicant",c?.name],["Product",p?.name],["Amount",fmt.cur(a.amount)],["Term",`${a.term}m`],["Created",fmt.date(a.createdAt||a.submitted)],["Purpose",a.purpose]]} />
+          {a.qaFindings && <div style={{ marginTop:8 }}>
+            <div style={{ fontSize:11, fontWeight:600, color:C.text, marginBottom:4 }}>QA Document Check</div>
+            <div style={{ border:`1px solid ${C.border}` }}>
+              {(a.qaFindings.mandatoryDocs||[]).map((d,i) => (
+                <div key={i} style={{ display:"flex", gap:6, padding:"4px 8px", fontSize:11, borderBottom:i<(a.qaFindings.mandatoryDocs.length-1)?`1px solid ${C.border}`:"none" }}>
+                  <span style={{ width:40, fontWeight:500, color:d.onFile && d.status!=="Pending" && d.status!=="Rejected" ? C.green : C.red }}>{d.onFile && d.status!=="Pending" && d.status!=="Rejected" ? "OK" : d.status}</span>
+                  <span style={{ width:140, fontWeight:500 }}>{d.type}</span>
+                  <span style={{ color:C.textDim }}>{d.docId || "Not on file"}{d.status ? ` — ${d.status}` : ""}</span>
+                </div>
+              ))}
+            </div>
+            {a.qaFindings.missingDocs?.length > 0 && <div style={{ fontSize:11, color:C.red, marginTop:4 }}>Missing: {a.qaFindings.missingDocs.join(", ")}</div>}
+            {a.qaFindings.incompleteDocs?.length > 0 && <div style={{ fontSize:11, color:C.amber, marginTop:2 }}>Incomplete: {a.qaFindings.incompleteDocs.join(", ")}</div>}
+            <div style={{ fontSize:10, color:a.qaFindings.result==="Passed"?C.green:C.red, marginTop:4, fontWeight:600 }}>
+              QA Result: {a.qaFindings.result}{a.qaFindings.officer ? ` — ${a.qaFindings.officer} on ${fmt.date(a.qaFindings.passedAt)}` : ""}
+            </div>
+          </div>}
+          {a.expiresAt && a.status === "Draft" && <div style={{ fontSize:10, color: a.expiresAt < Date.now() ? C.red : C.amber, marginTop:6 }}>
+            {a.expiresAt < Date.now() ? `EXPIRED on ${fmt.date(a.expiresAt)}` : `Expires: ${fmt.date(a.expiresAt)} (${Math.ceil((a.expiresAt - Date.now())/day)} days remaining)`}
+          </div>}
+        </div>);
         if (s.key==="kyc") return (<div>
           {!w.kycDate && <div style={{ fontSize:11, color:C.textMuted, marginBottom:6 }}>Verify applicant identity and regulatory compliance: ID against Home Affairs, company registration against CIPC, bank account confirmation, address verification, sanctions screening (OFAC/UN/SA), and PEP check. Each item requires your review and sign-off.</div>}
           {w.kycFindings && renderChecklist(w.kycFindings, "kyc")}
