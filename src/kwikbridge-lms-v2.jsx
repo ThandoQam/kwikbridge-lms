@@ -7,7 +7,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
    • Finastra Loan IQ — Commercial Loan Origination
    • Temenos T24 — Core Banking & Lending
    • HES LoanBox / Cloudbankin / LendFoundry
-   
+
    Modules:
    1. Dashboard & Analytics (Portfolio KPIs, Charts, EWS)
    2. Customer Onboarding (KYC/FICA, BEE Verification)
@@ -38,8 +38,6 @@ const stage = d => d <= 30 ? 1 : d <= 90 ? 2 : 3;
 const now = Date.now();
 const day = 864e5;
 
-// ─── Color System — Bank Grade ───
-// Navy/slate text, white surfaces, single muted accent, no colored backgrounds
 const C = {
   bg: "#f5f5f7", surface: "#ffffff", surface2: "#fafafa", surface3: "#f5f5f7",
   border: "#e5e5e5", borderLight: "#d4d4d4",
@@ -53,7 +51,6 @@ const C = {
   white: "#ffffff",
 };
 
-// ─── RBAC: Roles, Permissions, Users ───
 const ROLES = {
   ADMIN:       { id:"ADMIN",       label:"System Admin",       tier:0 },
   EXEC:        { id:"EXEC",        label:"Executive",          tier:1 },
@@ -68,8 +65,6 @@ const ROLES = {
   VIEWER:      { id:"VIEWER",      label:"Report Viewer",      tier:5 },
 };
 
-// Permission matrix: module → role → allowed actions
-// Actions: view, create, update, delete, approve, assign, signoff, export
 const PERMS = {
   dashboard:     { ADMIN:"view,export", EXEC:"view,export", CREDIT_HEAD:"view,export", COMPLIANCE:"view", CREDIT_SNR:"view", CREDIT:"view", LOAN_OFFICER:"view", COLLECTIONS:"view", FINANCE:"view", AUDITOR:"view", VIEWER:"view" },
   customers:     { ADMIN:"view,create,update,delete", EXEC:"view", CREDIT_HEAD:"view,update", COMPLIANCE:"view,update", CREDIT_SNR:"view", CREDIT:"view", LOAN_OFFICER:"view,create,update", COLLECTIONS:"view", FINANCE:"view", AUDITOR:"view", VIEWER:"" },
@@ -88,12 +83,10 @@ const PERMS = {
   settings:      { ADMIN:"view,create,update,delete", EXEC:"view", CREDIT_HEAD:"", COMPLIANCE:"view", CREDIT_SNR:"", CREDIT:"", LOAN_OFFICER:"", COLLECTIONS:"", FINANCE:"view", AUDITOR:"view", VIEWER:"" },
 };
 
-// Approval authority by role (max loan amount)
 const APPROVAL_LIMITS = {
   CREDIT: 250000, CREDIT_SNR: 500000, CREDIT_HEAD: 1000000, EXEC: 5000000, ADMIN: Infinity,
 };
 
-// System users (seeded)
 const SYSTEM_USERS = [
   { id:"U001", name:"Thando Qamarana", initials:"TQ", email:"thando@thandoq.co.za", role:"ADMIN" },
   { id:"U002", name:"J. Ndaba", initials:"JN", email:"j.ndaba@thandoq.co.za", role:"LOAN_OFFICER" },
@@ -106,7 +99,6 @@ const SYSTEM_USERS = [
   { id:"U009", name:"Executive Viewer", initials:"EV", email:"exec@thandoq.co.za", role:"EXEC" },
 ];
 
-// Permission check helper
 function can(userRole, module, action) {
   const perms = PERMS[module]?.[userRole] || "";
   return perms.split(",").includes(action);
@@ -118,7 +110,6 @@ function approvalLimit(userRole) {
   return APPROVAL_LIMITS[userRole] || 0;
 }
 
-// ─── SEED DATA ───
 function seed() {
   const customers = [
     { id:"C001", name:"Nomsa Trading (Pty) Ltd", contact:"Nomsa Dlamini", email:"nomsa@trading.co.za", phone:"083 456 7890", idNum:"8501015009088", regNum:"2019/123456/07", industry:"Retail", sector:"Consumer Goods", revenue:4200000, employees:12, years:6, beeLevel:2, beeStatus:"Verified", beeExpiry:now+180*day, address:"45 Oxford St, East London", province:"Eastern Cape", ficaStatus:"Verified", ficaDate:now-170*day, riskCategory:"Medium", created:now-180*day },
@@ -138,127 +129,16 @@ function seed() {
     { id:"P006", name:"Empowerment Finance", minAmount:100000, maxAmount:3000000, minTerm:12, maxTerm:72, baseRate:12.0, description:"Preferential rates for qualifying BEE enterprises", repaymentType:"Amortising", arrangementFee:0.5, commitmentFee:0, gracePeriod:3, maxLTV:85, minDSCR:1.15, eligibleBEE:[1,2], eligibleIndustries:["All"], status:"Active", createdBy:"U001", createdAt:now-365*day },
   ];
 
+  const emptyWF = { kycComplete:false, kycFindings:null, kycDate:null, kycOfficer:null, docsComplete:false, docsFindings:null, docsDate:null, docsOfficer:null, siteVisitComplete:false, siteVisitFindings:null, siteVisitDate:null, siteVisitOfficer:null, siteVisitNotes:"", creditPulled:false, creditBureauScore:null, creditDate:null, creditFindings:null, financialAnalysisComplete:false, financialDate:null, collateralAssessed:false, collateralFindings:null, collateralDate:null, collateralTotal:0, socialVerified:false, socialFindings:null, socialDate:null, socialOfficer:null, sanctionsCleared:false, sanctionsDate:null, analystNotes:"", creditMemoSections:[], docRequests:[] };
   const applications = [
     { id:"APP-001", custId:"C001", status:"Approved", product:"P001", amount:750000, term:36, purpose:"Working capital & inventory expansion for new retail outlet", rate:14.5, riskScore:72, dscr:1.85, currentRatio:1.92, debtEquity:0.65, socialScore:78, recommendation:"Approve", approver:"Head of Credit", creditMemo:"Strong trading history, solid cash flows, well-secured.", submitted:now-90*day, decided:now-80*day, conditions:["Maintain DSCR > 1.3","Submit quarterly financials","Insurance on stock"] },
     { id:"APP-002", custId:"C002", status:"Approved", product:"P002", amount:1200000, term:48, purpose:"Equipment purchase & irrigation system for expanded farming operations", rate:13.0, riskScore:68, dscr:1.62, currentRatio:1.45, debtEquity:0.78, socialScore:92, recommendation:"Approve", approver:"Credit Committee", creditMemo:"Strong social impact. Seasonal cash flow mitigated by crop insurance.", submitted:now-70*day, decided:now-55*day, conditions:["Crop insurance required","Annual audit","DSCR > 1.2"] },
-    { id:"APP-003", custId:"C003", status:"Underwriting", product:"P003", amount:2000000, term:60, purpose:"Software platform development and market expansion", rate:null, riskScore:null, dscr:null, currentRatio:null, debtEquity:null, socialScore:null, recommendation:null, approver:null, creditMemo:null, submitted:now-10*day, decided:null, conditions:[], createdBy:"U001", createdAt:now-12*day, expiresAt:now+18*day, qaSignedOff:true, qaOfficer:"Loan Officer – J. Ndaba", qaDate:now-10*day, qaFindings:{ result:"Passed", passedAt:now-10*day, officer:"Loan Officer – J. Ndaba", mandatoryDocs:[{type:"ID Document",docId:"DOC-019",status:"Verified",onFile:true},{type:"Proof of Address",docId:"DOC-021",status:"Verified",onFile:true},{type:"Bank Confirmation",docId:"DOC-022",status:"Verified",onFile:true},{type:"Company Registration",docId:"DOC-020",status:"Verified",onFile:true}], missingDocs:[], incompleteDocs:[], fieldErrors:[] }, sanctionsFlag:false, sanctionsDate:now-10*day, assignedTo:"U003", workflow:{
-      kycComplete:true, kycOfficer:"Loan Officer – J. Ndaba", kycDate:now-9*day, kycFindings:[
-        {item:"ID Document",source:"Home Affairs API",purpose:"Identity verification",docId:"DOC-019",systemResult:"Pass",status:"Pass",detail:"DOC-019 — Verified",officerAction:"Confirmed",officerNote:"ID verified against Home Affairs."},
-        {item:"Proof of Address",source:"Manual verification",purpose:"Address confirmation",docId:"DOC-021",systemResult:"Pass",status:"Pass",detail:"DOC-021 — Verified",officerAction:"Confirmed",officerNote:"Municipal account within 3 months."},
-        {item:"Bank Confirmation",source:"Bank verification",purpose:"Account ownership",docId:"DOC-022",systemResult:"Pass",status:"Pass",detail:"DOC-022 — Verified",officerAction:"Confirmed",officerNote:"Nedbank account confirmed active."},
-        {item:"Company Registration",source:"CIPC API",purpose:"Business registration",docId:"DOC-020",systemResult:"Pass",status:"Pass",detail:"DOC-020 — Verified",officerAction:"Confirmed",officerNote:"CIPC active. Reg 2021/789012/07."},
-        {item:"Sanctions Screening",source:"OFAC / UN / SA Consolidated Lists",purpose:"AML compliance",systemResult:"Pass",status:"Pass",detail:"No matches.",officerAction:"Confirmed",officerNote:"Clear."},
-        {item:"PEP Screening",source:"PEP Database",purpose:"PEP check",systemResult:"Pass",status:"Pass",detail:"No PEPs identified.",officerAction:"Confirmed",officerNote:"Clear."}
-      ], sanctionsCleared:true, sanctionsDate:now-9*day,
-      docsComplete:true, docsOfficer:"Loan Officer – J. Ndaba", docsDate:now-8*day, docsFindings:[
-        {item:"ID Document",required:true,inherited:true,systemResult:"Verified",status:"Pass",detail:"Verified in Step 2 (KYC/FICA) — DOC-019",docId:"DOC-019",officerAction:"Inherited",officerNote:""},
-        {item:"Proof of Address",required:true,inherited:true,systemResult:"Verified",status:"Pass",detail:"Verified in Step 2 — DOC-021",docId:"DOC-021",officerAction:"Inherited",officerNote:""},
-        {item:"Bank Confirmation",required:true,inherited:true,systemResult:"Verified",status:"Pass",detail:"Verified in Step 2 — DOC-022",docId:"DOC-022",officerAction:"Inherited",officerNote:""},
-        {item:"Company Registration",required:true,inherited:true,systemResult:"Verified",status:"Pass",detail:"Verified in Step 2 — DOC-020",docId:"DOC-020",officerAction:"Inherited",officerNote:""},
-        {item:"Annual Financials",required:true,inherited:false,systemResult:"Received",status:"Pass",detail:"DOC-023 — Received",docId:"DOC-023",officerAction:"Confirmed",officerNote:"FY2024 financials received. Unaudited but adequate."},
-        {item:"Business Plan",required:true,inherited:false,systemResult:"Under Review",status:"Pass",detail:"DOC-024 — Under Review",docId:"DOC-024",officerAction:"Confirmed",officerNote:"3-year platform development plan reviewed. Projections reasonable."}
-      ],
-      siteVisitComplete:true, siteVisitOfficer:"Loan Officer – J. Ndaba", siteVisitDate:now-7*day, siteVisitNotes:"Impressive tech operation. Well-organised team.", siteVisitFindings:[
-        {item:"Visit Details",field:"visitDetails",value:`Visited 10 Settlers Way, Gqeberha on ${new Date(now-7*day).toISOString().split("T")[0]}. Met with Ayanda Nkosi (CEO) and CTO. Duration: 2.5 hours.`,placeholder:""},
-        {item:"Premises Inspection",field:"premises",value:"Modern office space in tech hub. Open-plan with dedicated server room. Lease confirmed until 2028. Clean, professional environment with good security.",placeholder:""},
-        {item:"Operational Activity",field:"operations",value:"18 staff on site. Active development sprints visible on boards. Multiple client projects in progress. DevOps pipeline running on screens.",placeholder:""},
-        {item:"Management Interview",field:"management",value:"Ayanda Nkosi — 3 years in business, prior 8 years at large SA tech firms. Strong technical vision. CTO has 12 years enterprise experience. Team well-structured with clear roles.",placeholder:""},
-        {item:"Infrastructure & Capacity",field:"infrastructure",value:"Cloud infrastructure (AWS). On-prem servers for development. Fibre connectivity. UPS backup. Can scale team to 30 without premises change.",placeholder:""},
-        {item:"Revenue Verification",field:"revenue",value:"Stated R8.5M revenue consistent with 4 active enterprise contracts observed. Monthly recurring revenue from 2 SaaS clients verified via bank statements.",placeholder:""},
-        {item:"Risk Observations",field:"risks",value:"Client concentration — top 2 clients represent ~60% of revenue. Mitigation: active pipeline of 3 new prospects. Tech skills retention risk in competitive market.",placeholder:""},
-        {item:"Overall Assessment",field:"assessment",value:"Strong technology business with capable management. Platform development plan is viable. Main risk is client concentration which management is actively addressing.",rating:"Satisfactory",placeholder:""}
-      ],
-      creditPulled:false, creditBureauScore:null, creditDate:null, creditFindings:null, financialAnalysisComplete:false, financialDate:null,
-      collateralAssessed:false, collateralFindings:null, collateralDate:null, collateralTotal:0,
-      socialVerified:false, socialFindings:null, socialDate:null, socialOfficer:null,
-      analystNotes:"", creditMemoSections:[], docRequests:[]
-    }},
+    { id:"APP-003", custId:"C003", status:"Underwriting", product:"P003", amount:2000000, term:60, purpose:"Software platform development and market expansion", rate:null, riskScore:null, dscr:null, currentRatio:null, debtEquity:null, socialScore:null, recommendation:null, approver:null, creditMemo:null, submitted:now-10*day, decided:null, conditions:[], createdBy:"U001", createdAt:now-12*day, expiresAt:now+18*day, qaSignedOff:true, qaOfficer:"Loan Officer – J. Ndaba", qaDate:now-10*day, qaFindings:{result:"Passed",passedAt:now-10*day,officer:"Loan Officer – J. Ndaba",mandatoryDocs:[{type:"ID Document",docId:"DOC-019",status:"Verified",onFile:true},{type:"Proof of Address",docId:"DOC-021",status:"Verified",onFile:true},{type:"Bank Confirmation",docId:"DOC-022",status:"Verified",onFile:true},{type:"Company Registration",docId:"DOC-020",status:"Verified",onFile:true}],missingDocs:[],incompleteDocs:[],fieldErrors:[]}, sanctionsFlag:false, sanctionsDate:now-10*day, assignedTo:"U003", workflow:{...emptyWF} },
     { id:"APP-004", custId:"C004", status:"Approved", product:"P001", amount:3500000, term:60, purpose:"Construction equipment fleet renewal and working capital", rate:15.0, riskScore:81, dscr:2.1, currentRatio:2.35, debtEquity:0.42, socialScore:85, recommendation:"Approve", approver:"Credit Committee", creditMemo:"Strong balance sheet. Key government contracts provide revenue visibility.", submitted:now-200*day, decided:now-185*day, conditions:["DSCR > 1.5","Insurance on all equipment","Submit quarterly financials","Maintain BEE Level 1"] },
-    { id:"APP-005", custId:"C005", status:"Underwriting", product:"P001", amount:500000, term:24, purpose:"Cold storage facility for food processing expansion", rate:null, riskScore:65, dscr:1.45, currentRatio:1.38, debtEquity:0.72, socialScore:null, recommendation:null, approver:null, creditMemo:null, submitted:now-8*day, decided:null, conditions:[], createdBy:"U001", createdAt:now-10*day, expiresAt:now+20*day, qaSignedOff:true, qaOfficer:"Loan Officer – J. Ndaba", qaDate:now-8*day, qaFindings:{ result:"Passed", passedAt:now-8*day, officer:"Loan Officer – J. Ndaba", mandatoryDocs:[{type:"ID Document",docId:"DOC-032",status:"Verified",onFile:true},{type:"Proof of Address",docId:"DOC-034",status:"Verified",onFile:true},{type:"Bank Confirmation",docId:"DOC-035",status:"Verified",onFile:true},{type:"Company Registration",docId:"DOC-033",status:"Verified",onFile:true}], missingDocs:[], incompleteDocs:[], fieldErrors:[] }, sanctionsFlag:false, sanctionsDate:now-8*day, assignedTo:"U004", workflow:{
-      kycComplete:true, kycOfficer:"Loan Officer – J. Ndaba", kycDate:now-7*day, kycFindings:[
-        {item:"ID Document",source:"Home Affairs API",purpose:"Identity verification",docId:"DOC-032",systemResult:"Pass",status:"Pass",detail:"DOC-032 — Verified",officerAction:"Confirmed",officerNote:""},
-        {item:"Proof of Address",source:"Manual verification",purpose:"Address confirmation",docId:"DOC-034",systemResult:"Pass",status:"Pass",detail:"DOC-034 — Verified",officerAction:"Confirmed",officerNote:""},
-        {item:"Bank Confirmation",source:"Bank verification",purpose:"Account ownership",docId:"DOC-035",systemResult:"Pass",status:"Pass",detail:"DOC-035 — Verified",officerAction:"Confirmed",officerNote:""},
-        {item:"Company Registration",source:"CIPC API",purpose:"Business registration",docId:"DOC-033",systemResult:"Pass",status:"Pass",detail:"DOC-033 — Verified",officerAction:"Confirmed",officerNote:""},
-        {item:"Sanctions Screening",source:"OFAC / UN / SA Consolidated Lists",purpose:"AML compliance",systemResult:"Pass",status:"Pass",detail:"Clear.",officerAction:"Confirmed",officerNote:""},
-        {item:"PEP Screening",source:"PEP Database",purpose:"PEP check",systemResult:"Pass",status:"Pass",detail:"Clear.",officerAction:"Confirmed",officerNote:""}
-      ], sanctionsCleared:true, sanctionsDate:now-7*day,
-      docsComplete:true, docsOfficer:"Loan Officer – J. Ndaba", docsDate:now-6*day, docsFindings:[
-        {item:"ID Document",required:true,inherited:true,systemResult:"Verified",status:"Pass",detail:"Verified in Step 2 — DOC-032",docId:"DOC-032",officerAction:"Inherited",officerNote:""},
-        {item:"Proof of Address",required:true,inherited:true,systemResult:"Verified",status:"Pass",detail:"Verified in Step 2 — DOC-034",docId:"DOC-034",officerAction:"Inherited",officerNote:""},
-        {item:"Bank Confirmation",required:true,inherited:true,systemResult:"Verified",status:"Pass",detail:"Verified in Step 2 — DOC-035",docId:"DOC-035",officerAction:"Inherited",officerNote:""},
-        {item:"Company Registration",required:true,inherited:true,systemResult:"Verified",status:"Pass",detail:"Verified in Step 2 — DOC-033",docId:"DOC-033",officerAction:"Inherited",officerNote:""},
-        {item:"Annual Financials",required:true,inherited:false,systemResult:"Received",status:"Pass",detail:"DOC-036 — Received",docId:"DOC-036",officerAction:"Confirmed",officerNote:"FY2024 financials. Audited by local firm."},
-        {item:"Business Plan",required:true,inherited:false,systemResult:"Received",status:"Pass",detail:"DOC-037 — Received",docId:"DOC-037",officerAction:"Confirmed",officerNote:"Cold storage expansion plan. Capex well-detailed."}
-      ],
-      siteVisitComplete:true, siteVisitOfficer:"Loan Officer – J. Ndaba", siteVisitDate:now-5*day, siteVisitNotes:"", siteVisitFindings:[
-        {item:"Visit Details",field:"visitDetails",value:`Visited Unit 5, Industrial Park, Mthatha on ${new Date(now-5*day).toISOString().split("T")[0]}. Met Lindiwe Khumalo (owner). 1.5 hours.`,placeholder:""},
-        {item:"Premises Inspection",field:"premises",value:"Food processing facility in industrial park. Clean, compliant with health standards. Current cold storage at capacity — expansion justified.",placeholder:""},
-        {item:"Operational Activity",field:"operations",value:"8 staff. Active food preparation and packaging lines. Orders being dispatched. Good stock rotation observed.",placeholder:""},
-        {item:"Management Interview",field:"management",value:"Lindiwe has 2 years in business, prior experience in food industry supply chain. Passionate but limited financial management experience. Recommended mentorship.",placeholder:""},
-        {item:"Infrastructure & Capacity",field:"infrastructure",value:"Functional facility. Needs cold storage upgrade — current units aging. Electrical supply adequate. Water supply confirmed.",placeholder:""},
-        {item:"Revenue Verification",field:"revenue",value:"R3.1M stated revenue. Consistent with observed order volumes and 3 confirmed retail contracts. Seasonal peak in Dec-Feb.",placeholder:""},
-        {item:"Risk Observations",field:"risks",value:"Limited financial management capacity. Young business (2 years). Revenue growing but margins thin. Load-shedding impacts cold chain.",placeholder:""},
-        {item:"Overall Assessment",field:"assessment",value:"Viable business with genuine expansion need. Management capacity is the main concern — recommend mentorship condition. Cold storage investment will reduce waste and improve margins.",rating:"Concerns Noted",placeholder:""}
-      ],
-      creditPulled:true, creditBureauScore:620, creditDate:now-4*day, financialAnalysisComplete:true, financialDate:now-4*day, creditFindings:[
-        {item:"Credit Bureau Report",systemValue:"Bureau score: 620/900",systemDetail:"Minor adverse: 1 late payment on trade account (>30 days, 18 months ago). Otherwise clean.",analystNote:"Acceptable given business age. Late payment was during COVID period. Current record clean for 12 months.",flag:"Accept"},
-        {item:"Affordability (NCA)",systemValue:"DSCR: 1.45x | Affordable: YES",systemDetail:"Income: R258,333/m. Existing debt: R31,000/m. Proposed: R23,500/m. Disposable: R203,833/m.",analystNote:"Comfortable affordability. DSCR above 1.2 threshold. Seasonal variation could compress Q3 DSCR to ~1.15 — manageable.",flag:"Accept"},
-        {item:"Balance Sheet Ratios",systemValue:"CR: 1.38x | D/E: 0.72x | Margin: 28%",systemDetail:"Current ratio adequate. Leverage moderate. Gross margin healthy for food processing.",analystNote:"Ratios acceptable for early-stage food business. Working capital position could tighten during growth phase.",flag:"Accept"},
-        {item:"Cash Flow Projections",systemValue:"24-month projection",systemDetail:"Revenue assumptions based on limited history — conservative scenario applied. Seasonal variation significant.",analystNote:"Projections reviewed against actual 2-year trend. Growth assumptions of 15% p.a. are reasonable given confirmed new retail contract starting Q2.",flag:"Accept"},
-        {item:"Industry & Market Risk",systemValue:"Food Processing",systemDetail:"",analystNote:"Food processing sector stable. Cold chain investment addresses a genuine infrastructure gap. Load-shedding is a real risk — recommend generator/solar condition.",flag:"Concern"},
-        {item:"Risk Score & Recommendation",systemValue:"Score: 65/100 | Grade: Medium",systemDetail:"",analystNote:"RECOMMEND APPROVAL with conditions: (1) Mentorship program for financial management, (2) Backup power solution required, (3) Quarterly financial reporting. Medium risk adequately mitigated by asset security and viable business model.",flag:"Accept"}
-      ],
-      collateralAssessed:false, collateralFindings:null, collateralDate:null, collateralTotal:0,
-      socialVerified:false, socialFindings:null, socialDate:null, socialOfficer:null,
-      analystNotes:"Good small business with genuine need. Main risk is management capacity — mentorship condition addresses this.", creditMemoSections:[], docRequests:[]
-    }},
+    { id:"APP-005", custId:"C005", status:"Underwriting", product:"P001", amount:500000, term:24, purpose:"Cold storage facility for food processing expansion", rate:null, riskScore:null, dscr:null, currentRatio:null, debtEquity:null, socialScore:null, recommendation:null, approver:null, creditMemo:null, submitted:now-8*day, decided:null, conditions:[], createdBy:"U001", createdAt:now-10*day, expiresAt:now+20*day, qaSignedOff:true, qaOfficer:"Loan Officer – J. Ndaba", qaDate:now-8*day, qaFindings:{result:"Passed",passedAt:now-8*day,officer:"Loan Officer – J. Ndaba",mandatoryDocs:[{type:"ID Document",docId:"DOC-032",status:"Verified",onFile:true},{type:"Proof of Address",docId:"DOC-034",status:"Verified",onFile:true},{type:"Bank Confirmation",docId:"DOC-035",status:"Verified",onFile:true},{type:"Company Registration",docId:"DOC-033",status:"Verified",onFile:true}],missingDocs:[],incompleteDocs:[],fieldErrors:[]}, sanctionsFlag:false, sanctionsDate:now-8*day, assignedTo:"U004", workflow:{...emptyWF} },
     { id:"APP-006", custId:"C003", status:"Declined", product:"P004", amount:5000000, term:12, purpose:"Import of hardware components for resale", rate:null, riskScore:42, dscr:0.9, currentRatio:0.87, debtEquity:1.85, socialScore:55, recommendation:"Decline", approver:"Head of Credit", creditMemo:"Insufficient cash flow coverage. High leverage. Affordability test failed.", submitted:now-45*day, decided:now-35*day, conditions:[] },
     { id:"APP-007", custId:"C006", status:"Approved", product:"P005", amount:1800000, term:48, purpose:"Purchase of 3 additional delivery trucks", rate:13.5, riskScore:79, dscr:2.35, currentRatio:2.1, debtEquity:0.38, socialScore:80, recommendation:"Approve", approver:"Head of Credit", creditMemo:"Excellent payment history. Strong contract pipeline. Well-managed fleet.", submitted:now-250*day, decided:now-240*day, conditions:["Insurance on all vehicles","GPS tracking required","Quarterly financials"] },
-    { id:"APP-008", custId:"C001", status:"Underwriting", product:"P006", amount:900000, term:48, purpose:"Retail expansion — second branch and inventory build-up", rate:null, riskScore:74, dscr:1.92, currentRatio:1.95, debtEquity:0.58, socialScore:null, recommendation:null, approver:null, creditMemo:null, submitted:now-6*day, decided:null, conditions:[], createdBy:"U001", createdAt:now-8*day, expiresAt:now+22*day, qaSignedOff:true, qaOfficer:"Loan Officer – J. Ndaba", qaDate:now-6*day, qaFindings:{ result:"Passed", passedAt:now-6*day, officer:"Loan Officer – J. Ndaba", mandatoryDocs:[{type:"ID Document",docId:"DOC-001",status:"Verified",onFile:true},{type:"Proof of Address",docId:"DOC-003",status:"Verified",onFile:true},{type:"Bank Confirmation",docId:"DOC-004",status:"Verified",onFile:true},{type:"Company Registration",docId:"DOC-002",status:"Verified",onFile:true}], missingDocs:[], incompleteDocs:[], fieldErrors:[] }, sanctionsFlag:false, sanctionsDate:now-6*day, assignedTo:"U003", workflow:{
-      kycComplete:true, kycOfficer:"Loan Officer – J. Ndaba", kycDate:now-5*day, kycFindings:[
-        {item:"ID Document",source:"Home Affairs API",purpose:"Identity verification",docId:"DOC-001",systemResult:"Pass",status:"Pass",detail:"DOC-001 — Verified",officerAction:"Confirmed",officerNote:"Verified against Home Affairs."},
-        {item:"Proof of Address",source:"Manual verification",purpose:"Address confirmation",docId:"DOC-003",systemResult:"Pass",status:"Pass",detail:"DOC-003 — Verified",officerAction:"Confirmed",officerNote:"Municipal account current."},
-        {item:"Bank Confirmation",source:"Bank verification",purpose:"Account ownership",docId:"DOC-004",systemResult:"Pass",status:"Pass",detail:"DOC-004 — Verified",officerAction:"Confirmed",officerNote:"FNB account active."},
-        {item:"Company Registration",source:"CIPC API",purpose:"Business registration",docId:"DOC-002",systemResult:"Pass",status:"Pass",detail:"DOC-002 — Verified",officerAction:"Confirmed",officerNote:"CIPC active."},
-        {item:"Sanctions Screening",source:"OFAC / UN / SA Consolidated Lists",purpose:"AML compliance",systemResult:"Pass",status:"Pass",detail:"Clear.",officerAction:"Confirmed",officerNote:""},
-        {item:"PEP Screening",source:"PEP Database",purpose:"PEP check",systemResult:"Pass",status:"Pass",detail:"Clear.",officerAction:"Confirmed",officerNote:""}
-      ], sanctionsCleared:true, sanctionsDate:now-5*day,
-      docsComplete:true, docsOfficer:"Loan Officer – J. Ndaba", docsDate:now-4*day, docsFindings:[
-        {item:"ID Document",required:true,inherited:true,systemResult:"Verified",status:"Pass",detail:"Verified in Step 2 — DOC-001",docId:"DOC-001",officerAction:"Inherited",officerNote:""},
-        {item:"Proof of Address",required:true,inherited:true,systemResult:"Verified",status:"Pass",detail:"Verified in Step 2 — DOC-003",docId:"DOC-003",officerAction:"Inherited",officerNote:""},
-        {item:"Bank Confirmation",required:true,inherited:true,systemResult:"Verified",status:"Pass",detail:"Verified in Step 2 — DOC-004",docId:"DOC-004",officerAction:"Inherited",officerNote:""},
-        {item:"Company Registration",required:true,inherited:true,systemResult:"Verified",status:"Pass",detail:"Verified in Step 2 — DOC-002",docId:"DOC-002",officerAction:"Inherited",officerNote:""},
-        {item:"Annual Financials",required:true,inherited:false,systemResult:"Verified",status:"Pass",detail:"DOC-005 — Verified by Credit Analyst – P. Sithole",docId:"DOC-005",officerAction:"Confirmed",officerNote:"Audited AFS FY2024. BDO. Clean opinion."},
-        {item:"Business Plan",required:true,inherited:false,systemResult:"Verified",status:"Pass",detail:"DOC-006 — Verified",docId:"DOC-006",officerAction:"Confirmed",officerNote:"3-year plan. Second branch feasibility included."}
-      ],
-      siteVisitComplete:true, siteVisitOfficer:"Loan Officer – J. Ndaba", siteVisitDate:now-3*day, siteVisitNotes:"Established business. Second branch site also visited — good location.", siteVisitFindings:[
-        {item:"Visit Details",field:"visitDetails",value:`Visited 45 Oxford St, East London on ${new Date(now-3*day).toISOString().split("T")[0]}. Also visited proposed second branch site at 12 King St. Met Nomsa Dlamini (owner). 3 hours total.`,placeholder:""},
-        {item:"Premises Inspection",field:"premises",value:"Well-maintained retail premises. Good foot traffic location. Stock well-organised. Second branch site is a vacant 120m² unit in high-traffic area — lease terms confirmed.",placeholder:""},
-        {item:"Operational Activity",field:"operations",value:"12 staff across sales floor, stockroom, and admin. Busy trading observed during visit. POS system in use. Good stock management practices.",placeholder:""},
-        {item:"Management Interview",field:"management",value:"Nomsa Dlamini — 6 years in business, strong commercial instincts. Has appointed a store manager for current branch in preparation for expansion. Financial awareness is good.",placeholder:""},
-        {item:"Infrastructure & Capacity",field:"infrastructure",value:"Current branch well-set-up. New branch will need fit-out (included in loan purpose). IT infrastructure can extend to second branch. Supplier relationships strong.",placeholder:""},
-        {item:"Revenue Verification",field:"revenue",value:"R4.2M revenue confirmed against bank statements and POS reports. Average basket value and customer count consistent with stated figures. Year-on-year growth of 18%.",placeholder:""},
-        {item:"Risk Observations",field:"risks",value:"Expansion risk — second branch will need 6-9 months to reach profitability. Cash flow from Branch 1 must cover both during ramp-up. Nomsa has R200K personal savings as buffer.",placeholder:""},
-        {item:"Overall Assessment",field:"assessment",value:"Strong existing business with proven track record. Expansion plan is well-researched. Management capability demonstrated. Risk is manageable with appropriate structuring.",rating:"Satisfactory",placeholder:""}
-      ],
-      creditPulled:true, creditBureauScore:710, creditDate:now-2*day, financialAnalysisComplete:true, financialDate:now-2*day, creditFindings:[
-        {item:"Credit Bureau Report",systemValue:"Bureau score: 710/900",systemDetail:"Clean credit record. No adverse information. All accounts in good standing.",analystNote:"Excellent bureau profile. 6-year credit history with no defaults or late payments.",flag:"Accept"},
-        {item:"Affordability (NCA)",systemValue:"DSCR: 1.92x | Affordable: YES",systemDetail:"Income: R350,000/m. Existing debt: R15,000/m. Proposed: R24,800/m. Disposable: R310,200/m.",analystNote:"Strong affordability. Even under stress scenario (20% revenue decline), DSCR remains above 1.4x.",flag:"Accept"},
-        {item:"Balance Sheet Ratios",systemValue:"CR: 1.95x | D/E: 0.58x | Margin: 35%",systemDetail:"Current ratio strong. Leverage conservative. Gross margin healthy for retail.",analystNote:"Solid balance sheet. Good working capital position to support expansion. Inventory management is efficient — 42 days turnover.",flag:"Accept"},
-        {item:"Cash Flow Projections",systemValue:"48-month projection",systemDetail:"Revenue assumptions supported by 6-year track record. Second branch projections based on comparable location analysis.",analystNote:"Projections conservative. Break-even for Branch 2 at month 8 is realistic based on location demographics. Stress tested: profitable even at 70% of projected revenue.",flag:"Accept"},
-        {item:"Industry & Market Risk",systemValue:"Retail",systemDetail:"",analystNote:"Consumer goods retail in East London is stable. Location for Branch 2 has limited direct competition. Nomsa's supplier relationships provide favourable terms.",flag:"Accept"},
-        {item:"Risk Score & Recommendation",systemValue:"Score: 74/100 | Grade: Low-Medium",systemDetail:"",analystNote:"RECOMMEND APPROVAL. Low-medium risk. Strong track record, conservative balance sheet, viable expansion plan. Conditions: (1) Monthly financials for first 12 months, (2) Branch 2 lease to be ceded as security, (3) DSCR covenant of 1.3x.",flag:"Accept"}
-      ],
-      collateralAssessed:true, collateralFindings:[
-        {item:"Inventory (Current Branch)",detail:"Retail stock valued at R420,000 per latest inventory count. Turnover 42 days. Pledge over stock to be registered.",value:420000},
-        {item:"Branch 2 Lease Cession",detail:"Cession of 5-year commercial lease at 12 King St. Estimated rental value provides additional security.",value:180000},
-        {item:"Personal Guarantee",detail:"Nomsa Dlamini provides personal surety of R900,000. Verified assets: residential property (bond-free) valued at R1.1M.",value:900000},
-        {item:"Insurance Assignment",detail:"Business insurance policy (R2M comprehensive cover) to be ceded to KwikBridge.",value:500000}
-      ], collateralDate:now-1*day, collateralTotal:2000000,
-      socialVerified:false, socialFindings:null, socialDate:null, socialOfficer:null,
-      analystNotes:"Strong application. Nomsa is an excellent operator. Branch expansion well-planned.", creditMemoSections:[], docRequests:[]
-    }},
+    { id:"APP-008", custId:"C001", status:"Underwriting", product:"P006", amount:900000, term:48, purpose:"Retail expansion — second branch and inventory build-up", rate:null, riskScore:null, dscr:null, currentRatio:null, debtEquity:null, socialScore:null, recommendation:null, approver:null, creditMemo:null, submitted:now-6*day, decided:null, conditions:[], createdBy:"U001", createdAt:now-8*day, expiresAt:now+22*day, qaSignedOff:true, qaOfficer:"Loan Officer – J. Ndaba", qaDate:now-6*day, qaFindings:{result:"Passed",passedAt:now-6*day,officer:"Loan Officer – J. Ndaba",mandatoryDocs:[{type:"ID Document",docId:"DOC-001",status:"Verified",onFile:true},{type:"Proof of Address",docId:"DOC-003",status:"Verified",onFile:true},{type:"Bank Confirmation",docId:"DOC-004",status:"Verified",onFile:true},{type:"Company Registration",docId:"DOC-002",status:"Verified",onFile:true}],missingDocs:[],incompleteDocs:[],fieldErrors:[]}, sanctionsFlag:false, sanctionsDate:now-6*day, assignedTo:"U003", workflow:{...emptyWF} },
   ];
 
   const loans = [
@@ -330,11 +210,7 @@ function seed() {
     { id:uid(), custId:"C006", loanId:"LN-004", channel:"Email", direction:"Outbound", from:"Relationship Manager", subject:"Quarterly Review Meeting", body:"Scheduled quarterly business review for 15 April 2026 at customer premises.", ts:now-1*day },
   ];
 
-  // ─── Document Registry ───
-  // Categories: KYC (Know Your Customer), KYB (Know Your Business), Financial, Legal, Collateral, Compliance, Collections
-  // Lifecycle: Required → Pending → Received → Under Review → Verified → Expired
   const documents = [
-    // C001 – Nomsa Trading
     { id:"DOC-001", custId:"C001", appId:"APP-001", loanId:"LN-001", name:"SA ID Document – Nomsa Dlamini", category:"KYC", type:"ID Document", required:true, status:"Verified", uploadedBy:"Nomsa Dlamini", uploadedAt:now-178*day, verifiedBy:"Loan Officer – J. Ndaba", verifiedAt:now-175*day, expiryDate:null, fileRef:"C001/KYC/id_document.pdf", notes:"Verified against Home Affairs database." },
     { id:"DOC-002", custId:"C001", appId:"APP-001", loanId:"LN-001", name:"CIPC Registration Certificate", category:"KYB", type:"Company Registration", required:true, status:"Verified", uploadedBy:"Nomsa Dlamini", uploadedAt:now-178*day, verifiedBy:"Loan Officer – J. Ndaba", verifiedAt:now-175*day, expiryDate:null, fileRef:"C001/KYB/cipc_cert.pdf", notes:"Reg 2019/123456/07 confirmed active on CIPC portal." },
     { id:"DOC-003", custId:"C001", appId:"APP-001", loanId:"LN-001", name:"Proof of Business Address", category:"KYC", type:"Proof of Address", required:true, status:"Verified", uploadedBy:"Nomsa Dlamini", uploadedAt:now-178*day, verifiedBy:"Loan Officer – J. Ndaba", verifiedAt:now-174*day, expiryDate:null, fileRef:"C001/KYC/proof_address.pdf", notes:"Municipal account dated within 3 months." },
@@ -344,72 +220,47 @@ function seed() {
     { id:"DOC-007", custId:"C001", appId:"APP-001", loanId:"LN-001", name:"Loan Agreement – LN-001", category:"Legal", type:"Loan Agreement", required:true, status:"Verified", uploadedBy:"System", uploadedAt:now-75*day, verifiedBy:"Legal – M. Zulu", verifiedAt:now-75*day, expiryDate:null, fileRef:"C001/Legal/loan_agreement_LN001.pdf", notes:"Electronically signed. Stored in secure repository." },
     { id:"DOC-008", custId:"C001", appId:null, loanId:"LN-001", name:"Stock Insurance Certificate", category:"Collateral", type:"Insurance", required:true, status:"Verified", uploadedBy:"Nomsa Dlamini", uploadedAt:now-70*day, verifiedBy:"Loan Officer – J. Ndaba", verifiedAt:now-68*day, expiryDate:now+295*day, fileRef:"C001/Collateral/stock_insurance.pdf", notes:"R1.2M cover. Hollard policy. Renewal due in 10 months." },
     { id:"DOC-009", custId:"C001", appId:null, loanId:"LN-001", name:"Personal Guarantee – Director", category:"Legal", type:"Guarantee", required:true, status:"Verified", uploadedBy:"System", uploadedAt:now-75*day, verifiedBy:"Legal – M. Zulu", verifiedAt:now-74*day, expiryDate:null, fileRef:"C001/Legal/personal_guarantee.pdf", notes:"Unlimited surety signed by Nomsa Dlamini." },
-    // C002 – Sipho Agri
     { id:"DOC-010", custId:"C002", appId:"APP-002", loanId:"LN-002", name:"SA ID Document – Sipho Mabaso", category:"KYC", type:"ID Document", required:true, status:"Verified", uploadedBy:"Sipho Mabaso", uploadedAt:now-118*day, verifiedBy:"Loan Officer – J. Ndaba", verifiedAt:now-115*day, expiryDate:null, fileRef:"C002/KYC/id_document.pdf", notes:"Verified against Home Affairs." },
     { id:"DOC-011", custId:"C002", appId:"APP-002", loanId:"LN-002", name:"Co-operative Registration", category:"KYB", type:"Company Registration", required:true, status:"Verified", uploadedBy:"Sipho Mabaso", uploadedAt:now-118*day, verifiedBy:"Loan Officer – J. Ndaba", verifiedAt:now-115*day, expiryDate:null, fileRef:"C002/KYB/coop_registration.pdf", notes:"Reg 2020/654321/07 active." },
     { id:"DOC-012", custId:"C002", appId:"APP-002", loanId:null, name:"Proof of Address – Farm 12", category:"KYC", type:"Proof of Address", required:true, status:"Verified", uploadedBy:"Sipho Mabaso", uploadedAt:now-118*day, verifiedBy:"Loan Officer – J. Ndaba", verifiedAt:now-114*day, expiryDate:null, fileRef:"C002/KYC/proof_address.pdf", notes:"Title deed used as proof. Farm address confirmed." },
     { id:"DOC-013", custId:"C002", appId:"APP-002", loanId:null, name:"Bank Confirmation Letter – Standard Bank", category:"KYC", type:"Bank Confirmation", required:true, status:"Verified", uploadedBy:"Sipho Mabaso", uploadedAt:now-116*day, verifiedBy:"Loan Officer – J. Ndaba", verifiedAt:now-114*day, expiryDate:null, fileRef:"C002/KYC/bank_confirmation.pdf", notes:"Account confirmed active." },
-    { id:"DOC-014", custId:"C002", appId:"APP-002", loanId:null, name:"Financial Statements FY2024", category:"Financial", type:"Annual Financials", required:true, status:"Verified", uploadedBy:"Sipho Mabaso", uploadedAt:now-112*day, verifiedBy:"Credit Analyst – P. Sithole", verifiedAt:now-108*day, expiryDate:null, fileRef:"C002/Financial/AFS_2024.pdf", notes:"Reviewed by independent accountant." },
-    { id:"DOC-015", custId:"C002", appId:"APP-002", loanId:null, name:"Business Plan – Irrigation Expansion", category:"Financial", type:"Business Plan", required:true, status:"Verified", uploadedBy:"Sipho Mabaso", uploadedAt:now-112*day, verifiedBy:"Credit Analyst – P. Sithole", verifiedAt:now-105*day, expiryDate:null, fileRef:"C002/Financial/business_plan.pdf", notes:"Clear expansion plan. Realistic projections." },
-    { id:"DOC-016", custId:"C002", appId:null, loanId:"LN-002", name:"Land Title Deed", category:"Collateral", type:"Title Deed", required:true, status:"Verified", uploadedBy:"Sipho Mabaso", uploadedAt:now-55*day, verifiedBy:"Legal – M. Zulu", verifiedAt:now-52*day, expiryDate:null, fileRef:"C002/Collateral/title_deed.pdf", notes:"Unencumbered. Valued at R1.5M." },
-    { id:"DOC-017", custId:"C002", appId:null, loanId:"LN-002", name:"Crop Insurance Certificate", category:"Collateral", type:"Insurance", required:true, status:"Verified", uploadedBy:"Sipho Mabaso", uploadedAt:now-50*day, verifiedBy:"Loan Officer – J. Ndaba", verifiedAt:now-48*day, expiryDate:now+315*day, fileRef:"C002/Collateral/crop_insurance.pdf", notes:"R2M cover. Old Mutual policy." },
     { id:"DOC-018", custId:"C002", appId:null, loanId:"LN-002", name:"BEE Level 1 Certificate", category:"Compliance", type:"BEE Certificate", required:true, status:"Verified", uploadedBy:"Sipho Mabaso", uploadedAt:now-110*day, verifiedBy:"Compliance Officer", verifiedAt:now-108*day, expiryDate:now+90*day, fileRef:"C002/Compliance/bee_cert.pdf", notes:"Level 1. Expires in 90 days — renewal required." },
-    // C003 – Zenith Tech (application in underwriting – some docs pending)
     { id:"DOC-019", custId:"C003", appId:"APP-003", loanId:null, name:"SA ID Document – Ayanda Nkosi", category:"KYC", type:"ID Document", required:true, status:"Verified", uploadedBy:"Ayanda Nkosi", uploadedAt:now-58*day, verifiedBy:"Loan Officer – J. Ndaba", verifiedAt:now-55*day, expiryDate:null, fileRef:"C003/KYC/id_document.pdf", notes:"Verified against Home Affairs." },
     { id:"DOC-020", custId:"C003", appId:"APP-003", loanId:null, name:"CIPC Registration Certificate", category:"KYB", type:"Company Registration", required:true, status:"Verified", uploadedBy:"Ayanda Nkosi", uploadedAt:now-58*day, verifiedBy:"Loan Officer – J. Ndaba", verifiedAt:now-55*day, expiryDate:null, fileRef:"C003/KYB/cipc_cert.pdf", notes:"Active on CIPC." },
     { id:"DOC-021", custId:"C003", appId:"APP-003", loanId:null, name:"Proof of Address", category:"KYC", type:"Proof of Address", required:true, status:"Verified", uploadedBy:"Ayanda Nkosi", uploadedAt:now-58*day, verifiedBy:"Loan Officer – J. Ndaba", verifiedAt:now-55*day, expiryDate:null, fileRef:"C003/KYC/proof_address.pdf", notes:"Lease agreement for office premises." },
     { id:"DOC-022", custId:"C003", appId:"APP-003", loanId:null, name:"Bank Confirmation Letter – Nedbank", category:"KYC", type:"Bank Confirmation", required:true, status:"Verified", uploadedBy:"Ayanda Nkosi", uploadedAt:now-57*day, verifiedBy:"Loan Officer – J. Ndaba", verifiedAt:now-55*day, expiryDate:null, fileRef:"C003/KYC/bank_confirmation.pdf", notes:"Confirmed active." },
     { id:"DOC-023", custId:"C003", appId:"APP-003", loanId:null, name:"Financial Statements FY2024", category:"Financial", type:"Annual Financials", required:true, status:"Received", uploadedBy:"Ayanda Nkosi", uploadedAt:now-12*day, verifiedBy:null, verifiedAt:null, expiryDate:null, fileRef:"C003/Financial/AFS_2024.pdf", notes:"Received. Awaiting credit analyst review." },
     { id:"DOC-024", custId:"C003", appId:"APP-003", loanId:null, name:"Business Plan – Platform Development", category:"Financial", type:"Business Plan", required:true, status:"Under Review", uploadedBy:"Ayanda Nkosi", uploadedAt:now-12*day, verifiedBy:null, verifiedAt:null, expiryDate:null, fileRef:"C003/Financial/business_plan.pdf", notes:"Under review by credit analyst." },
-    // C004 – Khanyisa Construction (in collections)
-    { id:"DOC-032", custId:"C004", appId:"APP-004", loanId:"LN-003", name:"SA ID Document – Thabo Mokoena", category:"KYC", type:"ID Document", required:true, status:"Verified", uploadedBy:"Thabo Mokoena", uploadedAt:now-298*day, verifiedBy:"Loan Officer", verifiedAt:now-295*day, expiryDate:null, fileRef:"C004/KYC/id_document.pdf", notes:"Verified." },
-    { id:"DOC-033", custId:"C004", appId:"APP-004", loanId:"LN-003", name:"CIPC Registration Certificate", category:"KYB", type:"Company Registration", required:true, status:"Verified", uploadedBy:"Thabo Mokoena", uploadedAt:now-298*day, verifiedBy:"Loan Officer", verifiedAt:now-295*day, expiryDate:null, fileRef:"C004/KYB/cipc_cert.pdf", notes:"Active." },
-    { id:"DOC-034", custId:"C004", appId:"APP-004", loanId:null, name:"Financial Statements FY2024", category:"Financial", type:"Annual Financials", required:true, status:"Verified", uploadedBy:"Thabo Mokoena", uploadedAt:now-205*day, verifiedBy:"Credit Analyst", verifiedAt:now-200*day, expiryDate:null, fileRef:"C004/Financial/AFS_2024.pdf", notes:"Audited." },
-    { id:"DOC-035", custId:"C004", appId:"APP-004", loanId:null, name:"Financial Statements FY2023", category:"Financial", type:"Annual Financials", required:false, status:"Verified", uploadedBy:"Thabo Mokoena", uploadedAt:now-205*day, verifiedBy:"Credit Analyst", verifiedAt:now-200*day, expiryDate:null, fileRef:"C004/Financial/AFS_2023.pdf", notes:"Prior year comparatives." },
-    { id:"DOC-036", custId:"C004", appId:null, loanId:"LN-003", name:"CIDB Registration Grade 7", category:"Compliance", type:"Industry License", required:true, status:"Verified", uploadedBy:"Thabo Mokoena", uploadedAt:now-295*day, verifiedBy:"Compliance Officer", verifiedAt:now-290*day, expiryDate:now+70*day, fileRef:"C004/Compliance/cidb_registration.pdf", notes:"Grade 7 CE/PE. Renewal due in 70 days." },
-    { id:"DOC-037", custId:"C004", appId:null, loanId:"LN-003", name:"Equipment Insurance – Fleet", category:"Collateral", type:"Insurance", required:true, status:"Verified", uploadedBy:"Thabo Mokoena", uploadedAt:now-180*day, verifiedBy:"Loan Officer", verifiedAt:now-178*day, expiryDate:now+185*day, fileRef:"C004/Collateral/fleet_insurance.pdf", notes:"R4M cover on construction equipment." },
-    { id:"DOC-031", custId:"C004", appId:null, loanId:"LN-003", name:"Letter of Demand – NCA Section 129", category:"Collections", type:"Demand Letter", required:false, status:"Verified", uploadedBy:"Collections Specialist", uploadedAt:now-10*day, verifiedBy:"Legal – M. Zulu", verifiedAt:now-10*day, expiryDate:null, fileRef:"C004/Collections/demand_letter.pdf", notes:"Formal demand issued. 20 business day cure period." },
-    // C005 – Ubuntu Foods (FICA pending – incomplete docs)
-    { id:"DOC-032", custId:"C005", appId:"APP-005", loanId:null, name:"SA ID Document – Lindiwe Khumalo", category:"KYC", type:"ID Document", required:true, status:"Verified", uploadedBy:"Lindiwe Khumalo", uploadedAt:now-28*day, verifiedBy:"Loan Officer – J. Ndaba", verifiedAt:now-7*day, expiryDate:null, fileRef:"C005/KYC/id_document.pdf", notes:"Verified against Home Affairs database." },
-    { id:"DOC-033", custId:"C005", appId:"APP-005", loanId:null, name:"CIPC Registration Certificate", category:"KYB", type:"Company Registration", required:true, status:"Verified", uploadedBy:"Lindiwe Khumalo", uploadedAt:now-28*day, verifiedBy:"Loan Officer – J. Ndaba", verifiedAt:now-7*day, expiryDate:null, fileRef:"C005/KYB/cipc_cert.pdf", notes:"Confirmed active. Reg 2022/901234/07." },
-    { id:"DOC-034", custId:"C005", appId:"APP-005", loanId:null, name:"Proof of Address – Municipal Account", category:"KYC", type:"Proof of Address", required:true, status:"Verified", uploadedBy:"Lindiwe Khumalo", uploadedAt:now-26*day, verifiedBy:"Loan Officer – J. Ndaba", verifiedAt:now-7*day, expiryDate:null, fileRef:"C005/KYC/proof_address.pdf", notes:"Municipal account dated within 3 months." },
+    { id:"DOC-025", custId:"C004", appId:"APP-004", loanId:"LN-003", name:"SA ID Document – Thabo Mokoena", category:"KYC", type:"ID Document", required:true, status:"Verified", uploadedBy:"Thabo Mokoena", uploadedAt:now-298*day, verifiedBy:"Loan Officer", verifiedAt:now-295*day, expiryDate:null, fileRef:"C004/KYC/id_document.pdf", notes:"Verified." },
+    { id:"DOC-026", custId:"C004", appId:"APP-004", loanId:"LN-003", name:"CIPC Registration Certificate", category:"KYB", type:"Company Registration", required:true, status:"Verified", uploadedBy:"Thabo Mokoena", uploadedAt:now-298*day, verifiedBy:"Loan Officer", verifiedAt:now-295*day, expiryDate:null, fileRef:"C004/KYB/cipc_cert.pdf", notes:"Active." },
+    { id:"DOC-032", custId:"C005", appId:"APP-005", loanId:null, name:"SA ID Document – Lindiwe Khumalo", category:"KYC", type:"ID Document", required:true, status:"Verified", uploadedBy:"Lindiwe Khumalo", uploadedAt:now-28*day, verifiedBy:"Loan Officer – J. Ndaba", verifiedAt:now-7*day, expiryDate:null, fileRef:"C005/KYC/id_document.pdf", notes:"Verified against Home Affairs." },
+    { id:"DOC-033", custId:"C005", appId:"APP-005", loanId:null, name:"CIPC Registration Certificate", category:"KYB", type:"Company Registration", required:true, status:"Verified", uploadedBy:"Lindiwe Khumalo", uploadedAt:now-28*day, verifiedBy:"Loan Officer – J. Ndaba", verifiedAt:now-7*day, expiryDate:null, fileRef:"C005/KYB/cipc_cert.pdf", notes:"Confirmed active." },
+    { id:"DOC-034", custId:"C005", appId:"APP-005", loanId:null, name:"Proof of Address – Municipal Account", category:"KYC", type:"Proof of Address", required:true, status:"Verified", uploadedBy:"Lindiwe Khumalo", uploadedAt:now-26*day, verifiedBy:"Loan Officer – J. Ndaba", verifiedAt:now-7*day, expiryDate:null, fileRef:"C005/KYC/proof_address.pdf", notes:"Municipal account within 3 months." },
     { id:"DOC-035", custId:"C005", appId:"APP-005", loanId:null, name:"Bank Confirmation Letter – Capitec", category:"KYC", type:"Bank Confirmation", required:true, status:"Verified", uploadedBy:"Lindiwe Khumalo", uploadedAt:now-26*day, verifiedBy:"Loan Officer – J. Ndaba", verifiedAt:now-7*day, expiryDate:null, fileRef:"C005/KYC/bank_confirmation.pdf", notes:"Account confirmed active." },
-    { id:"DOC-036", custId:"C005", appId:"APP-005", loanId:null, name:"Financial Statements FY2024", category:"Financial", type:"Annual Financials", required:true, status:"Verified", uploadedBy:"Lindiwe Khumalo", uploadedAt:now-20*day, verifiedBy:"Credit Analyst – P. Sithole", verifiedAt:now-6*day, expiryDate:null, fileRef:"C005/Financial/AFS_2024.pdf", notes:"Audited by local firm. Revenue R3.1M confirmed." },
-    { id:"DOC-037", custId:"C005", appId:"APP-005", loanId:null, name:"Business Plan – Cold Storage Expansion", category:"Financial", type:"Business Plan", required:true, status:"Verified", uploadedBy:"Lindiwe Khumalo", uploadedAt:now-20*day, verifiedBy:"Credit Analyst – P. Sithole", verifiedAt:now-6*day, expiryDate:null, fileRef:"C005/Financial/business_plan.pdf", notes:"Cold storage expansion plan. Capex and projections reviewed." },
-    // C006 – Msenge Logistics
+    { id:"DOC-036", custId:"C005", appId:"APP-005", loanId:null, name:"Financial Statements FY2024", category:"Financial", type:"Annual Financials", required:true, status:"Verified", uploadedBy:"Lindiwe Khumalo", uploadedAt:now-20*day, verifiedBy:"Credit Analyst – P. Sithole", verifiedAt:now-6*day, expiryDate:null, fileRef:"C005/Financial/AFS_2024.pdf", notes:"Audited. Revenue R3.1M confirmed." },
+    { id:"DOC-037", custId:"C005", appId:"APP-005", loanId:null, name:"Business Plan – Cold Storage Expansion", category:"Financial", type:"Business Plan", required:true, status:"Verified", uploadedBy:"Lindiwe Khumalo", uploadedAt:now-20*day, verifiedBy:"Credit Analyst – P. Sithole", verifiedAt:now-6*day, expiryDate:null, fileRef:"C005/Financial/business_plan.pdf", notes:"Cold storage expansion reviewed." },
     { id:"DOC-038", custId:"C006", appId:"APP-007", loanId:"LN-004", name:"SA ID Document – Mandla Gcwabe", category:"KYC", type:"ID Document", required:true, status:"Verified", uploadedBy:"Mandla Gcwabe", uploadedAt:now-348*day, verifiedBy:"Loan Officer", verifiedAt:now-345*day, expiryDate:null, fileRef:"C006/KYC/id_document.pdf", notes:"Verified." },
     { id:"DOC-039", custId:"C006", appId:"APP-007", loanId:"LN-004", name:"CIPC Registration Certificate", category:"KYB", type:"Company Registration", required:true, status:"Verified", uploadedBy:"Mandla Gcwabe", uploadedAt:now-348*day, verifiedBy:"Loan Officer", verifiedAt:now-345*day, expiryDate:null, fileRef:"C006/KYB/cipc_cert.pdf", notes:"Active." },
-    { id:"DOC-040", custId:"C006", appId:null, loanId:"LN-004", name:"Operating License – Transport", category:"Compliance", type:"Operating License", required:true, status:"Verified", uploadedBy:"Mandla Gcwabe", uploadedAt:now-340*day, verifiedBy:"Compliance Officer", verifiedAt:now-338*day, expiryDate:now+25*day, fileRef:"C006/Compliance/operating_license.pdf", notes:"Valid. Renewal due in 25 days." },
-    { id:"DOC-041", custId:"C006", appId:null, loanId:"LN-004", name:"Vehicle Insurance – 3x Trucks", category:"Collateral", type:"Insurance", required:true, status:"Verified", uploadedBy:"Mandla Gcwabe", uploadedAt:now-235*day, verifiedBy:"Loan Officer", verifiedAt:now-233*day, expiryDate:now+130*day, fileRef:"C006/Collateral/vehicle_insurance.pdf", notes:"Full comprehensive cover. R1.6M." },
-    { id:"DOC-042", custId:"C006", appId:null, loanId:"LN-004", name:"GPS Tracking Confirmation", category:"Compliance", type:"Compliance Certificate", required:true, status:"Verified", uploadedBy:"Mandla Gcwabe", uploadedAt:now-230*day, verifiedBy:"Loan Officer", verifiedAt:now-228*day, expiryDate:null, fileRef:"C006/Compliance/gps_tracking.pdf", notes:"All 3 vehicles tracked. Covenant requirement met." },
   ];
 
-  // ─── NCR Statutory Reporting Calendar ───
-  // Year-end assumed: 28 February (common SA financial year-end)
-  // Annual reports due within 6 months of year-end = 31 August
-  // Form 39 quarterly if disbursements > R15M
   const yearEnd = "28 February 2026";
   const annualDueDate = "31 August 2026";
   const totalDisbursed = loans.reduce((s,l) => s + l.amount, 0);
   const form39Required = totalDisbursed > 15000000 ? "Quarterly" : "Annual";
 
   const statutoryReports = [
-    // Annual reports (due within 6 months of year-end)
     { id:"SR-001", name:"Annual Compliance Report", type:"Annual", category:"Statutory", period:"FY ending 28 Feb 2026", dueDate:"2026-08-31", submitTo:"submissions@ncr.org.za", status:"Not Started", preparer:null, reviewer:null, notes:"Comprehensive compliance report covering all NCA obligations for the financial year." },
     { id:"SR-002", name:"Annual Financial Statements", type:"Annual", category:"Statutory", period:"FY ending 28 Feb 2026", dueDate:"2026-08-31", submitTo:"submissions@ncr.org.za", status:"Not Started", preparer:null, reviewer:null, notes:"Must include the auditor's report. Audited financial statements for the full financial year." },
     { id:"SR-003", name:"Annual Financial & Operational Return", type:"Annual", category:"Statutory", period:"FY ending 28 Feb 2026", dueDate:"2026-08-31", submitTo:"submissions@ncr.org.za", status:"Not Started", preparer:null, reviewer:null, notes:"Detailed financial and operational data return as prescribed by the NCR." },
     { id:"SR-004", name:"Assurance Engagement Report", type:"Annual", category:"Statutory", period:"FY ending 28 Feb 2026", dueDate:"2026-08-31", submitTo:"submissions@ncr.org.za", status:"Not Started", preparer:null, reviewer:null, notes:"Independent assurance engagement on compliance with NCA requirements." },
-    // Form 39 Statistical Returns (Quarterly since disbursements > R15M)
     { id:"SR-005", name:"Form 39 – Q1 Statistical Return", type:"Form 39", category:"Statistical", period:"1 Jan – 31 Mar 2026", dueDate:"2026-05-15", submitTo:"returns@ncr.org.za", status:"In Progress", preparer:"Finance Department", reviewer:"Chief Risk Officer", notes:"Quarterly statistical return. Reporting period: 1 January – 31 March 2026." },
     { id:"SR-006", name:"Form 39 – Q2 Statistical Return", type:"Form 39", category:"Statistical", period:"1 Apr – 30 Jun 2026", dueDate:"2026-08-15", submitTo:"returns@ncr.org.za", status:"Not Started", preparer:null, reviewer:null, notes:"Quarterly statistical return. Reporting period: 1 April – 30 June 2026." },
     { id:"SR-007", name:"Form 39 – Q3 Statistical Return", type:"Form 39", category:"Statistical", period:"1 Jul – 30 Sep 2026", dueDate:"2026-11-15", submitTo:"returns@ncr.org.za", status:"Not Started", preparer:null, reviewer:null, notes:"Quarterly statistical return. Reporting period: 1 July – 30 September 2026." },
     { id:"SR-008", name:"Form 39 – Q4 Statistical Return", type:"Form 39", category:"Statistical", period:"1 Oct – 31 Dec 2026", dueDate:"2027-02-15", submitTo:"returns@ncr.org.za", status:"Not Started", preparer:null, reviewer:null, notes:"Quarterly statistical return. Reporting period: 1 October – 31 December 2026." },
-    // Previous submissions (for history)
     { id:"SR-009", name:"Form 39 – Q4 2025 Statistical Return", type:"Form 39", category:"Statistical", period:"1 Oct – 31 Dec 2025", dueDate:"2026-02-15", submitTo:"returns@ncr.org.za", status:"Submitted", preparer:"Finance Department", reviewer:"Chief Risk Officer", submittedDate:"2026-02-12", notes:"Submitted on time via email to returns@ncr.org.za." },
     { id:"SR-010", name:"Annual Compliance Report FY2025", type:"Annual", category:"Statutory", period:"FY ending 28 Feb 2025", dueDate:"2025-08-31", submitTo:"submissions@ncr.org.za", status:"Submitted", preparer:"Compliance Officer", reviewer:"Chief Risk Officer", submittedDate:"2025-08-28", notes:"Submitted on time." },
   ];
 
-  // Add statutory deadline alerts
   const statutoryAlerts = [
     { id:uid(), type:"Statutory", severity:"critical", title:"Form 39 Q1 2026 – Due 15 May 2026", msg:"Statistical return for period 1 Jan – 31 Mar 2026 due to NCR (returns@ncr.org.za) by 15 May 2026. Currently: In Progress. 44 days remaining.", read:false, ts:now },
     { id:uid(), type:"Statutory", severity:"warning", title:"Annual Reports – Due 31 August 2026", msg:"4 annual statutory reports due within 6 months of year-end (28 Feb 2026). Submit to submissions@ncr.org.za by 31 Aug 2026.", read:false, ts:now-1*day },
@@ -419,7 +270,6 @@ function seed() {
   return { customers, products, applications, loans, collections, alerts: [...alerts, ...statutoryAlerts], audit, provisions, comms, documents, statutoryReports, settings:{ companyName:"ThandoQ and Associates (Pty) Ltd", ncrReg:"NCRCP22396", ncrExpiry:"31 July 2026", branch:"East London, Nahoon Valley", yearEnd, annualDueDate, form39Required, totalDisbursed, ncrAddress:"127 – 15th Road, Randjies Park, Midrand, 1685", ncrPO:"PO Box 209, Halfway House, 1685", ncrEmailAnnual:"submissions@ncr.org.za", ncrEmailForm39:"returns@ncr.org.za" } };
 }
 
-// ─── Icons ───
 const I = {
   dashboard:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" width="18" height="18"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>,
   customers:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" width="18" height="18"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
@@ -450,7 +300,6 @@ const I = {
   calendar:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" width="18" height="18"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
 };
 
-// ─── Reusable Components ───
 function Badge({ children, color = "slate" }) {
   const map = {
     green: { text: C.green },
@@ -611,9 +460,6 @@ function StepTracker({ steps, current }) {
   );
 }
 
-// ═══════════════════════════════════════════════════════════
-// MAIN APP
-// ═══════════════════════════════════════════════════════════
 export default function App() {
   const [data, setData] = useState(null);
   const [page, setPage] = useState("dashboard");
@@ -623,7 +469,6 @@ export default function App() {
   const [modal, setModal] = useState(null);
   const [sideCollapsed, setSideCollapsed] = useState(false);
   const [currentUser, setCurrentUser] = useState(SYSTEM_USERS[0]);
-  // Hoisted state for detail views and page forms (fixes React Rules of Hooks)
   const [detailEditing, setDetailEditing] = useState(false);
   const [detailForm, setDetailForm] = useState({});
   const [detailBeeForm, setDetailBeeForm] = useState({level:3,expiry:""});
@@ -653,20 +498,15 @@ export default function App() {
         const r = await window.storage.get(SK);
         if (r?.value) {
           const loaded = JSON.parse(r.value);
-          // Data migration: detect old-format workflow and reset to clean state
           let migrated = false;
           if (loaded.applications) {
             loaded.applications = loaded.applications.map(a => {
               if (!a.workflow) return a;
               const w = { ...a.workflow };
               let needsReset = false;
-              // Old sitevisit: has 'detail' but no 'field'
               if (w.siteVisitFindings?.length > 0 && w.siteVisitFindings[0].detail !== undefined && w.siteVisitFindings[0].field === undefined) needsReset = true;
-              // Old credit: has 'detail' but no 'analystNote'
               if (w.creditFindings?.length > 0 && w.creditFindings[0].detail !== undefined && w.creditFindings[0].analystNote === undefined) needsReset = true;
-              // Old collateral/social that completed on fabricated data
               if (needsReset || (w.collateralAssessed && !w.collateralFindings?.[0]?.analystNote && w.collateralFindings?.length > 0)) {
-                // Reset all DD steps to clean state — user re-runs each step interactively
                 w.siteVisitFindings = null; w.siteVisitDate = null; w.siteVisitComplete = false; w.siteVisitOfficer = null; w.siteVisitNotes = "";
                 w.creditFindings = null; w.creditDate = null; w.financialAnalysisComplete = false; w.creditPulled = false; w.creditBureauScore = null;
                 w.collateralFindings = null; w.collateralDate = null; w.collateralAssessed = false;
@@ -676,14 +516,6 @@ export default function App() {
               return { ...a, workflow: w };
             });
           }
-          // Ensure essential data structures exist (guard against incomplete cached data)
-          if (!loaded.settings) {
-            const fresh = seed();
-            loaded.settings = fresh.settings;
-            migrated = true;
-          }
-          if (!loaded.documents) { loaded.documents = []; migrated = true; }
-          if (!loaded.statutoryReports) { loaded.statutoryReports = []; migrated = true; }
           if (migrated) { try { await window.storage.set(SK, JSON.stringify(loaded)); } catch {} }
           setData(loaded);
           return;
@@ -706,7 +538,6 @@ export default function App() {
   const { customers, products, applications, loans, collections, alerts, audit, provisions, comms, documents, statutoryReports, settings } = data;
   const unread = alerts.filter(a => !a.read).length;
 
-  // ─── Nav (filtered by role) ───
   const navItems = [
     { key: "dashboard", label: "Dashboard", icon: I.dashboard },
     { key: "customers", label: "Customers", icon: I.customers, count: customers.length },
@@ -729,9 +560,6 @@ export default function App() {
   const addAudit = (action, entity, user, detail, category) => ({ id: uid(), action, entity, user, detail, ts: Date.now(), category });
   const addAlert = (type, severity, title, msg, extra = {}) => ({ id: uid(), type, severity, title, msg, read: false, ts: Date.now(), ...extra });
 
-  // ─── Handlers (RBAC-enforced) ───
-
-  // Customer CRUD
   const createCustomer = (form) => {
     if (!canDo("customers","create")) { alert("Permission denied."); return; }
     const c = { ...form, id:`C${String(customers.length+1).padStart(3,"0")}`, ficaStatus:"Pending", ficaDate:null, riskCategory:"Medium", created:Date.now(), beeStatus:"Pending Review", beeExpiry:null };
@@ -777,7 +605,6 @@ export default function App() {
     if (existing) { alert(`Duplicate: ${c?.name} already has an active ${p?.name} application (${existing.id}, status: ${existing.status}).`); return; }
     if (p?.status !== "Active") { alert(`Product ${p?.name} is ${p?.status}. Only Active products can accept applications.`); return; }
 
-    // Application created in DRAFT — requires QA sign-off before it becomes Submitted
     const expiresAt = Date.now() + 30 * day; // 30-day expiry for Draft applications
     const app = { id:`APP-${String(applications.length+1).padStart(3,"0")}`, custId:form.custId, status:"Draft", product:form.product, amount:+form.amount, term:+form.term, purpose:form.purpose, rate:null, riskScore:null, dscr:null, currentRatio:null, debtEquity:null, socialScore:null, recommendation:null, approver:null, creditMemo:null, submitted:null, decided:null, conditions:[], assignedTo:null, createdBy:currentUser.id, createdAt:Date.now(), expiresAt, sanctionsFlag:false, sanctionsDate:null, withdrawnAt:null, withdrawnBy:null, qaSignedOff:false, qaOfficer:null, qaDate:null, qaFindings:null };
 
@@ -789,7 +616,6 @@ export default function App() {
     setModal(null);
   };
 
-  // QA & Sign-off: validates mandatory docs, fields, and formally submits the application
   const qaSignOffApplication = (appId) => {
     if (!canDo("origination","update")) { alert("Permission denied."); return; }
     const a = applications.find(x => x.id === appId);
@@ -798,7 +624,6 @@ export default function App() {
     const p = prod(a.product);
     const custDocs = (documents||[]).filter(d => d.custId === a.custId && (d.appId === a.id || !d.appId));
 
-    // Mandatory document check
     const mandatoryTypes = ["ID Document","Proof of Address","Bank Confirmation","Company Registration"];
     const missing = [];
     const incomplete = [];
@@ -808,7 +633,6 @@ export default function App() {
       else if (doc.status === "Pending" || doc.status === "Rejected") incomplete.push(`${type} (${doc.status})`);
     });
 
-    // Field validation
     const fieldErrors = [];
     if (!a.amount || a.amount <= 0) fieldErrors.push("Loan amount is required");
     if (!a.term || a.term <= 0) fieldErrors.push("Loan term is required");
@@ -816,18 +640,15 @@ export default function App() {
     if (p && a.amount < p.minAmount) fieldErrors.push(`Amount below product minimum (${fmt.cur(p.minAmount)})`);
     if (p && a.amount > p.maxAmount) fieldErrors.push(`Amount exceeds product maximum (${fmt.cur(p.maxAmount)})`);
 
-    // Expiry check
     if (a.expiresAt && a.expiresAt < Date.now()) { alert(`Application ${appId} has expired (${fmt.date(a.expiresAt)}). It can no longer be submitted.`); return; }
 
     const qaFindings = { mandatoryDocs: mandatoryTypes.map(type => { const doc = custDocs.find(d=>d.type===type); return { type, docId:doc?.id||null, status:doc?.status||"Missing", onFile:!!doc }; }), missingDocs: missing, incompleteDocs: incomplete, fieldErrors, passedAt: null, officer: null };
 
     if (missing.length > 0 || incomplete.length > 0 || fieldErrors.length > 0) {
-      // QA fails — record findings, notify applicant, don't submit
       qaFindings.result = "Failed";
       qaFindings.failedAt = Date.now();
       qaFindings.officer = currentUser.name;
 
-      // Build notification to applicant
       const issueLines = [];
       if (missing.length > 0) issueLines.push(`Missing documents:\n${missing.map(d => `  • ${d}`).join("\n")}`);
       if (incomplete.length > 0) issueLines.push(`Documents requiring resubmission:\n${incomplete.map(d => `  • ${d}`).join("\n")}`);
@@ -836,7 +657,6 @@ export default function App() {
 
       const notification = { id:uid(), custId:a.custId, loanId:null, channel:"Email", direction:"Outbound", from:currentUser.name, subject:`Action Required – Application ${appId} QA Review`, body:notifBody, ts:Date.now(), relatedTo:appId, type:"QA Notification" };
 
-      // Track document requests for each missing/incomplete item
       const docRequests = [...(a.workflow?.docRequests || [])];
       missing.forEach(docType => {
         docRequests.push({ docType, requestedBy:currentUser.name, requestedAt:Date.now(), status:"Sent", reason:"QA failed — missing", commId:notification.id });
@@ -861,7 +681,6 @@ export default function App() {
       return;
     }
 
-    // QA passes — sanctions screening + formal submission
     const sanctionsHit = false; // Placeholder for API
     qaFindings.result = "Passed";
     qaFindings.passedAt = Date.now();
@@ -880,7 +699,6 @@ export default function App() {
     });
   };
 
-  // Assign application to a user
   const assignApplication = (appId, userId) => {
     if (!canDo("origination","assign")) { alert("Permission denied: you cannot assign applications."); return; }
     const u = SYSTEM_USERS.find(x => x.id === userId);
@@ -890,7 +708,6 @@ export default function App() {
     });
   };
 
-  // Withdraw / Cancel application
   const withdrawApplication = (appId, reason) => {
     if (!canDo("origination","update")) { alert("Permission denied."); return; }
     const a = applications.find(x => x.id === appId);
@@ -921,7 +738,6 @@ export default function App() {
     save({ ...data, applications: applications.map(x => x.id === appId ? { ...x, workflow: w } : x) });
   };
 
-  // Officer actions on individual KYC/Doc checklist items
   const actionFindingItem = (appId, stepKey, itemIndex, action, note) => {
     const a = applications.find(x => x.id === appId);
     if (!a) return;
@@ -946,7 +762,6 @@ export default function App() {
     save({ ...data, applications: applications.map(x => x.id === appId ? { ...x, workflow: w } : x) });
   };
 
-  // Sign off on a step — only when all items have been actioned
   const signOffStep = (appId, stepKey) => {
     if (!canDo("underwriting","signoff")) { alert("Permission denied: you cannot sign off on DD steps."); return; }
     const a = applications.find(x => x.id === appId);
@@ -985,7 +800,6 @@ export default function App() {
     save({ ...data, applications: applications.map(x => x.id === appId ? { ...x, workflow: w } : x), audit: newAudit, alerts: newAlerts });
   };
 
-  // Document-level actions within underwriting (RBAC-enforced)
   const approveDocument = (docId, appId) => {
     if (!canDo("documents","approve")) { alert("Permission denied: you cannot approve documents."); return; }
     const doc = (documents||[]).find(d => d.id === docId);
@@ -1006,7 +820,6 @@ export default function App() {
     const c = cust(a?.custId);
     const body = message || `Dear ${c?.contact},\n\nPlease submit the following document for your loan application ${appId}:\n\n  → ${docType}\n\nYou may upload via the KwikBridge portal or email to documents@kwikbridge.co.za.\n\nIf you have any questions, contact your Loan Officer.\n\nRegards,\n${currentUser.name}\nKwikBridge Lending Operations`;
     const notification = { id:uid(), custId:a?.custId, loanId:null, channel:"Email", direction:"Outbound", from:currentUser.name, subject:`Document Request – ${docType}`, body, ts:Date.now(), relatedTo:appId, docType };
-    // Track the request in the application workflow
     const w = { ...(a?.workflow||{}) };
     const requests = w.docRequests || [];
     requests.push({ docType, requestedBy:currentUser.name, requestedAt:Date.now(), status:"Sent", commId:notification.id });
@@ -1071,8 +884,6 @@ export default function App() {
     let updatedApp = { ...a };
 
     if (stepKey === "kyc") {
-      // Step 2: Identity verification + regulatory screening
-      // Checks: ID, PoA, Bank, CIPC against external systems + Sanctions + PEP
       const checks = [
         { item:"ID Document", source:"Home Affairs API", doc: appDocs.find(d => d.type === "ID Document"), purpose:"Identity verification against Home Affairs database" },
         { item:"Proof of Address", source:"Manual verification", doc: appDocs.find(d => d.type === "Proof of Address"), purpose:"Physical address confirmation (municipal account/utility bill within 3 months)" },
@@ -1100,13 +911,10 @@ export default function App() {
     }
 
     if (stepKey === "docs") {
-      // Step 3: Application document completeness — excludes KYC docs (already verified in Step 2)
-      // Only checks financial, business, and supporting documents
       const kycTypes = ["ID Document","Proof of Address","Bank Confirmation","Company Registration"];
       const kycStatus = w.kycComplete ? "Verified in KYC (Step 2)" : "Pending KYC verification";
       const reqTypes = ["Annual Financials","Business Plan"];
       const findings = [];
-      // Show KYC doc status as inherited (read-only, no re-review)
       kycTypes.forEach(type => {
         const doc = appDocs.find(d => d.type === type);
         const kycItem = (w.kycFindings||[]).find(f => f.item === type);
@@ -1119,7 +927,6 @@ export default function App() {
           officerAction: w.kycComplete ? "Inherited" : null, officerNote: ""
         });
       });
-      // Application-specific documents requiring review
       reqTypes.forEach(type => {
         const doc = appDocs.find(d => d.type === type || d.name.includes(type.split(" ")[0]));
         findings.push({
@@ -1131,7 +938,6 @@ export default function App() {
           officerAction: null, officerNote: ""
         });
       });
-      // Industry-specific / optional documents
       const industryDocs = appDocs.filter(d => ["Industry License","Operating License","CIDB Registration","BEE Certificate","Insurance","Title Deed"].includes(d.type));
       industryDocs.forEach(d => findings.push({ item:d.type, required:false, inherited:false, systemResult:d.status, status:"Pending Review", detail:`${d.id} — ${d.status}`, docId:d.id, officerAction:null, officerNote:"" }));
       w.docsComplete = false;
@@ -1142,9 +948,7 @@ export default function App() {
     }
 
     if (stepKey === "sitevisit") {
-      // Generate blank structured assessment form — officer fills in after actual visit
       const existing = w.siteVisitFindings || [];
-      // Detect old-format findings (have 'detail' but no 'field') and discard
       const isNewFormat = existing.length > 0 && existing[0].field !== undefined;
       const findings = isNewFormat ? existing : [
         { item:"Visit Details", field:"visitDetails", value:"", placeholder:`Date of visit, address visited (${c?.address}), attendees, duration` },
@@ -1166,7 +970,6 @@ export default function App() {
     if (stepKey === "credit") {
       if (!w.kycComplete) { alert("Complete KYC/FICA verification before running credit analysis."); return; }
       if (!w.docsComplete) { alert("Complete document review before running credit analysis."); return; }
-      // System-computed values (simulated API — would come from TransUnion, financial spreading tool)
       const bureauScore = w.creditBureauScore || Math.floor(Math.random() * 200 + 500);
       const monthlyPmt = Math.round(a.amount * (0.145 / 12) / (1 - Math.pow(1 + 0.145 / 12, -a.term)));
       const monthlyIncome = Math.round((c?.revenue || 3000000) / 12);
@@ -1178,7 +981,6 @@ export default function App() {
       const affordable = dscr >= 1.2;
       const riskScore = Math.min(99, Math.max(20, Math.round(bureauScore / 10 + dscr * 10 + (currentRatio > 1.2 ? 10 : 0) - (debtEquity > 1.0 ? 10 : 0))));
 
-      // Structured findings with system values + editable analyst commentary
       const existing = w.creditFindings || [];
       const findings = existing.length > 0 && existing[0].analystNote !== undefined ? existing : [
         { item:"Credit Bureau Report", systemValue:`Bureau score: ${bureauScore}/900`, systemDetail: bureauScore >= 650 ? "No adverse information." : bureauScore >= 550 ? "Minor adverse items." : "Material adverse information.", analystNote:"", flag:"" },
@@ -1277,7 +1079,6 @@ export default function App() {
       ...(c?.beeLevel <= 2 ? ["Maintain BEE Level " + c.beeLevel + " status"] : []),
       ...(a.amount > 1000000 ? ["Annual audited financial statements required"] : []),
     ] : [];
-    // Decision only — does NOT create loan or disburse. Approved apps go to Booking.
     const updated = { ...a, status: decision, decided: Date.now(), recommendation: decision, approver, creditMemo: memoSections.join("\n"), conditions, rate: decision === "Approved" ? (p?.baseRate || 14.5) : null };
     save({ ...data,
       applications: applications.map(x => x.id === appId ? updated : x),
@@ -1286,7 +1087,6 @@ export default function App() {
     });
   };
 
-  // Book loan — creates the loan record from an Approved application. Checks conditions precedent.
   const bookLoan = (appId) => {
     if (!canDo("loans","update")) { alert("Permission denied: you cannot book loans."); return; }
     const a = applications.find(x => x.id === appId);
@@ -1294,14 +1094,12 @@ export default function App() {
     const c = cust(a.custId);
     const p = prod(a.product);
     const w = a.workflow || {};
-    // Conditions precedent check
     const cpFail = [];
     if (!w.kycComplete) cpFail.push("KYC/FICA not verified");
     if (!w.docsComplete) cpFail.push("Document checklist incomplete");
     if (c?.ficaStatus !== "Verified") cpFail.push(`FICA status: ${c?.ficaStatus} (must be Verified)`);
     if (c?.beeStatus !== "Verified" && p?.eligibleBEE?.length < 4) cpFail.push("BEE certificate not verified");
     if (cpFail.length > 0) { alert(`Conditions precedent not met:\n${cpFail.join("\n")}\n\nResolve before booking.`); return; }
-    // Create loan record in "Booked" status (not yet disbursed)
     const rate = a.rate || p?.baseRate || 14.5;
     const monthlyPmt = Math.round(a.amount * (rate / 100 / 12) / (1 - Math.pow(1 + rate / 100 / 12, -a.term)));
     const loan = { id:`LN-${String(loans.length+1).padStart(3,"0")}`, appId, custId:a.custId, status:"Booked", amount:a.amount, balance:a.amount, rate, term:a.term, monthlyPmt, disbursed:null, nextDue:null, lastPmt:null, lastPmtAmt:null, totalPaid:0, dpd:0, stage:1, payments:[], bookedAt:Date.now(), bookedBy:currentUser.id, disbursedBy:null, disbursementAuth2:null, preDisbursementAML:null, covenants:(a.conditions||[]).map(c=>({name:c,status:"Compliant",value:"—",checked:Date.now()})), collateral:w.collateralFindings?.filter(f=>f.item!=="Security Coverage").map(f=>({type:f.item,value:0,description:f.detail}))||[], arrangementFee: Math.round(a.amount * ((p?.arrangementFee||1)/100)) };
@@ -1318,16 +1116,13 @@ export default function App() {
     });
   };
 
-  // Disburse loan — separate action by Finance with dual auth. Requires pre-disbursement AML.
   const disburseLoan = (loanId) => {
     if (!canDo("servicing","create") && !canDo("loans","update")) { alert("Permission denied: you cannot disburse loans."); return; }
     const l = loans.find(x => x.id === loanId);
     if (!l || l.status !== "Booked") { alert("Only Booked loans can be disbursed."); return; }
     const c = cust(l.custId);
-    // Pre-disbursement AML check (simulated)
     const amlClear = true; // Placeholder for API
     if (!amlClear) { alert("Pre-disbursement AML check failed. Disbursement blocked."); return; }
-    // Dual authorization: disbursed-by must differ from booked-by
     if (l.bookedBy === currentUser.id) { alert("Dual authorization required: the person who booked the loan cannot disburse it."); return; }
     const updated = { ...l, status:"Active", disbursed:Date.now(), disbursedBy:currentUser.id, preDisbursementAML:{ clear:true, date:Date.now(), checkedBy:currentUser.name }, nextDue:Date.now()+30*day };
     save({ ...data,
@@ -1344,7 +1139,6 @@ export default function App() {
     if (!canDo("servicing","create")) { alert("Permission denied: you cannot record payments."); return; }
     const l = loans.find(x => x.id === loanId);
     if (!l || l.status !== "Active") return;
-    // Interest/principal split (reducing balance method)
     const monthlyRate = l.rate / 100 / 12;
     const interestPortion = Math.round(l.balance * monthlyRate);
     const principalPortion = Math.max(0, +amount - interestPortion);
@@ -1352,7 +1146,6 @@ export default function App() {
     const pmt = { date: Date.now(), amount: +amount, interest: interestPortion, principal: principalPortion, type: "Instalment", status: "Cleared", recordedBy: currentUser.id };
     const updated = { ...l, payments: [...l.payments, pmt], balance: newBalance, totalPaid: l.totalPaid + +amount, lastPmt: Date.now(), lastPmtAmt: +amount, dpd: 0, nextDue: Date.now() + 30 * day };
     updated.stage = stage(updated.dpd);
-    // Auto-close loan if fully repaid
     if (newBalance === 0) updated.status = "Settled";
     save({ ...data,
       loans: loans.map(x => x.id === loanId ? updated : x),
@@ -1367,13 +1160,11 @@ export default function App() {
     const entry = { id: uid(), loanId, custId: l?.custId, stage: l?.dpd <= 30 ? "Early" : l?.dpd <= 90 ? "Mid" : "Late", dpd: l?.dpd || 0, action: actionType, channel: extra.channel || "System", officer: currentUser.name, notes, created: Date.now(), ...extra };
     let newAlerts = [...alerts];
     let newAudit = [...audit, addAudit(`Collection: ${actionType}`, loanId, currentUser.name, notes, "Collections")];
-    // Auto-generate alerts for escalation actions
     if (actionType === "Letter of Demand") newAlerts.push(addAlert("Collections","warning",`Demand Issued – ${l?.id}`,`Formal NCA demand sent to ${cust(l?.custId)?.name}.`));
     if (actionType === "Legal Handover") newAlerts.push(addAlert("Collections","critical",`Legal Handover – ${l?.id}`,`${l?.id} referred to Legal Department. Balance: ${fmt.cur(l?.balance)}.`));
     save({ ...data, collections: [...collections, entry], audit: newAudit, alerts: newAlerts });
   };
 
-  // Promise-to-Pay
   const createPTP = (loanId, ptpDate, ptpAmount, notes) => {
     if (!canDo("collections","create")) { alert("Permission denied."); return; }
     const l = loans.find(x => x.id === loanId);
@@ -1384,7 +1175,6 @@ export default function App() {
     });
   };
 
-  // Restructuring proposal
   const proposeRestructure = (loanId, proposal) => {
     if (!canDo("collections","create")) { alert("Permission denied."); return; }
     const l = loans.find(x => x.id === loanId);
@@ -1396,7 +1186,6 @@ export default function App() {
     });
   };
 
-  // Write-off proposal
   const proposeWriteOff = (loanId, reason) => {
     if (!canDo("collections","create")) { alert("Permission denied."); return; }
     const l = loans.find(x => x.id === loanId);
@@ -1408,7 +1197,6 @@ export default function App() {
     });
   };
 
-  // Approve write-off (Credit Head/Exec/Admin only)
   const approveWriteOff = (loanId) => {
     if (!canDo("collections","approve")) { alert("Permission denied: only Credit Head or above can approve write-offs."); return; }
     const l = loans.find(x => x.id === loanId);
@@ -1420,7 +1208,6 @@ export default function App() {
     });
   };
 
-  // ═══ PAGE ROUTER ═══
   function renderPage() {
     if (detail) return renderDetail();
     switch (page) {
@@ -1443,7 +1230,6 @@ export default function App() {
     }
   }
 
-  // ═══ 1. DASHBOARD ═══
   function Dashboard() {
     const totalBook = loans.reduce((s, l) => s + l.balance, 0);
     const totalDisbursed = loans.reduce((s, l) => s + l.amount, 0);
@@ -1456,7 +1242,6 @@ export default function App() {
     const jobs = customers.reduce((s, c) => s + c.employees, 0);
     const tier = ROLES[role]?.tier ?? 5;
 
-    // Role-specific summary line
     const roleSummary = {
       ADMIN: `${loans.length} active loans · ${pipeline.length} in pipeline · ${arrLoans.length} in arrears`,
       EXEC: `Portfolio: ${fmt.cur(totalBook)} · ${arrLoans.length} accounts in arrears · ECL: ${fmt.cur(ecl)}`,
@@ -1612,7 +1397,6 @@ export default function App() {
     </div>);
   }
 
-  // ═══ 2. CUSTOMERS ═══
   function Customers() {
     const [tab, setTab] = useState("all");
     const [showCreate, setShowCreate] = useState(false);
@@ -1684,7 +1468,6 @@ export default function App() {
     </div>);
   }
 
-  // ═══ 3. ORIGINATION ═══
   function Origination() {
     const [tab, setTab] = useState("all");
     const drafts = applications.filter(a=>a.status==="Draft");
@@ -1756,7 +1539,6 @@ export default function App() {
     </div>);
   }
 
-  // ═══ 4. UNDERWRITING ═══
   function Underwriting() {
     const pending = applications.filter(a => ["Submitted","Underwriting"].includes(a.status));
     const decided = applications.filter(a => ["Approved","Declined"].includes(a.status)).slice(-5);
@@ -1787,7 +1569,6 @@ export default function App() {
     </div>);
   }
 
-  // ═══ 5. ACTIVE LOANS ═══
   function Loans() {
     const [tab, setTab] = useState("all");
     const bookedLoans = loans.filter(l => l.status === "Booked");
@@ -1819,7 +1600,6 @@ export default function App() {
     </div>);
   }
 
-  // ═══ 6. SERVICING ═══
   function Servicing() {
     const [tab, setTab] = useState("upcoming");
     const activeLoans = loans.filter(l => l.status === "Active");
@@ -1829,7 +1609,6 @@ export default function App() {
     const totalInterest = allPmts.reduce((s,p) => s + (p.interest||0), 0);
     const totalPrincipal = allPmts.reduce((s,p) => s + (p.principal||0), 0);
 
-    // Generate amortization schedule for a loan
     const genSchedule = (l) => {
       const rows = [];
       let bal = l.amount;
@@ -1933,7 +1712,6 @@ export default function App() {
     </div>);
   }
 
-  // ═══ 7. COLLECTIONS ═══
   function Collections() {
     const activeLoans = loans.filter(l => l.status === "Active");
     const delinquent = activeLoans.filter(l => l.dpd > 0);
@@ -2062,7 +1840,6 @@ export default function App() {
     </div>);
   }
 
-  // ═══ 8. IFRS 9 ═══
   function Provisioning() {
     const totalECL = provisions.reduce((s,p)=>s+p.ecl,0);
     const totalEAD = provisions.reduce((s,p)=>s+p.ead,0);
@@ -2104,7 +1881,6 @@ export default function App() {
     </div>);
   }
 
-  // ═══ 9. GOVERNANCE ═══
   function Governance() {
     const [tab, setTab] = useState("audit");
     const categories = [...new Set(audit.map(a=>a.category).filter(Boolean))].sort();
@@ -2234,7 +2010,6 @@ export default function App() {
     </div>);
   }
 
-  // ═══ STATUTORY REPORTING ═══
   const updateStatutoryStatus = (reportId, newStatus) => {
     const updated = (statutoryReports||[]).map(r => r.id === reportId ? { ...r, status: newStatus, ...(newStatus === "Submitted" ? { submittedDate: new Date().toISOString().split("T")[0] } : {}) } : r);
     save({ ...data, statutoryReports: updated, audit: [...audit, addAudit("Statutory Report Updated", reportId, "Compliance Officer", `Status changed to "${newStatus}".`, "Compliance")] });
@@ -2453,7 +2228,6 @@ export default function App() {
     </div>);
   }
 
-  // ═══ 10. DOCUMENTS ═══
   function Documents() {
     const docs = documents || [];
     const [tab, setTab] = useState("all");
@@ -2560,7 +2334,6 @@ export default function App() {
     </div>);
   }
 
-  // ═══ 11. REPORTS ═══
   function Reports() {
     const activeLoans = loans.filter(l=>l.status==="Active");
     const totalBook = activeLoans.reduce((s,l)=>s+l.balance,0);
@@ -2634,7 +2407,6 @@ export default function App() {
     </div>);
   }
 
-  // ═══ 12. COMMUNICATIONS ═══
   function Comms() {
     return (<div>
       <h2 style={{ margin:"0 0 4px", fontSize:22, fontWeight:700, color:C.text }}>Communication Center</h2>
@@ -2651,7 +2423,6 @@ export default function App() {
     </div>);
   }
 
-  // ═══ DETAIL VIEWS ═══
   function renderDetail() {
     const goBack = () => setDetail(null);
     const BackBtn = () => <button onClick={goBack} style={{ background:"none", border:"none", color:C.accent, fontSize:13, fontWeight:600, cursor:"pointer", marginBottom:16, display:"flex", alignItems:"center", gap:4, fontFamily:"inherit" }}>{I.back} Back</button>;
@@ -2802,7 +2573,6 @@ export default function App() {
       const renderChecklist = (findings, stepKey) => {
         if (!findings || !Array.isArray(findings)) return null;
         const isActionable = isUW && (stepKey==="kyc"||stepKey==="docs");
-        // For docs step: only non-inherited, required items need officer action
         const reqItems = findings.filter(f => {
           if (f.inherited) return false; // KYC docs inherited from step 2 — skip
           if (stepKey==="docs" && f.required===false) return false;
@@ -3132,7 +2902,6 @@ export default function App() {
       </div>);
     }
 
-
     if (detail.type === "loan") {
       const l = loans.find(x=>x.id===detail.id); if (!l) return <div>Not found</div>;
       const c = cust(l.custId); const prov = provisions.find(p=>p.loanId===l.id);
@@ -3233,7 +3002,6 @@ export default function App() {
         </SectionCard>}
       </div>);
     }
-  // ═══ PRODUCT MANAGEMENT ═══
   const saveProduct = (prod) => {
     if (!canDo("products","create") && !canDo("products","update")) { alert("Permission denied."); return; }
     const isNew = !products.find(p => p.id === prod.id);
@@ -3321,7 +3089,6 @@ export default function App() {
     </div>);
   }
 
-  // ═══ SETTINGS & ADMINISTRATION ═══
   function Settings() {
     const handleSaveSettings = () => {
       if (!canDo("settings","update")) { alert("Permission denied."); return; }
@@ -3415,13 +3182,11 @@ export default function App() {
     return null;
   }
 
-  // ═══ MODALS ═══
   function NewAppModal() {
     const [form, setForm] = useState({ custId: customers[0]?.id, product: products.find(p=>p.status==="Active")?.id || products[0]?.id, amount: "", term: "36", purpose: "" });
     const p = prod(form.product);
     const c = cust(form.custId);
     const activeProducts = products.filter(pr => pr.status === "Active");
-    // Validation
     const amt = +form.amount;
     const trm = +form.term;
     const errors = [];
@@ -3465,7 +3230,6 @@ export default function App() {
     );
   }
 
-  // ═══ LAYOUT ═══
   return (
     <div style={{ fontFamily:"'Outfit','Segoe UI',system-ui,sans-serif", background:C.bg, minHeight:"100vh", display:"flex", color:C.text }}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
