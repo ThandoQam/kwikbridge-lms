@@ -596,14 +596,55 @@ export default function App() {
 
   const submitApp = form => {
     if (!canDo("origination","create")) { alert("Permission denied: you cannot create applications."); return; }
-    const app = { id:`APP-${String(applications.length+1).padStart(3,"0")}`, custId:form.custId, status:"Submitted", product:form.product, amount:+form.amount, term:+form.term, purpose:form.purpose, rate:null, riskScore:null, dscr:null, currentRatio:null, debtEquity:null, socialScore:null, recommendation:null, approver:null, creditMemo:null, submitted:Date.now(), decided:null, conditions:[], assignedTo:null, createdBy:currentUser.id };
     const c = cust(form.custId);
-    save({ ...data,
-      applications: [...applications, app],
-      audit: [...audit, addAudit("Application Submitted", app.id, c?.contact || "Customer", `New ${prod(form.product)?.name} application for ${fmt.cur(form.amount)} submitted.`, "Origination")],
-      alerts: [...alerts, addAlert("Application", "info", `New Application – ${c?.name}`, `${app.id} for ${fmt.cur(form.amount)} submitted.`)]
-    });
+    const p = prod(form.product);
+    // Validation gate: FICA must be Verified or Under Review
+    if (c?.ficaStatus === "Pending") { alert(`Cannot submit: ${c.name} FICA status is Pending. Initiate KYC review first.`); return; }
+    if (c?.ficaStatus === "Failed") { alert(`Cannot submit: ${c.name} FICA verification failed. Re-submit KYC before applying.`); return; }
+    if (c?.ficaStatus === "Expired") { alert(`Cannot submit: ${c.name} FICA has expired. Renew verification first.`); return; }
+    // Duplicate check: no open application for same customer + product
+    const existing = applications.find(a => a.custId === form.custId && a.product === form.product && ["Submitted","Underwriting"].includes(a.status));
+    if (existing) { alert(`Duplicate: ${c?.name} already has an active ${p?.name} application (${existing.id}, status: ${existing.status}).`); return; }
+    // Product status check
+    if (p?.status !== "Active") { alert(`Product ${p?.name} is ${p?.status}. Only Active products can accept applications.`); return; }
+
+    const app = { id:`APP-${String(applications.length+1).padStart(3,"0")}`, custId:form.custId, status:"Submitted", product:form.product, amount:+form.amount, term:+form.term, purpose:form.purpose, rate:null, riskScore:null, dscr:null, currentRatio:null, debtEquity:null, socialScore:null, recommendation:null, approver:null, creditMemo:null, submitted:Date.now(), decided:null, conditions:[], assignedTo:null, createdBy:currentUser.id, sanctionsFlag:false, sanctionsDate:null, withdrawnAt:null, withdrawnBy:null };
+    // Auto sanctions screening (simulated — clear for all seed customers, flag if name contains test patterns)
+    const sanctionsHit = false; // Placeholder for API integration
+    app.sanctionsFlag = sanctionsHit;
+    app.sanctionsDate = Date.now();
+
+    let newAlerts = [...alerts, addAlert("Application", "info", `New Application – ${c?.name}`, `${app.id} for ${fmt.cur(form.amount)} submitted.`)];
+    let newAudit = [...audit,
+      addAudit("Application Submitted", app.id, currentUser.name, `New ${p?.name} application for ${fmt.cur(form.amount)} by ${c?.name}. FICA: ${c?.ficaStatus}. BEE: Level ${c?.beeLevel}.`, "Origination"),
+      addAudit("Sanctions Screening", app.id, "System", `Automated screening: ${sanctionsHit ? "MATCH FOUND — flagged for review" : "Clear. No matches."}`, "Compliance"),
+    ];
+    if (sanctionsHit) newAlerts.push(addAlert("Compliance","critical",`Sanctions Hit – ${c?.name}`,`${app.id}: potential sanctions match. Immediate review required.`));
+
+    save({ ...data, applications: [...applications, app], audit: newAudit, alerts: newAlerts });
     setModal(null);
+  };
+
+  // Assign application to a user
+  const assignApplication = (appId, userId) => {
+    if (!canDo("origination","assign")) { alert("Permission denied: you cannot assign applications."); return; }
+    const u = SYSTEM_USERS.find(x => x.id === userId);
+    save({ ...data,
+      applications: applications.map(a => a.id === appId ? { ...a, assignedTo: userId } : a),
+      audit: [...audit, addAudit("Application Assigned", appId, currentUser.name, `Assigned to ${u?.name} (${ROLES[u?.role]?.label}).`, "Origination")]
+    });
+  };
+
+  // Withdraw / Cancel application
+  const withdrawApplication = (appId, reason) => {
+    if (!canDo("origination","update")) { alert("Permission denied."); return; }
+    const a = applications.find(x => x.id === appId);
+    if (!a || !["Submitted","Underwriting"].includes(a.status)) { alert("Only Submitted or Underwriting applications can be withdrawn."); return; }
+    save({ ...data,
+      applications: applications.map(x => x.id === appId ? { ...x, status: "Withdrawn", withdrawnAt: Date.now(), withdrawnBy: currentUser.id } : x),
+      audit: [...audit, addAudit("Application Withdrawn", appId, currentUser.name, `Withdrawn. Reason: ${reason || "No reason provided"}.`, "Origination")],
+      alerts: [...alerts, addAlert("Application","warning",`Application Withdrawn – ${appId}`,`${a.id} withdrawn by ${currentUser.name}. ${reason||""}`)]
+    });
   };
 
   const moveToUnderwriting = appId => {
@@ -1213,13 +1254,35 @@ export default function App() {
   // ═══ 3. ORIGINATION ═══
   function Origination() {
     const [tab, setTab] = useState("all");
-    const tabs = [{ key:"all", label:"All" }, { key:"Submitted", label:"Submitted", count:applications.filter(a=>a.status==="Submitted").length }, { key:"Underwriting", label:"Underwriting", count:applications.filter(a=>a.status==="Underwriting").length }];
-    const filtered = applications.filter(a => tab === "all" || a.status === tab).filter(a => !search || [a.id, cust(a.custId)?.name].some(f => f?.toLowerCase().includes(search.toLowerCase())));
+    const [withdrawId, setWithdrawId] = useState(null);
+    const [withdrawReason, setWithdrawReason] = useState("");
+    const tabs = [
+      { key:"all", label:"All", count:applications.length },
+      { key:"Submitted", label:"Submitted", count:applications.filter(a=>a.status==="Submitted").length },
+      { key:"Underwriting", label:"Underwriting", count:applications.filter(a=>a.status==="Underwriting").length },
+      { key:"Approved", label:"Approved", count:applications.filter(a=>a.status==="Approved").length },
+      { key:"Declined", label:"Declined", count:applications.filter(a=>a.status==="Declined").length },
+      { key:"Withdrawn", label:"Withdrawn", count:applications.filter(a=>a.status==="Withdrawn").length },
+    ];
+    const filtered = applications.filter(a => tab === "all" || a.status === tab).filter(a => !search || [a.id, cust(a.custId)?.name, prod(a.product)?.name].some(f => f?.toLowerCase().includes(search.toLowerCase())));
+    const assignableUsers = SYSTEM_USERS.filter(u => ["LOAN_OFFICER","CREDIT","CREDIT_SNR","CREDIT_HEAD"].includes(u.role));
+
     return (<div>
-      <div style={{ display:"flex", justifyContent:"space-between", marginBottom:20 }}>
-        <div><h2 style={{ margin:0, fontSize:22, fontWeight:700, color:C.text }}>Loan Origination</h2><p style={{ margin:"4px 0 0", fontSize:13, color:C.textMuted }}>Application intake, validation & pipeline management</p></div>
+      <div style={{ display:"flex", justifyContent:"space-between", marginBottom:16 }}>
+        <div><h2 style={{ margin:0, fontSize:22, fontWeight:700, color:C.text }}>Loan Origination</h2><p style={{ margin:"4px 0 0", fontSize:13, color:C.textMuted }}>Application intake, validation, assignment & pipeline management</p></div>
         {canDo("origination","create") && <Btn onClick={() => setModal("newApp")} icon={I.plus}>New Application</Btn>}
       </div>
+
+      {/* KPI summary */}
+      <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:16 }}>
+        <KPI label="Pipeline" value={applications.filter(a=>["Submitted","Underwriting"].includes(a.status)).length} sub="active" />
+        <KPI label="Submitted" value={applications.filter(a=>a.status==="Submitted").length} sub="awaiting DD" />
+        <KPI label="Underwriting" value={applications.filter(a=>a.status==="Underwriting").length} sub="in progress" />
+        <KPI label="Approved" value={applications.filter(a=>a.status==="Approved").length} />
+        <KPI label="Declined" value={applications.filter(a=>a.status==="Declined").length} />
+        <KPI label="Pipeline Value" value={fmt.cur(applications.filter(a=>["Submitted","Underwriting"].includes(a.status)).reduce((s,a)=>s+a.amount,0))} />
+      </div>
+
       <Tab tabs={tabs} active={tab} onChange={setTab} />
       <Table columns={[
         { label:"App ID", render:r=><span style={{ fontFamily:"monospace", fontWeight:600, fontSize:12 }}>{r.id}</span> },
@@ -1228,9 +1291,32 @@ export default function App() {
         { label:"Amount", render:r=>fmt.cur(r.amount) },
         { label:"Term", render:r=>`${r.term}m` },
         { label:"Submitted", render:r=>fmt.date(r.submitted) },
+        { label:"Assigned To", render:r=>{
+          const u = SYSTEM_USERS.find(x=>x.id===r.assignedTo);
+          if (u) return <span style={{ fontSize:11 }}>{u.name}</span>;
+          if (!["Submitted","Underwriting"].includes(r.status)) return <span style={{ fontSize:10, color:C.textMuted }}>—</span>;
+          if (!canDo("origination","assign")) return <span style={{ fontSize:10, color:C.amber }}>Unassigned</span>;
+          return <select onChange={e=>{if(e.target.value)assignApplication(r.id,e.target.value)}} defaultValue="" style={{ fontSize:10, border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontFamily:"inherit", padding:"1px 3px" }}>
+            <option value="">Assign...</option>
+            {assignableUsers.map(u=><option key={u.id} value={u.id}>{u.name}</option>)}
+          </select>;
+        }},
+        { label:"Sanctions", render:r=>r.sanctionsFlag ? <Badge color="red">Hit</Badge> : r.sanctionsDate ? <span style={{ fontSize:10, color:C.green }}>Clear</span> : <span style={{ fontSize:10, color:C.textMuted }}>—</span> },
         { label:"Status", render:r=>statusBadge(r.status) },
-        { label:"", render:()=><span style={{ color:C.accent }}>{I.chev}</span> },
+        { label:"Actions", render:r=><div style={{ display:"flex", gap:4 }}>
+          {["Submitted","Underwriting"].includes(r.status) && canDo("origination","update") && <Btn size="sm" variant="ghost" onClick={e=>{e.stopPropagation();setWithdrawId(r.id)}}>Withdraw</Btn>}
+        </div> },
       ]} rows={filtered} onRowClick={r=>setDetail({type:"application",id:r.id})} />
+
+      {/* Withdraw modal */}
+      <Modal open={!!withdrawId} onClose={()=>setWithdrawId(null)} title={`Withdraw Application ${withdrawId}`} width={420}>
+        <div style={{ fontSize:12, color:C.textDim, marginBottom:12 }}>This will cancel the application. The customer can re-apply later.</div>
+        <Field label="Reason for withdrawal"><Textarea value={withdrawReason} onChange={e=>setWithdrawReason(e.target.value)} rows={3} placeholder="Customer request / Duplicate / Failed validation..." /></Field>
+        <div style={{ display:"flex", gap:8, marginTop:16 }}>
+          <Btn variant="danger" onClick={()=>{withdrawApplication(withdrawId,withdrawReason);setWithdrawId(null);setWithdrawReason("")}}>Confirm Withdrawal</Btn>
+          <Btn variant="ghost" onClick={()=>{setWithdrawId(null);setWithdrawReason("")}}>Cancel</Btn>
+        </div>
+      </Modal>
     </div>);
   }
 
