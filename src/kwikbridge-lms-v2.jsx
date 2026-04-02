@@ -536,7 +536,32 @@ export default function App() {
 
   useEffect(() => {
     (async () => {
-      try { const r = await window.storage.get(SK); if (r?.value) { setData(JSON.parse(r.value)); return; } } catch {}
+      try {
+        const r = await window.storage.get(SK);
+        if (r?.value) {
+          const loaded = JSON.parse(r.value);
+          // Data migration: clear old-format workflow findings so they regenerate in new interactive format
+          let migrated = false;
+          if (loaded.applications) {
+            loaded.applications = loaded.applications.map(a => {
+              if (!a.workflow) return a;
+              const w = { ...a.workflow };
+              // Old sitevisit: has 'detail' but no 'field'
+              if (w.siteVisitFindings?.length > 0 && w.siteVisitFindings[0].detail !== undefined && w.siteVisitFindings[0].field === undefined) {
+                w.siteVisitFindings = null; w.siteVisitDate = null; w.siteVisitComplete = false; w.siteVisitOfficer = null; migrated = true;
+              }
+              // Old credit: has 'detail' but no 'analystNote'
+              if (w.creditFindings?.length > 0 && w.creditFindings[0].detail !== undefined && w.creditFindings[0].analystNote === undefined) {
+                w.creditFindings = null; w.creditDate = null; w.financialAnalysisComplete = false; w.creditPulled = false; migrated = true;
+              }
+              return { ...a, workflow: w };
+            });
+          }
+          if (migrated) { try { await window.storage.set(SK, JSON.stringify(loaded)); } catch {} }
+          setData(loaded);
+          return;
+        }
+      } catch {}
       const d = seed();
       try { await window.storage.set(SK, JSON.stringify(d)); } catch {}
       setData(d);
@@ -992,7 +1017,9 @@ export default function App() {
     if (stepKey === "sitevisit") {
       // Generate blank structured assessment form — officer fills in after actual visit
       const existing = w.siteVisitFindings || [];
-      const findings = existing.length > 0 ? existing : [
+      // Detect old-format findings (have 'detail' but no 'field') and discard
+      const isNewFormat = existing.length > 0 && existing[0].field !== undefined;
+      const findings = isNewFormat ? existing : [
         { item:"Visit Details", field:"visitDetails", value:"", placeholder:`Date of visit, address visited (${c?.address}), attendees, duration` },
         { item:"Premises Inspection", field:"premises", value:"", placeholder:"Describe physical premises — condition, suitability, ownership/lease, signage, access" },
         { item:"Operational Activity", field:"operations", value:"", placeholder:"Staff observed on site, active trading evidence, equipment/inventory, workflow" },
@@ -2782,11 +2809,16 @@ export default function App() {
         </div>);
         if (s.key==="sitevisit") {
           const findings = w.siteVisitFindings || [];
+          const isOldFormat = findings.length > 0 && findings[0].field === undefined;
           const filledCount = findings.filter(f => f.value && f.value.trim().length > 10).length;
-          const allFilled = findings.length > 0 && findings.every(f => f.value && f.value.trim().length > 5);
+          const allFilled = findings.length > 0 && !isOldFormat && findings.every(f => f.value && f.value.trim().length > 5);
           return (<div>
           {!w.siteVisitDate && <div style={{ fontSize:11, color:C.textMuted, marginBottom:6 }}>Click "Generate Findings" to create the site visit assessment form. Complete each field after the physical visit, then sign off.</div>}
-          {findings.length > 0 && <div>
+          {isOldFormat && <div style={{ padding:10, background:"#fff8e1", border:`1px solid ${C.amber}`, marginBottom:8, fontSize:11 }}>
+            <div style={{ fontWeight:600, marginBottom:4 }}>Site visit data is in a legacy format (static/read-only).</div>
+            <div style={{ color:C.textDim }}>Click "Re-generate" above to create the interactive assessment form. You will need to re-enter your observations.</div>
+          </div>}
+          {findings.length > 0 && !isOldFormat && <div>
             <div style={{ fontSize:10, color:C.textMuted, marginBottom:6 }}>{filledCount}/{findings.length} sections completed{allFilled ? " — ready for sign-off" : ""}</div>
             <div style={{ border:`1px solid ${C.border}` }}>
               {findings.map((f, i) => (
@@ -2818,12 +2850,14 @@ export default function App() {
             <div style={{ fontSize:10, fontWeight:600, color:C.text, marginBottom:3 }}>Additional Notes</div>
             <textarea value={w.siteVisitNotes||""} onChange={e=>saveSiteVisitNotes(a.id,e.target.value)} placeholder="Any additional observations not covered above..." rows={2} style={{ width:"100%", padding:"5px 6px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:11, fontFamily:"inherit", outline:"none", resize:"vertical", boxSizing:"border-box", lineHeight:1.5 }} />
           </div>}
-          {isUW && w.siteVisitDate && !w.siteVisitComplete && (
+          {isUW && w.siteVisitDate && !w.siteVisitComplete && !isOldFormat && (
             <div style={{ marginTop:6, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
               <span style={{ fontSize:10, color:allFilled?C.green:C.amber }}>{allFilled ? "All sections completed. Ready for sign-off." : `${filledCount}/${findings.length} completed. Complete all sections to sign off.`}</span>
               <Btn size="sm" onClick={()=>signOffStep(a.id,"sitevisit")} disabled={!allFilled}>Sign Off</Btn>
             </div>
           )}
+          {/* Old format fallback — show read-only for reference */}
+          {isOldFormat && findings.length > 0 && renderReadOnly(findings)}
           {w.siteVisitComplete && <div style={{ marginTop:4, fontSize:10, color:C.green }}>Signed off by {w.siteVisitOfficer}</div>}
         </div>);
         }
