@@ -53,6 +53,69 @@ const C = {
   white: "#ffffff",
 };
 
+// ─── RBAC: Roles, Permissions, Users ───
+const ROLES = {
+  ADMIN:       { id:"ADMIN",       label:"System Admin",       tier:0 },
+  EXEC:        { id:"EXEC",        label:"Executive",          tier:1 },
+  CREDIT_HEAD: { id:"CREDIT_HEAD", label:"Head of Credit",     tier:2 },
+  COMPLIANCE:  { id:"COMPLIANCE",  label:"Compliance Officer",  tier:2 },
+  CREDIT_SNR:  { id:"CREDIT_SNR",  label:"Senior Credit Analyst", tier:3 },
+  CREDIT:      { id:"CREDIT",      label:"Credit Analyst",     tier:3 },
+  LOAN_OFFICER:{ id:"LOAN_OFFICER",label:"Loan Officer",       tier:4 },
+  COLLECTIONS: { id:"COLLECTIONS", label:"Collections Specialist", tier:4 },
+  FINANCE:     { id:"FINANCE",     label:"Finance Officer",    tier:3 },
+  AUDITOR:     { id:"AUDITOR",     label:"Internal Auditor",   tier:3 },
+  VIEWER:      { id:"VIEWER",      label:"Report Viewer",      tier:5 },
+};
+
+// Permission matrix: module → role → allowed actions
+// Actions: view, create, update, delete, approve, assign, signoff, export
+const PERMS = {
+  dashboard:     { ADMIN:"view,export", EXEC:"view,export", CREDIT_HEAD:"view,export", COMPLIANCE:"view", CREDIT_SNR:"view", CREDIT:"view", LOAN_OFFICER:"view", COLLECTIONS:"view", FINANCE:"view", AUDITOR:"view", VIEWER:"view" },
+  customers:     { ADMIN:"view,create,update,delete", EXEC:"view", CREDIT_HEAD:"view,update", COMPLIANCE:"view,update", CREDIT_SNR:"view", CREDIT:"view", LOAN_OFFICER:"view,create,update", COLLECTIONS:"view", FINANCE:"view", AUDITOR:"view", VIEWER:"" },
+  origination:   { ADMIN:"view,create,update,delete,assign", EXEC:"view", CREDIT_HEAD:"view,assign", COMPLIANCE:"view", CREDIT_SNR:"view,create,update", CREDIT:"view,create,update", LOAN_OFFICER:"view,create,update,assign", COLLECTIONS:"", FINANCE:"", AUDITOR:"view", VIEWER:"" },
+  underwriting:  { ADMIN:"view,update,approve,signoff", EXEC:"view,approve", CREDIT_HEAD:"view,update,approve,signoff,assign", COMPLIANCE:"view,signoff", CREDIT_SNR:"view,update,approve,signoff", CREDIT:"view,update,signoff", LOAN_OFFICER:"view,update,signoff", COLLECTIONS:"", FINANCE:"", AUDITOR:"view", VIEWER:"" },
+  loans:         { ADMIN:"view,update", EXEC:"view", CREDIT_HEAD:"view,update", COMPLIANCE:"view", CREDIT_SNR:"view", CREDIT:"view", LOAN_OFFICER:"view,update", COLLECTIONS:"view", FINANCE:"view,update", AUDITOR:"view", VIEWER:"view" },
+  servicing:     { ADMIN:"view,create,update", EXEC:"view", CREDIT_HEAD:"view", COMPLIANCE:"view", CREDIT_SNR:"view", CREDIT:"view", LOAN_OFFICER:"view,update", COLLECTIONS:"view", FINANCE:"view,create,update", AUDITOR:"view", VIEWER:"" },
+  collections:   { ADMIN:"view,create,update,assign,approve", EXEC:"view,approve", CREDIT_HEAD:"view,approve", COMPLIANCE:"view", CREDIT_SNR:"view", CREDIT:"view", LOAN_OFFICER:"view,create,update", COLLECTIONS:"view,create,update,assign", FINANCE:"view", AUDITOR:"view", VIEWER:"" },
+  provisioning:  { ADMIN:"view,update,approve", EXEC:"view,approve", CREDIT_HEAD:"view,approve", COMPLIANCE:"view", CREDIT_SNR:"view", CREDIT:"view", LOAN_OFFICER:"", COLLECTIONS:"", FINANCE:"view,update,approve", AUDITOR:"view", VIEWER:"" },
+  governance:    { ADMIN:"view,update", EXEC:"view", CREDIT_HEAD:"view", COMPLIANCE:"view,update", CREDIT_SNR:"view", CREDIT:"view", LOAN_OFFICER:"view", COLLECTIONS:"view", FINANCE:"view", AUDITOR:"view,export", VIEWER:"" },
+  statutory:     { ADMIN:"view,update", EXEC:"view", CREDIT_HEAD:"view", COMPLIANCE:"view,create,update", CREDIT_SNR:"", CREDIT:"", LOAN_OFFICER:"", COLLECTIONS:"", FINANCE:"view,update", AUDITOR:"view", VIEWER:"" },
+  documents:     { ADMIN:"view,create,update,delete,approve", EXEC:"view", CREDIT_HEAD:"view,approve", COMPLIANCE:"view,update,approve", CREDIT_SNR:"view,update", CREDIT:"view,update", LOAN_OFFICER:"view,create,update,approve", COLLECTIONS:"view", FINANCE:"view", AUDITOR:"view", VIEWER:"" },
+  reports:       { ADMIN:"view,export", EXEC:"view,export", CREDIT_HEAD:"view,export", COMPLIANCE:"view,export", CREDIT_SNR:"view", CREDIT:"view", LOAN_OFFICER:"view", COLLECTIONS:"view", FINANCE:"view,export", AUDITOR:"view,export", VIEWER:"view,export" },
+  comms:         { ADMIN:"view,create", EXEC:"view", CREDIT_HEAD:"view,create", COMPLIANCE:"view", CREDIT_SNR:"view,create", CREDIT:"view,create", LOAN_OFFICER:"view,create", COLLECTIONS:"view,create", FINANCE:"view", AUDITOR:"view", VIEWER:"" },
+};
+
+// Approval authority by role (max loan amount)
+const APPROVAL_LIMITS = {
+  CREDIT: 250000, CREDIT_SNR: 500000, CREDIT_HEAD: 1000000, EXEC: 5000000, ADMIN: Infinity,
+};
+
+// System users (seeded)
+const SYSTEM_USERS = [
+  { id:"U001", name:"Thando Qamarana", initials:"TQ", email:"thando@thandoq.co.za", role:"ADMIN" },
+  { id:"U002", name:"J. Ndaba", initials:"JN", email:"j.ndaba@thandoq.co.za", role:"LOAN_OFFICER" },
+  { id:"U003", name:"P. Sithole", initials:"PS", email:"p.sithole@thandoq.co.za", role:"CREDIT" },
+  { id:"U004", name:"M. Zulu", initials:"MZ", email:"m.zulu@thandoq.co.za", role:"CREDIT_HEAD" },
+  { id:"U005", name:"N. Xaba", initials:"NX", email:"n.xaba@thandoq.co.za", role:"COLLECTIONS" },
+  { id:"U006", name:"S. Pillay", initials:"SP", email:"s.pillay@thandoq.co.za", role:"FINANCE" },
+  { id:"U007", name:"Compliance Officer", initials:"CO", email:"compliance@thandoq.co.za", role:"COMPLIANCE" },
+  { id:"U008", name:"Internal Auditor", initials:"IA", email:"audit@thandoq.co.za", role:"AUDITOR" },
+  { id:"U009", name:"Executive Viewer", initials:"EV", email:"exec@thandoq.co.za", role:"EXEC" },
+];
+
+// Permission check helper
+function can(userRole, module, action) {
+  const perms = PERMS[module]?.[userRole] || "";
+  return perms.split(",").includes(action);
+}
+function canAny(userRole, module, actions) {
+  return actions.some(a => can(userRole, module, a));
+}
+function approvalLimit(userRole) {
+  return APPROVAL_LIMITS[userRole] || 0;
+}
+
 // ─── SEED DATA ───
 function seed() {
   const customers = [
@@ -444,6 +507,10 @@ export default function App() {
   const [notifOpen, setNotifOpen] = useState(false);
   const [modal, setModal] = useState(null);
   const [sideCollapsed, setSideCollapsed] = useState(false);
+  const [currentUser, setCurrentUser] = useState(SYSTEM_USERS[0]); // default: Admin
+  const role = currentUser.role;
+  const canDo = (mod, action) => can(role, mod, action);
+  const canDoAny = (mod, actions) => canAny(role, mod, actions);
 
   useEffect(() => {
     (async () => {
@@ -465,7 +532,7 @@ export default function App() {
   const { customers, products, applications, loans, collections, alerts, audit, provisions, comms, documents, statutoryReports, settings } = data;
   const unread = alerts.filter(a => !a.read).length;
 
-  // ─── Nav ───
+  // ─── Nav (filtered by role) ───
   const navItems = [
     { key: "dashboard", label: "Dashboard", icon: I.dashboard },
     { key: "customers", label: "Customers", icon: I.customers, count: customers.length },
@@ -480,15 +547,16 @@ export default function App() {
     { key: "documents", label: "Documents", icon: I.documents },
     { key: "reports", label: "Reports", icon: I.reports },
     { key: "comms", label: "Communications", icon: I.comms, count: comms.length },
-  ];
+  ].filter(n => canDo(n.key, "view"));
 
   const markRead = id => save({ ...data, alerts: alerts.map(a => a.id === id ? { ...a, read: true } : a) });
   const addAudit = (action, entity, user, detail, category) => ({ id: uid(), action, entity, user, detail, ts: Date.now(), category });
   const addAlert = (type, severity, title, msg, extra = {}) => ({ id: uid(), type, severity, title, msg, read: false, ts: Date.now(), ...extra });
 
-  // ─── Handlers ───
+  // ─── Handlers (RBAC-enforced) ───
   const submitApp = form => {
-    const app = { id:`APP-${String(applications.length+1).padStart(3,"0")}`, custId:form.custId, status:"Submitted", product:form.product, amount:+form.amount, term:+form.term, purpose:form.purpose, rate:null, riskScore:null, dscr:null, currentRatio:null, debtEquity:null, socialScore:null, recommendation:null, approver:null, creditMemo:null, submitted:Date.now(), decided:null, conditions:[] };
+    if (!canDo("origination","create")) { alert("Permission denied: you cannot create applications."); return; }
+    const app = { id:`APP-${String(applications.length+1).padStart(3,"0")}`, custId:form.custId, status:"Submitted", product:form.product, amount:+form.amount, term:+form.term, purpose:form.purpose, rate:null, riskScore:null, dscr:null, currentRatio:null, debtEquity:null, socialScore:null, recommendation:null, approver:null, creditMemo:null, submitted:Date.now(), decided:null, conditions:[], assignedTo:null, createdBy:currentUser.id };
     const c = cust(form.custId);
     save({ ...data,
       applications: [...applications, app],
@@ -499,10 +567,11 @@ export default function App() {
   };
 
   const moveToUnderwriting = appId => {
+    if (!canDo("underwriting","update")) { alert("Permission denied."); return; }
     const emptyWF = { kycComplete:false, kycFindings:[], kycDate:null, kycOfficer:null, docsComplete:false, docsFindings:[], docsDate:null, docsOfficer:null, siteVisitComplete:false, siteVisitFindings:[], siteVisitDate:null, siteVisitOfficer:null, siteVisitNotes:"", creditPulled:false, creditBureauScore:null, creditDate:null, creditFindings:[], financialAnalysisComplete:false, financialDate:null, socialVerified:false, socialFindings:[], socialDate:null, socialOfficer:null, collateralAssessed:false, collateralFindings:[], collateralDate:null, collateralTotal:0, sanctionsCleared:false, sanctionsDate:null, analystNotes:"", creditMemoSections:[] };
     save({ ...data,
-      applications: applications.map(a => a.id === appId ? { ...a, status: "Underwriting", workflow: a.workflow || emptyWF } : a),
-      audit: [...audit, addAudit("Status Change", appId, "Loan Officer", "Application moved to Underwriting. Due diligence workflow initiated.", "Origination")]
+      applications: applications.map(a => a.id === appId ? { ...a, status: "Underwriting", workflow: a.workflow || emptyWF, assignedTo: currentUser.id } : a),
+      audit: [...audit, addAudit("Status Change", appId, currentUser.name, `Application moved to Underwriting by ${currentUser.name}. Assigned to ${currentUser.name}.`, "Origination")]
     });
   };
 
@@ -540,6 +609,7 @@ export default function App() {
 
   // Sign off on a step — only when all items have been actioned
   const signOffStep = (appId, stepKey) => {
+    if (!canDo("underwriting","signoff")) { alert("Permission denied: you cannot sign off on DD steps."); return; }
     const a = applications.find(x => x.id === appId);
     if (!a) return;
     const c = cust(a.custId);
@@ -552,11 +622,11 @@ export default function App() {
       if (!allActioned) return;
       const allOk = items.every(f => f.status === "Pass" || f.status === "Confirmed (Override)");
       w.kycComplete = allOk;
-      w.kycOfficer = "Loan Officer – J. Ndaba";
+      w.kycOfficer = currentUser.name;
       w.sanctionsCleared = items.find(f => f.item === "Sanctions Screening")?.status === "Pass";
       w.sanctionsDate = Date.now();
       const passCount = items.filter(f => f.status === "Pass" || f.status === "Confirmed (Override)").length;
-      newAudit.push(addAudit("KYC Sign-Off", a.id, "Loan Officer – J. Ndaba", `Officer signed off on KYC. ${passCount}/${items.length} confirmed. ${allOk ? "FICA complete." : "Items flagged/rejected — FICA incomplete."}`, "Compliance"));
+      newAudit.push(addAudit("KYC Sign-Off", a.id, currentUser.name, `Signed off KYC. ${passCount}/${items.length} confirmed. ${allOk ? "FICA complete." : "Incomplete."}`, "Compliance"));
       if (!allOk) newAlerts.push(addAlert("Compliance","warning",`KYC Sign-Off Incomplete – ${c?.name}`,`${a.id}: ${items.filter(f=>f.status!=="Pass"&&f.status!=="Confirmed (Override)").map(f=>f.item).join(", ")} not cleared.`));
     }
     if (stepKey === "docs") {
@@ -565,41 +635,45 @@ export default function App() {
       if (!allActioned) return;
       const allOk = items.filter(f => f.required !== false).every(f => f.status === "Pass" || f.status === "Verified" || f.status === "Confirmed (Override)");
       w.docsComplete = allOk;
-      w.docsOfficer = "Loan Officer – J. Ndaba";
+      w.docsOfficer = currentUser.name;
       const passCount = items.filter(f => f.status === "Pass" || f.status === "Verified" || f.status === "Confirmed (Override)").length;
-      newAudit.push(addAudit("Document Review Sign-Off", a.id, "Loan Officer – J. Ndaba", `Officer signed off. ${passCount}/${items.length} confirmed. ${allOk ? "Checklist complete." : "Gaps remain."}`, "Underwriting"));
+      newAudit.push(addAudit("Document Review Sign-Off", a.id, currentUser.name, `Signed off. ${passCount}/${items.length} confirmed. ${allOk ? "Complete." : "Gaps remain."}`, "Underwriting"));
     }
-    if (stepKey === "sitevisit") { w.siteVisitComplete = true; w.siteVisitOfficer = "Loan Officer – J. Ndaba"; newAudit.push(addAudit("Site Visit Sign-Off", a.id, "Loan Officer – J. Ndaba", "Site visit findings confirmed and signed off.", "Underwriting")); }
-    if (stepKey === "credit") { w.financialAnalysisComplete = true; newAudit.push(addAudit("Credit Analysis Sign-Off", a.id, "Credit Analyst – P. Sithole", "Financial analysis reviewed and confirmed.", "Underwriting")); }
-    if (stepKey === "collateral") { w.collateralAssessed = true; newAudit.push(addAudit("Collateral Sign-Off", a.id, "Credit Analyst – P. Sithole", `Security assessment confirmed. Total: ${fmt.cur(w.collateralTotal)}.`, "Underwriting")); }
-    if (stepKey === "social") { w.socialVerified = true; w.socialOfficer = "Compliance Officer"; newAudit.push(addAudit("Social Impact Sign-Off", a.id, "Compliance Officer", `Social impact verified. Score: ${applications.find(x=>x.id===appId)?.socialScore}.`, "Compliance")); }
+    if (stepKey === "sitevisit") { w.siteVisitComplete = true; w.siteVisitOfficer = currentUser.name; newAudit.push(addAudit("Site Visit Sign-Off", a.id, currentUser.name, "Site visit findings confirmed.", "Underwriting")); }
+    if (stepKey === "credit") { w.financialAnalysisComplete = true; newAudit.push(addAudit("Credit Analysis Sign-Off", a.id, currentUser.name, "Financial analysis confirmed.", "Underwriting")); }
+    if (stepKey === "collateral") { w.collateralAssessed = true; newAudit.push(addAudit("Collateral Sign-Off", a.id, currentUser.name, `Security confirmed. Total: ${fmt.cur(w.collateralTotal)}.`, "Underwriting")); }
+    if (stepKey === "social") { w.socialVerified = true; w.socialOfficer = currentUser.name; newAudit.push(addAudit("Social Impact Sign-Off", a.id, currentUser.name, `Social impact verified. Score: ${applications.find(x=>x.id===appId)?.socialScore}.`, "Compliance")); }
     save({ ...data, applications: applications.map(x => x.id === appId ? { ...x, workflow: w } : x), audit: newAudit, alerts: newAlerts });
   };
 
-  // Document-level actions within underwriting
+  // Document-level actions within underwriting (RBAC-enforced)
   const approveDocument = (docId, appId) => {
+    if (!canDo("documents","approve")) { alert("Permission denied: you cannot approve documents."); return; }
     const doc = (documents||[]).find(d => d.id === docId);
     if (!doc) return;
-    const updated = { ...doc, status: "Verified", verifiedBy: "Loan Officer – J. Ndaba", verifiedAt: Date.now() };
-    save({ ...data, documents: documents.map(d => d.id === docId ? updated : d), audit: [...audit, addAudit("Document Approved", docId, "Loan Officer – J. Ndaba", `${doc.name} verified and approved.`, "Underwriting")] });
+    const updated = { ...doc, status: "Verified", verifiedBy: currentUser.name, verifiedAt: Date.now() };
+    save({ ...data, documents: documents.map(d => d.id === docId ? updated : d), audit: [...audit, addAudit("Document Approved", docId, currentUser.name, `${doc.name} verified and approved.`, "Underwriting")] });
   };
   const rejectDocument = (docId, reason) => {
+    if (!canDo("documents","update")) { alert("Permission denied."); return; }
     const doc = (documents||[]).find(d => d.id === docId);
     if (!doc) return;
-    const updated = { ...doc, status: "Rejected", verifiedBy: "Loan Officer – J. Ndaba", verifiedAt: Date.now(), notes: reason || "Document rejected. Re-submission required." };
-    save({ ...data, documents: documents.map(d => d.id === docId ? updated : d), audit: [...audit, addAudit("Document Rejected", docId, "Loan Officer – J. Ndaba", `${doc.name} rejected. Reason: ${reason||"Re-submission required."}`, "Underwriting")] });
+    const updated = { ...doc, status: "Rejected", verifiedBy: currentUser.name, verifiedAt: Date.now(), notes: reason || "Document rejected. Re-submission required." };
+    save({ ...data, documents: documents.map(d => d.id === docId ? updated : d), audit: [...audit, addAudit("Document Rejected", docId, currentUser.name, `${doc.name} rejected. Reason: ${reason||"Re-submission required."}`, "Underwriting")] });
   };
   const requestDocFromApplicant = (appId, docType, message) => {
+    if (!canDo("comms","create")) { alert("Permission denied: you cannot send communications."); return; }
     const a = applications.find(x => x.id === appId);
     const c = cust(a?.custId);
-    const notification = { id:uid(), custId:a?.custId, loanId:null, channel:"Email", direction:"Outbound", from:"KwikBridge System", subject:`Document Request – ${docType}`, body:message || `Dear ${c?.contact}, please submit the following document for your application ${appId}: ${docType}. Upload via the KwikBridge portal or email to documents@kwikbridge.co.za. Regards, KwikBridge Lending Operations.`, ts:Date.now() };
-    save({ ...data, comms:[...comms, notification], audit:[...audit, addAudit("Document Requested", appId, "System", `Request sent to ${c?.contact} for: ${docType}.`, "Underwriting")] });
+    const notification = { id:uid(), custId:a?.custId, loanId:null, channel:"Email", direction:"Outbound", from:currentUser.name, subject:`Document Request – ${docType}`, body:message || `Dear ${c?.contact}, please submit the following document for your application ${appId}: ${docType}. Upload via the KwikBridge portal or email to documents@kwikbridge.co.za. Regards, KwikBridge Lending Operations.`, ts:Date.now() };
+    save({ ...data, comms:[...comms, notification], audit:[...audit, addAudit("Document Requested", appId, currentUser.name, `Request sent to ${c?.contact} for: ${docType}.`, "Underwriting")] });
   };
   const sendNotification = (appId, subject, body) => {
+    if (!canDo("comms","create")) { alert("Permission denied."); return; }
     const a = applications.find(x => x.id === appId);
     const c = cust(a?.custId);
-    const notification = { id:uid(), custId:a?.custId, loanId:null, channel:"Email", direction:"Outbound", from:"Loan Officer – J. Ndaba", subject, body, ts:Date.now() };
-    save({ ...data, comms:[...comms, notification], audit:[...audit, addAudit("Notification Sent", appId, "Loan Officer – J. Ndaba", `Email to ${c?.contact}: ${subject}`, "Communication")] });
+    const notification = { id:uid(), custId:a?.custId, loanId:null, channel:"Email", direction:"Outbound", from:currentUser.name, subject, body, ts:Date.now() };
+    save({ ...data, comms:[...comms, notification], audit:[...audit, addAudit("Notification Sent", appId, currentUser.name, `Email to ${c?.contact}: ${subject}`, "Communication")] });
   };
   const saveSiteVisitNotes = (appId, notes) => {
     const a = applications.find(x => x.id === appId);
@@ -766,8 +840,14 @@ export default function App() {
   };
 
   const decideLoan = (appId, decision) => {
+    if (!canDo("underwriting","approve")) { alert("Permission denied: you cannot approve/decline applications."); return; }
     const a = applications.find(x => x.id === appId);
     if (!a) return;
+    // Approval authority check
+    const limit = approvalLimit(role);
+    if (decision === "Approved" && a.amount > limit) { alert(`Authority exceeded: your limit is ${fmt.cur(limit)}. This application (${fmt.cur(a.amount)}) requires escalation to ${a.amount > 1000000 ? "Credit Committee" : "Head of Credit"}.`); return; }
+    // Separation of duties: creator cannot approve their own application
+    if (a.createdBy === currentUser.id) { alert("Separation of duties: you cannot approve an application you created. Reassign to another officer."); return; }
     const w = a.workflow || {};
     const c = cust(a.custId);
     const p = prod(a.product);
@@ -782,7 +862,7 @@ export default function App() {
     if (w.analystNotes) memoSections.push(`Analyst notes: ${w.analystNotes}`);
     const recommendation = decision === "Approved" ? `Recommendation: APPROVE. ${p?.name} of ${fmt.cur(a.amount)} over ${a.term} months. Risk acceptable within policy parameters.` : `Recommendation: DECLINE. Application does not meet minimum credit standards. ${a.dscr < 1.2 ? "DSCR below threshold." : ""} ${a.riskScore < 50 ? "Risk score below acceptable level." : ""}`;
     memoSections.push(recommendation);
-    const approver = a.amount > 1000000 ? "Credit Committee" : a.amount > 500000 ? "Head of Credit – M. Zulu" : a.amount > 250000 ? "Senior Credit Analyst" : "Credit Analyst – P. Sithole";
+    const approver = `${currentUser.name} (${ROLES[role]?.label})`;
     const conditions = decision === "Approved" ? [
       `Maintain DSCR above ${a.dscr >= 1.5 ? "1.3" : "1.2"}`,
       "Submit quarterly management accounts within 30 days of quarter-end",
@@ -804,20 +884,22 @@ export default function App() {
   };
 
   const recordPayment = (loanId, amount) => {
+    if (!canDo("servicing","create")) { alert("Permission denied: you cannot record payments."); return; }
     const l = loans.find(x => x.id === loanId);
     if (!l) return;
-    const pmt = { date: Date.now(), amount: +amount, type: "Instalment", status: "Cleared" };
+    const pmt = { date: Date.now(), amount: +amount, type: "Instalment", status: "Cleared", recordedBy: currentUser.id };
     const updated = { ...l, payments: [...l.payments, pmt], balance: Math.max(0, l.balance - amount), totalPaid: l.totalPaid + +amount, lastPmt: Date.now(), lastPmtAmt: +amount, dpd: 0, nextDue: Date.now() + 30 * day };
     updated.stage = stage(updated.dpd);
     save({ ...data,
       loans: loans.map(x => x.id === loanId ? updated : x),
-      audit: [...audit, addAudit("Payment Received", loanId, "System", `Payment of ${fmt.cur(amount)} received and allocated.`, "Servicing")]
+      audit: [...audit, addAudit("Payment Received", loanId, currentUser.name, `Payment of ${fmt.cur(amount)} received and allocated.`, "Servicing")]
     });
   };
 
   const addCollectionAction = (loanId, actionType, notes) => {
+    if (!canDo("collections","create")) { alert("Permission denied: you cannot log collection actions."); return; }
     const l = loans.find(x => x.id === loanId);
-    const entry = { id: uid(), loanId, custId: l?.custId, stage: l?.dpd <= 30 ? "Early" : l?.dpd <= 90 ? "Mid" : "Late", dpd: l?.dpd || 0, action: actionType, channel: "System", officer: "Collections Specialist", notes, created: Date.now() };
+    const entry = { id: uid(), loanId, custId: l?.custId, stage: l?.dpd <= 30 ? "Early" : l?.dpd <= 90 ? "Mid" : "Late", dpd: l?.dpd || 0, action: actionType, channel: "System", officer: currentUser.name, notes, created: Date.now() };
     save({ ...data,
       collections: [...collections, entry],
       audit: [...audit, addAudit(`Collection Action: ${actionType}`, loanId, "Collections Specialist", notes, "Collections")]
@@ -860,7 +942,7 @@ export default function App() {
     return (<div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
         <div><h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: C.text }}>Portfolio Dashboard</h2><p style={{ margin: "4px 0 0", fontSize: 13, color: C.textMuted }}>Real-time portfolio health, pipeline & risk indicators</p></div>
-        <Btn onClick={() => setModal("newApp")} icon={I.plus}>New Application</Btn>
+        {canDo("origination","create") && <Btn onClick={() => setModal("newApp")} icon={I.plus}>New Application</Btn>}
       </div>
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 24 }}>
         <KPI label="Total Loan Book" value={fmt.cur(totalBook)} sub={`${loans.length} active loans`} />
@@ -972,7 +1054,7 @@ export default function App() {
     return (<div>
       <div style={{ display:"flex", justifyContent:"space-between", marginBottom:20 }}>
         <div><h2 style={{ margin:0, fontSize:22, fontWeight:700, color:C.text }}>Loan Origination</h2><p style={{ margin:"4px 0 0", fontSize:13, color:C.textMuted }}>Application intake, validation & pipeline management</p></div>
-        <Btn onClick={() => setModal("newApp")} icon={I.plus}>New Application</Btn>
+        {canDo("origination","create") && <Btn onClick={() => setModal("newApp")} icon={I.plus}>New Application</Btn>}
       </div>
       <Tab tabs={tabs} active={tab} onChange={setTab} />
       <Table columns={[
@@ -1002,7 +1084,7 @@ export default function App() {
           { label:"Amount", render:r=>fmt.cur(r.amount) },
           { label:"Authority", render:r=>r.amount>1000000?"Credit Committee":r.amount>500000?"Head of Credit":r.amount>250000?"Senior Analyst":"Analyst" },
           { label:"Status", render:r=>statusBadge(r.status) },
-          { label:"Actions", render:r=><div style={{ display:"flex", gap:6 }}>{r.status==="Submitted"&&<Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();moveToUnderwriting(r.id)}}>Start DD</Btn>}{r.status==="Underwriting"&&<Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();setDetail({type:"application",id:r.id})}}>Open Workflow</Btn>}</div> },
+          { label:"Actions", render:r=><div style={{ display:"flex", gap:6 }}>{r.status==="Submitted"&&canDo("underwriting","update")&&<Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();moveToUnderwriting(r.id)}}>Start DD</Btn>}{r.status==="Underwriting"&&canDo("underwriting","view")&&<Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();setDetail({type:"application",id:r.id})}}>Open Workflow</Btn>}</div> },
         ]} rows={pending} onRowClick={r=>setDetail({type:"application",id:r.id})} />
       </SectionCard>
       <SectionCard title="Recent Decisions">
@@ -1066,7 +1148,7 @@ export default function App() {
           { label:"Borrower", render:r=>cust(r.custId)?.name },
           { label:"Amount Due", render:r=>fmt.cur(r.monthlyPmt) },
           { label:"DPD", render:r=><span style={{ fontWeight:700, color:r.dpd===0?C.green:C.amber }}>{r.dpd}</span> },
-          { label:"Action", render:r=><Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();recordPayment(r.id, r.monthlyPmt)}}>Record Payment</Btn> },
+          { label:"Action", render:r=>canDo("servicing","create")?<Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();recordPayment(r.id, r.monthlyPmt)}}>Record Payment</Btn>:<span style={{fontSize:10,color:C.textMuted}}>View only</span> },
         ]} rows={[...loans].sort((a,b)=>a.nextDue-b.nextDue)} />
       </SectionCard>
     </div>);
@@ -1093,8 +1175,8 @@ export default function App() {
         { label:"DPD", render:r=><span style={{ fontSize:18, fontWeight:700, color:r.dpd<=30?C.amber:r.dpd<=90?C.red:C.red }}>{r.dpd}</span> },
         { label:"Stage", render:r=><Badge color={r.dpd<=30?"amber":r.dpd<=90?"red":"red"}>{r.dpd<=30?"Early":r.dpd<=90?"Mid":"Late"}</Badge> },
         { label:"Actions", render:r=><div style={{ display:"flex", gap:6 }}>
-          <Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();addCollectionAction(r.id,"Phone Call","Outbound call to customer.")}}>Log Call</Btn>
-          {r.dpd>30&&<Btn size="sm" variant="danger" onClick={e=>{e.stopPropagation();addCollectionAction(r.id,"Letter of Demand","Formal NCA demand issued.")}}>Demand</Btn>}
+          {canDo("collections","create")&&<Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();addCollectionAction(r.id,"Phone Call","Outbound call to customer.")}}>Log Call</Btn>}
+          {r.dpd>30&&canDo("collections","create")&&<Btn size="sm" variant="danger" onClick={e=>{e.stopPropagation();addCollectionAction(r.id,"Letter of Demand","Formal NCA demand issued.")}}>Demand</Btn>}
         </div> },
       ]} rows={delinquent} onRowClick={r=>setDetail({type:"loan",id:r.id})} />}
       {tab==="activity" && <Table columns={[
@@ -1304,9 +1386,10 @@ export default function App() {
               </div>
               <div style={{ fontSize: 12, color: C.textDim, marginBottom: 10, lineHeight: 1.5 }}>{r.notes}</div>
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                {r.status === "Not Started" && <Btn size="sm" variant="secondary" onClick={() => updateStatutoryStatus(r.id, "In Progress")}>Start Preparation</Btn>}
-                {r.status === "In Progress" && <Btn size="sm" variant="secondary" onClick={() => updateStatutoryStatus(r.id, "Under Review")}>Submit for Review</Btn>}
-                {r.status === "Under Review" && <Btn size="sm" onClick={() => updateStatutoryStatus(r.id, "Submitted")}>Mark as Submitted</Btn>}
+                {r.status === "Not Started" && canDo("statutory","update") && <Btn size="sm" variant="secondary" onClick={() => updateStatutoryStatus(r.id, "In Progress")}>Start Preparation</Btn>}
+                {r.status === "In Progress" && canDo("statutory","update") && <Btn size="sm" variant="secondary" onClick={() => updateStatutoryStatus(r.id, "Under Review")}>Submit for Review</Btn>}
+                {r.status === "Under Review" && canDo("statutory","update") && <Btn size="sm" onClick={() => updateStatutoryStatus(r.id, "Submitted")}>Mark as Submitted</Btn>}
+                {!canDo("statutory","update") && <span style={{ fontSize:10, color:C.textMuted }}>View only</span>}
                 {r.preparer && <span style={{ fontSize: 11, color: C.textMuted }}>Preparer: {r.preparer}</span>}
                 {r.reviewer && <span style={{ fontSize: 11, color: C.textMuted }}>Reviewer: {r.reviewer}</span>}
               </div>
@@ -1890,7 +1973,7 @@ export default function App() {
             { label:"Type", key:"type" },
             { label:"Status", render:r=>statusBadge(r.status) },
           ]} rows={[...l.payments].sort((a,b)=>b.date-a.date)} />
-          <div style={{ marginTop:12 }}><Btn size="sm" variant="secondary" onClick={()=>recordPayment(l.id, l.monthlyPmt)} icon={I.plus}>Record Payment</Btn></div>
+          {canDo("servicing","create") && <div style={{ marginTop:12 }}><Btn size="sm" variant="secondary" onClick={()=>recordPayment(l.id, l.monthlyPmt)} icon={I.plus}>Record Payment</Btn></div>}
         </SectionCard>
         {lc.length>0 && <SectionCard title="Collection Activity">
           {lc.sort((a,b)=>b.created-a.created).map((col,i) => (
@@ -1958,6 +2041,8 @@ export default function App() {
           })}
         </nav>
         {!sideCollapsed && <div style={{ padding:"8px 12px 12px", borderTop:`1px solid ${C.border}` }}>
+          <div style={{ fontSize:10, fontWeight:500, color:C.text, marginBottom:2 }}>{currentUser.name}</div>
+          <div style={{ fontSize:9, color:C.textMuted, marginBottom:4 }}>{ROLES[role]?.label}</div>
           <div style={{ fontSize:9, color:C.textMuted, lineHeight:1.5, letterSpacing:0.2 }}>ThandoQ & Associates<br/>NCR: {settings.ncrReg}<br/>Valid: {settings.ncrExpiry}</div>
           <button onClick={reset} style={{ marginTop:6, background:"none", border:`1px solid ${C.border}`, color:C.textMuted, borderRadius:2, padding:"2px 6px", fontSize:9, cursor:"pointer", fontFamily:"inherit" }}>Reset Demo</button>
         </div>}
@@ -1988,8 +2073,10 @@ export default function App() {
             </div>
             <div style={{ width:1, height:20, background:C.border }} />
             <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-              <div style={{ width:26, height:26, borderRadius:2, background:C.surface2, border:`1px solid ${C.border}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, fontWeight:600, color:C.textDim }}>TQ</div>
-              <div><div style={{ fontSize:11, fontWeight:500, color:C.text }}>Admin</div></div>
+              <div style={{ width:26, height:26, borderRadius:2, background:C.surface2, border:`1px solid ${C.border}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, fontWeight:600, color:C.textDim }}>{currentUser.initials}</div>
+              <select value={currentUser.id} onChange={e=>{const u=SYSTEM_USERS.find(u=>u.id===e.target.value);if(u){setCurrentUser(u);setDetail(null)}}} style={{ border:"none", background:"transparent", fontSize:11, fontWeight:500, color:C.text, fontFamily:"inherit", outline:"none", cursor:"pointer", maxWidth:160 }}>
+                {SYSTEM_USERS.map(u=><option key={u.id} value={u.id}>{u.name} ({ROLES[u.role]?.label})</option>)}
+              </select>
             </div>
           </div>
         </header>
