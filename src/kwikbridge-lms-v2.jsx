@@ -558,6 +558,42 @@ export default function App() {
   const addAlert = (type, severity, title, msg, extra = {}) => ({ id: uid(), type, severity, title, msg, read: false, ts: Date.now(), ...extra });
 
   // ─── Handlers (RBAC-enforced) ───
+
+  // Customer CRUD
+  const createCustomer = (form) => {
+    if (!canDo("customers","create")) { alert("Permission denied."); return; }
+    const c = { ...form, id:`C${String(customers.length+1).padStart(3,"0")}`, ficaStatus:"Pending", ficaDate:null, riskCategory:"Medium", created:Date.now(), beeStatus:"Pending Review", beeExpiry:null };
+    save({ ...data, customers:[...customers, c], audit:[...audit, addAudit("Customer Created", c.id, currentUser.name, `New customer: ${c.name}. Industry: ${c.industry}.`, "Onboarding")] });
+    return c.id;
+  };
+  const updateCustomer = (custId, updates) => {
+    if (!canDo("customers","update")) { alert("Permission denied."); return; }
+    save({ ...data, customers: customers.map(c => c.id === custId ? { ...c, ...updates } : c), audit:[...audit, addAudit("Customer Updated", custId, currentUser.name, `Profile updated. Fields: ${Object.keys(updates).join(", ")}.`, "Onboarding")] });
+  };
+  const updateFicaStatus = (custId, newStatus) => {
+    if (!canDoAny("customers",["update"]) && !canDo("underwriting","signoff")) { alert("Permission denied."); return; }
+    const c = cust(custId);
+    const validTransitions = { "Pending":["Under Review"], "Under Review":["Verified","Failed"], "Failed":["Under Review"], "Verified":["Expired","Under Review"], "Expired":["Under Review"] };
+    if (!validTransitions[c?.ficaStatus]?.includes(newStatus)) { alert(`Invalid transition: ${c?.ficaStatus} → ${newStatus}`); return; }
+    const updates = { ficaStatus: newStatus };
+    if (newStatus === "Verified") updates.ficaDate = Date.now();
+    save({ ...data, customers: customers.map(x => x.id === custId ? { ...x, ...updates } : x),
+      audit:[...audit, addAudit("FICA Status Change", custId, currentUser.name, `${c?.name}: ${c?.ficaStatus} → ${newStatus}.`, "Compliance")],
+      alerts: newStatus==="Failed" ? [...alerts, addAlert("Compliance","warning",`FICA Failed – ${c?.name}`,`Customer ${custId} FICA verification failed. Review required.`)] : alerts
+    });
+  };
+  const updateBeeStatus = (custId, newStatus, beeLevel, expiryDate) => {
+    if (!canDoAny("customers",["update"]) && !canDo("underwriting","signoff")) { alert("Permission denied."); return; }
+    const c = cust(custId);
+    const updates = { beeStatus: newStatus };
+    if (beeLevel) updates.beeLevel = +beeLevel;
+    if (expiryDate) updates.beeExpiry = new Date(expiryDate).getTime();
+    if (newStatus === "Verified" && !expiryDate) updates.beeExpiry = Date.now() + 365*day;
+    save({ ...data, customers: customers.map(x => x.id === custId ? { ...x, ...updates } : x),
+      audit:[...audit, addAudit("BEE Status Change", custId, currentUser.name, `${c?.name}: BEE status → ${newStatus}${beeLevel ? `. Level ${beeLevel}` : ""}.`, "Compliance")]
+    });
+  };
+
   const submitApp = form => {
     if (!canDo("origination","create")) { alert("Permission denied: you cannot create applications."); return; }
     const app = { id:`APP-${String(applications.length+1).padStart(3,"0")}`, custId:form.custId, status:"Submitted", product:form.product, amount:+form.amount, term:+form.term, purpose:form.purpose, rate:null, riskScore:null, dscr:null, currentRatio:null, debtEquity:null, socialScore:null, recommendation:null, approver:null, creditMemo:null, submitted:Date.now(), decided:null, conditions:[], assignedTo:null, createdBy:currentUser.id };
@@ -1104,11 +1140,62 @@ export default function App() {
 
   // ═══ 2. CUSTOMERS ═══
   function Customers() {
-    const filtered = customers.filter(c => !search || [c.name,c.contact,c.industry,c.id].some(f => f?.toLowerCase().includes(search.toLowerCase())));
+    const [tab, setTab] = useState("all");
+    const [showCreate, setShowCreate] = useState(false);
+    const [cForm, setCForm] = useState({ name:"", contact:"", email:"", phone:"", idNum:"", regNum:"", industry:"Retail", sector:"", revenue:"", employees:"", years:"", beeLevel:3, address:"", province:"Eastern Cape" });
+    const tabs = [
+      { key:"all", label:"All", count:customers.length },
+      { key:"pending", label:"FICA Pending", count:customers.filter(c=>c.ficaStatus==="Pending"||c.ficaStatus==="Under Review").length },
+      { key:"verified", label:"Verified", count:customers.filter(c=>c.ficaStatus==="Verified").length },
+      { key:"beeExpiring", label:"BEE Expiring", count:customers.filter(c=>c.beeExpiry&&c.beeExpiry<now+90*day).length },
+    ];
+    let filtered = customers.filter(c => !search || [c.name,c.contact,c.industry,c.id].some(f => f?.toLowerCase().includes(search.toLowerCase())));
+    if (tab === "pending") filtered = filtered.filter(c=>c.ficaStatus==="Pending"||c.ficaStatus==="Under Review");
+    if (tab === "verified") filtered = filtered.filter(c=>c.ficaStatus==="Verified");
+    if (tab === "beeExpiring") filtered = filtered.filter(c=>c.beeExpiry&&c.beeExpiry<now+90*day);
+
+    const handleCreate = () => {
+      if (!cForm.name || !cForm.contact || !cForm.idNum || !cForm.regNum) { alert("Name, contact, ID number, and registration number are required."); return; }
+      createCustomer({ ...cForm, revenue:+cForm.revenue||0, employees:+cForm.employees||0, years:+cForm.years||0, beeLevel:+cForm.beeLevel||3 });
+      setShowCreate(false);
+      setCForm({ name:"", contact:"", email:"", phone:"", idNum:"", regNum:"", industry:"Retail", sector:"", revenue:"", employees:"", years:"", beeLevel:3, address:"", province:"Eastern Cape" });
+    };
+
     return (<div>
-      <div style={{ display:"flex", justifyContent:"space-between", marginBottom:20 }}>
-        <div><h2 style={{ margin:0, fontSize:22, fontWeight:700, color:C.text }}>Customer Management</h2><p style={{ margin:"4px 0 0", fontSize:13, color:C.textMuted }}>KYC/FICA verification, BEE profiling & relationship management</p></div>
+      <div style={{ display:"flex", justifyContent:"space-between", marginBottom:16 }}>
+        <div><h2 style={{ margin:0, fontSize:22, fontWeight:700, color:C.text }}>Customer Management</h2><p style={{ margin:"4px 0 0", fontSize:13, color:C.textMuted }}>Onboarding, KYC/FICA verification, BEE profiling & relationship management</p></div>
+        {canDo("customers","create") && <Btn onClick={()=>setShowCreate(!showCreate)} icon={I.plus}>New Customer</Btn>}
       </div>
+
+      {showCreate && (
+        <SectionCard title="Register New Customer">
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:10 }}>
+            <Field label="Business Name *"><Input value={cForm.name} onChange={e=>setCForm({...cForm,name:e.target.value})} placeholder="e.g. Nomsa Trading (Pty) Ltd" /></Field>
+            <Field label="Contact Person *"><Input value={cForm.contact} onChange={e=>setCForm({...cForm,contact:e.target.value})} placeholder="Full name" /></Field>
+            <Field label="Email"><Input value={cForm.email} onChange={e=>setCForm({...cForm,email:e.target.value})} placeholder="email@company.co.za" /></Field>
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:10 }}>
+            <Field label="Phone"><Input value={cForm.phone} onChange={e=>setCForm({...cForm,phone:e.target.value})} placeholder="0XX XXX XXXX" /></Field>
+            <Field label="ID Number *"><Input value={cForm.idNum} onChange={e=>setCForm({...cForm,idNum:e.target.value})} placeholder="13-digit SA ID" /></Field>
+            <Field label="Company Registration *"><Input value={cForm.regNum} onChange={e=>setCForm({...cForm,regNum:e.target.value})} placeholder="YYYY/XXXXXX/07" /></Field>
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:10, marginBottom:10 }}>
+            <Field label="Industry"><Select value={cForm.industry} onChange={e=>setCForm({...cForm,industry:e.target.value})} options={["Retail","Agriculture","Technology","Construction","Food Processing","Transport","Manufacturing","Professional Services","Other"].map(v=>({value:v,label:v}))} /></Field>
+            <Field label="Sector"><Input value={cForm.sector} onChange={e=>setCForm({...cForm,sector:e.target.value})} placeholder="e.g. Consumer Goods" /></Field>
+            <Field label="Annual Revenue (R)"><Input type="number" value={cForm.revenue} onChange={e=>setCForm({...cForm,revenue:e.target.value})} /></Field>
+            <Field label="Employees"><Input type="number" value={cForm.employees} onChange={e=>setCForm({...cForm,employees:e.target.value})} /></Field>
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:10, marginBottom:10 }}>
+            <Field label="Years in Business"><Input type="number" value={cForm.years} onChange={e=>setCForm({...cForm,years:e.target.value})} /></Field>
+            <Field label="BEE Level"><Select value={cForm.beeLevel} onChange={e=>setCForm({...cForm,beeLevel:e.target.value})} options={[1,2,3,4,5,6,7,8].map(v=>({value:v,label:`Level ${v}`}))} /></Field>
+            <Field label="Address"><Input value={cForm.address} onChange={e=>setCForm({...cForm,address:e.target.value})} /></Field>
+            <Field label="Province"><Select value={cForm.province} onChange={e=>setCForm({...cForm,province:e.target.value})} options={["Eastern Cape","Western Cape","Gauteng","KwaZulu-Natal","Free State","North West","Limpopo","Mpumalanga","Northern Cape"].map(v=>({value:v,label:v}))} /></Field>
+          </div>
+          <div style={{ display:"flex", gap:8 }}><Btn onClick={handleCreate}>Register Customer</Btn><Btn variant="ghost" onClick={()=>setShowCreate(false)}>Cancel</Btn></div>
+        </SectionCard>
+      )}
+
+      <Tab tabs={tabs} active={tab} onChange={setTab} />
       <Table columns={[
         { label:"ID", render:r=><span style={{ fontFamily:"monospace", fontSize:12 }}>{r.id}</span> },
         { label:"Business Name", render:r=><span style={{ fontWeight:600 }}>{r.name}</span> },
@@ -1778,15 +1865,96 @@ export default function App() {
       const c = customers.find(x=>x.id===detail.id); if (!c) return <div>Not found</div>;
       const ca = applications.filter(a=>a.custId===c.id);
       const cl = loans.filter(l=>l.custId===c.id);
+      const custDocs = (documents||[]).filter(d=>d.custId===c.id);
+      const [editing, setEditing] = useState(false);
+      const [eForm, setEForm] = useState({...c});
+      const [beeForm, setBeeForm] = useState({ level:c.beeLevel, expiry:c.beeExpiry ? new Date(c.beeExpiry).toISOString().split("T")[0] : "" });
+
+      const ficaActions = {
+        "Pending": [{ label:"Start KYC Review", target:"Under Review" }],
+        "Under Review": [{ label:"Verify (FICA Pass)", target:"Verified" }, { label:"Fail", target:"Failed" }],
+        "Failed": [{ label:"Re-submit for Review", target:"Under Review" }],
+        "Verified": [{ label:"Mark Expired", target:"Expired" }],
+        "Expired": [{ label:"Re-submit for Review", target:"Under Review" }],
+      };
+
       return (<div><BackBtn />
-        <div style={{ display:"flex", alignItems:"center", gap:16, marginBottom:24 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:16, marginBottom:20 }}>
           <div style={{ width:40, height:40, borderRadius:2, background:C.surface2, border:`1px solid ${C.border}`, display:"flex", alignItems:"center", justifyContent:"center", color:C.textDim, fontSize:16, fontWeight:600 }}>{c.name.charAt(0)}</div>
           <div><h2 style={{ margin:0, fontSize:22, fontWeight:700, color:C.text }}>{c.name}</h2><p style={{ margin:"2px 0 0", fontSize:12, color:C.textMuted }}>{c.id} · {c.industry} · {c.province}</p></div>
           <div style={{ marginLeft:"auto", display:"flex", gap:8 }}>{statusBadge(c.ficaStatus)}<Badge color="purple">BEE Level {c.beeLevel}</Badge><Badge color={c.riskCategory==="Low"?"green":c.riskCategory==="Medium"?"amber":"red"}>{c.riskCategory} Risk</Badge></div>
         </div>
-        <InfoGrid items={[["Contact",c.contact],["Email",c.email],["Phone",c.phone],["ID Number",c.idNum],["Reg Number",c.regNum],["Address",c.address],["Annual Revenue",fmt.cur(c.revenue)],["Employees",c.employees],["Years in Business",c.years],["Sector",c.sector],["BEE Expiry",fmt.date(c.beeExpiry)],["FICA Date",fmt.date(c.ficaDate)]]} />
-        <div style={{ marginTop:20 }} />
-        {(() => { const custDocs = (documents||[]).filter(d=>d.custId===c.id); return (
+
+        {/* Profile — read or edit */}
+        <SectionCard title="Customer Profile" actions={canDo("customers","update") && !editing ? <Btn size="sm" variant="ghost" onClick={()=>{setEForm({...c});setEditing(true)}}>Edit</Btn> : null}>
+          {!editing ? (
+            <InfoGrid items={[["Contact",c.contact],["Email",c.email],["Phone",c.phone],["ID Number",c.idNum],["Reg Number",c.regNum],["Address",c.address],["Annual Revenue",fmt.cur(c.revenue)],["Employees",c.employees],["Years in Business",c.years],["Sector",c.sector],["BEE Expiry",fmt.date(c.beeExpiry)],["FICA Date",fmt.date(c.ficaDate)],["Created",fmt.date(c.created)]]} />
+          ) : (
+            <div>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:10 }}>
+                <Field label="Business Name"><Input value={eForm.name} onChange={e=>setEForm({...eForm,name:e.target.value})} /></Field>
+                <Field label="Contact"><Input value={eForm.contact} onChange={e=>setEForm({...eForm,contact:e.target.value})} /></Field>
+                <Field label="Email"><Input value={eForm.email} onChange={e=>setEForm({...eForm,email:e.target.value})} /></Field>
+              </div>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:10, marginBottom:10 }}>
+                <Field label="Phone"><Input value={eForm.phone} onChange={e=>setEForm({...eForm,phone:e.target.value})} /></Field>
+                <Field label="Industry"><Select value={eForm.industry} onChange={e=>setEForm({...eForm,industry:e.target.value})} options={["Retail","Agriculture","Technology","Construction","Food Processing","Transport","Manufacturing","Professional Services","Other"].map(v=>({value:v,label:v}))} /></Field>
+                <Field label="Revenue"><Input type="number" value={eForm.revenue} onChange={e=>setEForm({...eForm,revenue:+e.target.value})} /></Field>
+                <Field label="Employees"><Input type="number" value={eForm.employees} onChange={e=>setEForm({...eForm,employees:+e.target.value})} /></Field>
+              </div>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:10 }}>
+                <Field label="Address"><Input value={eForm.address} onChange={e=>setEForm({...eForm,address:e.target.value})} /></Field>
+                <Field label="Province"><Select value={eForm.province} onChange={e=>setEForm({...eForm,province:e.target.value})} options={["Eastern Cape","Western Cape","Gauteng","KwaZulu-Natal","Free State","North West","Limpopo","Mpumalanga","Northern Cape"].map(v=>({value:v,label:v}))} /></Field>
+                <Field label="Risk Category"><Select value={eForm.riskCategory} onChange={e=>setEForm({...eForm,riskCategory:e.target.value})} options={["Low","Medium","High"].map(v=>({value:v,label:v}))} /></Field>
+              </div>
+              <div style={{ display:"flex", gap:8 }}>
+                <Btn onClick={()=>{updateCustomer(c.id,eForm);setEditing(false)}}>Save Changes</Btn>
+                <Btn variant="ghost" onClick={()=>setEditing(false)}>Cancel</Btn>
+              </div>
+            </div>
+          )}
+        </SectionCard>
+
+        {/* FICA / KYC Status & Workflow */}
+        <SectionCard title="FICA / KYC Verification">
+          <div style={{ display:"flex", alignItems:"center", gap:16, marginBottom:12 }}>
+            <div>
+              <div style={{ fontSize:13, fontWeight:600, color:C.text }}>Status: {c.ficaStatus}</div>
+              <div style={{ fontSize:11, color:C.textMuted }}>{c.ficaDate ? `Verified: ${fmt.date(c.ficaDate)}` : "Not yet verified"}</div>
+            </div>
+            <div style={{ display:"flex", gap:6, marginLeft:"auto" }}>
+              {canDoAny("customers",["update"]) && (ficaActions[c.ficaStatus]||[]).map((a,i) => (
+                <Btn key={i} size="sm" variant={a.target==="Verified"?"default":a.target==="Failed"?"danger":"secondary"} onClick={()=>updateFicaStatus(c.id, a.target)}>{a.label}</Btn>
+              ))}
+            </div>
+          </div>
+          <div style={{ fontSize:11, color:C.textMuted, lineHeight:1.6 }}>
+            FICA verification flow: Pending → Under Review → Verified / Failed. Verified status can expire. Failed can be re-submitted. All transitions are audited.
+          </div>
+        </SectionCard>
+
+        {/* BEE Verification */}
+        <SectionCard title="BEE Verification">
+          <div style={{ display:"flex", alignItems:"center", gap:16, marginBottom:12 }}>
+            <div>
+              <div style={{ fontSize:13, fontWeight:600, color:C.text }}>BEE Level {c.beeLevel} — {c.beeStatus}</div>
+              <div style={{ fontSize:11, color:C.textMuted }}>{c.beeExpiry ? `Expires: ${fmt.date(c.beeExpiry)}${c.beeExpiry < now + 90*day ? " ⚠ Expiring soon" : ""}` : "No expiry date"}</div>
+            </div>
+            {canDoAny("customers",["update"]) && <div style={{ display:"flex", gap:6, marginLeft:"auto" }}>
+              {c.beeStatus !== "Verified" && <Btn size="sm" onClick={()=>updateBeeStatus(c.id,"Verified",beeForm.level,beeForm.expiry)}>Verify BEE</Btn>}
+              {c.beeStatus === "Verified" && <Btn size="sm" variant="secondary" onClick={()=>updateBeeStatus(c.id,"Expired",null,null)}>Mark Expired</Btn>}
+              <Btn size="sm" variant="ghost" onClick={()=>updateBeeStatus(c.id,"Pending Review",null,null)}>Reset</Btn>
+            </div>}
+          </div>
+          {canDoAny("customers",["update"]) && (
+            <div style={{ display:"flex", gap:10, alignItems:"flex-end" }}>
+              <Field label="BEE Level"><Select value={beeForm.level} onChange={e=>setBeeForm({...beeForm,level:e.target.value})} options={[1,2,3,4,5,6,7,8].map(v=>({value:v,label:`Level ${v}`}))} /></Field>
+              <Field label="Certificate Expiry"><Input type="date" value={beeForm.expiry} onChange={e=>setBeeForm({...beeForm,expiry:e.target.value})} /></Field>
+            </div>
+          )}
+        </SectionCard>
+
+        {/* Documents */}
         <SectionCard title={`Documents (${custDocs.length})`} actions={<Btn size="sm" variant="ghost" onClick={()=>{setDetail(null);setPage("documents")}}>View All</Btn>}>
           <Table columns={[
             {label:"ID", render:r=><span style={{fontFamily:"monospace",fontSize:10}}>{r.id}</span>},
@@ -1798,12 +1966,19 @@ export default function App() {
               const d=Math.ceil((r.expiryDate-now)/day);
               return <span style={{fontSize:11,fontWeight:d<=30?600:400,color:d<=30?C.red:d<=90?C.amber:C.textDim}}>{fmt.date(r.expiryDate)}</span>;
             }},
+            {label:"Actions", render:r=><div style={{ display:"flex", gap:3 }}>
+              {canDo("documents","approve") && r.status!=="Verified" && <Btn size="sm" variant="ghost" onClick={e=>{e.stopPropagation();approveDocument(r.id)}}>Approve</Btn>}
+              {canDo("documents","update") && r.status!=="Rejected" && <Btn size="sm" variant="ghost" onClick={e=>{e.stopPropagation();rejectDocument(r.id,"Re-submission required.")}}>Reject</Btn>}
+            </div>},
           ]} rows={custDocs} />
         </SectionCard>
-        ); })()}
+
+        {/* Applications */}
         {ca.length>0 && <SectionCard title={`Applications (${ca.length})`}>
           <Table columns={[{label:"ID",render:r=><span style={{fontFamily:"monospace",fontSize:12}}>{r.id}</span>},{label:"Product",render:r=>prod(r.product)?.name},{label:"Amount",render:r=>fmt.cur(r.amount)},{label:"Status",render:r=>statusBadge(r.status)}]} rows={ca} onRowClick={r=>setDetail({type:"application",id:r.id})} />
         </SectionCard>}
+
+        {/* Loans */}
         {cl.length>0 && <SectionCard title={`Active Loans (${cl.length})`}>
           <Table columns={[{label:"ID",render:r=><span style={{fontFamily:"monospace",fontSize:12}}>{r.id}</span>},{label:"Balance",render:r=>fmt.cur(r.balance)},{label:"DPD",render:r=>r.dpd},{label:"Stage",render:r=><Badge color={r.stage===1?"green":r.stage===2?"amber":"red"}>Stage {r.stage}</Badge>}]} rows={cl} onRowClick={r=>setDetail({type:"loan",id:r.id})} />
         </SectionCard>}
