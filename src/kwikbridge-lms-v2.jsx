@@ -540,19 +540,25 @@ export default function App() {
         const r = await window.storage.get(SK);
         if (r?.value) {
           const loaded = JSON.parse(r.value);
-          // Data migration: clear old-format workflow findings so they regenerate in new interactive format
+          // Data migration: detect old-format workflow and reset to clean state
           let migrated = false;
           if (loaded.applications) {
             loaded.applications = loaded.applications.map(a => {
               if (!a.workflow) return a;
               const w = { ...a.workflow };
+              let needsReset = false;
               // Old sitevisit: has 'detail' but no 'field'
-              if (w.siteVisitFindings?.length > 0 && w.siteVisitFindings[0].detail !== undefined && w.siteVisitFindings[0].field === undefined) {
-                w.siteVisitFindings = null; w.siteVisitDate = null; w.siteVisitComplete = false; w.siteVisitOfficer = null; migrated = true;
-              }
+              if (w.siteVisitFindings?.length > 0 && w.siteVisitFindings[0].detail !== undefined && w.siteVisitFindings[0].field === undefined) needsReset = true;
               // Old credit: has 'detail' but no 'analystNote'
-              if (w.creditFindings?.length > 0 && w.creditFindings[0].detail !== undefined && w.creditFindings[0].analystNote === undefined) {
-                w.creditFindings = null; w.creditDate = null; w.financialAnalysisComplete = false; w.creditPulled = false; migrated = true;
+              if (w.creditFindings?.length > 0 && w.creditFindings[0].detail !== undefined && w.creditFindings[0].analystNote === undefined) needsReset = true;
+              // Old collateral/social that completed on fabricated data
+              if (needsReset || (w.collateralAssessed && !w.collateralFindings?.[0]?.analystNote && w.collateralFindings?.length > 0)) {
+                // Reset all DD steps to clean state — user re-runs each step interactively
+                w.siteVisitFindings = null; w.siteVisitDate = null; w.siteVisitComplete = false; w.siteVisitOfficer = null; w.siteVisitNotes = "";
+                w.creditFindings = null; w.creditDate = null; w.financialAnalysisComplete = false; w.creditPulled = false; w.creditBureauScore = null;
+                w.collateralFindings = null; w.collateralDate = null; w.collateralAssessed = false;
+                w.socialFindings = null; w.socialDate = null; w.socialVerified = false; w.socialOfficer = null;
+                migrated = true;
               }
               return { ...a, workflow: w };
             });
@@ -2864,11 +2870,17 @@ export default function App() {
         if (s.key==="credit") {
           const findings = w.creditFindings || [];
           const hasNewFormat = findings.length > 0 && findings[0].analystNote !== undefined;
+          const isOldCreditFormat = findings.length > 0 && !hasNewFormat;
           const notedCount = findings.filter(f => f.analystNote && f.analystNote.trim().length > 3).length;
           const riskFinding = findings.find(f => f.item === "Risk Score & Recommendation");
           const canSignOff = hasNewFormat && riskFinding?.analystNote && riskFinding.analystNote.trim().length > 10;
           return (<div>
           {!w.creditDate && <div style={{ fontSize:11, color:C.textMuted, marginBottom:6 }}>Pull credit bureau report and run automated financial analysis. System computes key ratios from submitted financials. Review each finding, add your professional assessment, flag concerns, then confirm.</div>}
+          {isOldCreditFormat && <div style={{ padding:10, background:"#fff8e1", border:`1px solid ${C.amber}`, marginBottom:8, fontSize:11 }}>
+            <div style={{ fontWeight:600, marginBottom:4 }}>Credit analysis data is in a legacy format (static/read-only).</div>
+            <div style={{ color:C.textDim }}>Click "Re-analyse" above to generate the interactive analyst review form.</div>
+          </div>}
+          {isOldCreditFormat && renderReadOnly(findings)}
           {hasNewFormat && findings.length > 0 && <div>
             <div style={{ fontSize:10, color:C.textMuted, marginBottom:6 }}>{notedCount}/{findings.length} findings reviewed by analyst{canSignOff ? " — ready for confirmation" : ""}</div>
             <div style={{ border:`1px solid ${C.border}` }}>
@@ -2898,8 +2910,6 @@ export default function App() {
               ))}
             </div>
           </div>}
-          {/* Fallback for old-format findings */}
-          {!hasNewFormat && w.creditFindings && renderReadOnly(w.creditFindings)}
           {isUW && w.creditDate && !w.financialAnalysisComplete && (
             <div style={{ marginTop:6, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
               <span style={{ fontSize:10, color:canSignOff?C.green:C.amber }}>{canSignOff ? "Risk assessment complete. Ready for confirmation." : "Provide analyst assessment on 'Risk Score & Recommendation' to confirm."}</span>
