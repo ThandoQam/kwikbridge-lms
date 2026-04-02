@@ -25,6 +25,11 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
    ═══════════════════════════════════════════════════════════════════ */
 
 const SK = "kb-lms-v2";
+// Storage adapter: uses window.storage (Claude artifacts) or localStorage (Vite/Vercel)
+const store = {
+  get: async (k) => { try { if (window.storage?.get) return await window.storage.get(k); const v = localStorage.getItem(k); return v ? { value: v } : null; } catch { return null; } },
+  set: async (k, v) => { try { if (window.storage?.set) return await window.storage.set(k, v); localStorage.setItem(k, v); } catch {} },
+};
 
 // ═══ SUPABASE CLIENT ═══
 const SUPABASE_URL = "https://yioqaluxgqxsifclydmd.supabase.co";
@@ -547,12 +552,12 @@ export default function App() {
       } catch (e) { console.log("Supabase load skipped:", e.name); }
       // Fallback: window.storage
       try {
-        const r = await window.storage.get(SK);
+        const r = await store.get(SK);
         if (r?.value) { setData(JSON.parse(r.value)); return; }
       } catch {}
       // Last resort: seed
       const d = seed();
-      try { await window.storage.set(SK, JSON.stringify(d)); } catch {}
+      try { await store.set(SK, JSON.stringify(d)); } catch {}
       setData(d);
     })();
   }, []);
@@ -579,7 +584,7 @@ export default function App() {
       }
     } catch (e) { console.log("Supabase save error (non-fatal):", e); }
     // Also save to localStorage as fallback
-    try { await window.storage.set(SK, JSON.stringify(next)); } catch {}
+    try { await store.set(SK, JSON.stringify(next)); } catch {}
   }, [data]);
 
   // Reset: seed fresh data + push to Supabase
@@ -590,7 +595,7 @@ export default function App() {
     setModal(null);
     setPage("dashboard");
     // Persist locally first (instant)
-    try { await window.storage.set(SK, JSON.stringify(d)); } catch {}
+    try { await store.set(SK, JSON.stringify(d)); } catch {}
     // Then try Supabase in background (may fail in sandboxed environments)
     (async () => {
       try {
