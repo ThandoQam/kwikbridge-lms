@@ -2668,12 +2668,12 @@ export default function App() {
 
       const steps = [
         { key:"submitted", label:"1. Application Received & QA", done:!!a.qaSignedOff, hasData:true, detail: a.qaSignedOff ? `QA passed ${fmt.date(a.qaDate)} by ${a.qaOfficer}` : a.qaFindings?.result === "Failed" ? "QA failed — resolve issues" : "Awaiting QA sign-off" },
-        { key:"kyc", label:"2. KYC/FICA & Sanctions", done:w.kycComplete, hasData:!!w.kycDate, canRun:isUW, gateOk:true, runLabel:w.kycDate?"Re-run Checks":"Run Automated Checks" },
-        { key:"docs", label:"3. Document Completeness Review", done:w.docsComplete, hasData:!!w.docsDate, canRun:isUW, gateOk:true, runLabel:w.docsDate?"Re-check":"Run Document Check" },
-        { key:"sitevisit", label:"4. Site Visit & Management Interview", done:w.siteVisitComplete, hasData:!!w.siteVisitDate, canRun:isUW, gateOk:true, runLabel:w.siteVisitDate?"Re-generate":"Generate Findings" },
-        { key:"credit", label:"5. Credit Bureau & Financial Analysis", done:w.financialAnalysisComplete, hasData:!!w.creditDate, canRun:isUW, gateOk:w.kycComplete&&w.docsComplete, gateMsg:"Complete steps 2 & 3 first", runLabel:w.creditPulled?"Re-analyse":"Pull Credit & Analyse" },
-        { key:"collateral", label:"6. Collateral & Security Assessment", done:w.collateralAssessed, hasData:!!w.collateralDate, canRun:isUW, gateOk:true, runLabel:w.collateralDate?"Re-assess":"Run Assessment" },
-        { key:"social", label:"7. Social Impact & BEE Verification", done:w.socialVerified, hasData:!!w.socialDate, canRun:isUW, gateOk:true, runLabel:w.socialDate?"Re-verify":"Run Verification" },
+        { key:"kyc", label:"2. KYC/FICA & Sanctions", done:w.kycComplete, hasData:!!w.kycDate, canRun:isUW, gateOk:!!a.qaSignedOff, gateMsg:"Complete Step 1 (QA sign-off) first", runLabel:w.kycDate?"Re-run Checks":"Run Automated Checks" },
+        { key:"docs", label:"3. Document Completeness Review", done:w.docsComplete, hasData:!!w.docsDate, canRun:isUW, gateOk:w.kycComplete, gateMsg:"Complete Step 2 (KYC/FICA) first", runLabel:w.docsDate?"Re-check":"Run Document Check" },
+        { key:"sitevisit", label:"4. Site Visit & Management Interview", done:w.siteVisitComplete, hasData:!!w.siteVisitDate, canRun:isUW, gateOk:w.docsComplete, gateMsg:"Complete Step 3 (Document Review) first", runLabel:w.siteVisitDate?"Re-generate":"Generate Findings" },
+        { key:"credit", label:"5. Credit Bureau & Financial Analysis", done:w.financialAnalysisComplete, hasData:!!w.creditDate, canRun:isUW, gateOk:w.kycComplete&&w.docsComplete&&w.siteVisitComplete, gateMsg:"Complete Steps 2–4 first", runLabel:w.creditPulled?"Re-analyse":"Pull Credit & Analyse" },
+        { key:"collateral", label:"6. Collateral & Security Assessment", done:w.collateralAssessed, hasData:!!w.collateralDate, canRun:isUW, gateOk:w.siteVisitComplete, gateMsg:"Complete Step 4 (Site Visit) first", runLabel:w.collateralDate?"Re-assess":"Run Assessment" },
+        { key:"social", label:"7. Social Impact & BEE Verification", done:w.socialVerified, hasData:!!w.socialDate, canRun:isUW, gateOk:w.kycComplete, gateMsg:"Complete Step 2 (KYC/FICA) first", runLabel:w.socialDate?"Re-verify":"Run Verification" },
         { key:"decision", label:"8. Credit Decision", done:isDecided, hasData:isDecided },
       ];
       const doneCount = steps.filter(s=>s.done).length - 1;
