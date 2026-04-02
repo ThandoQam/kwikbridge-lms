@@ -897,6 +897,15 @@ export default function App() {
     w.siteVisitFindings = findings;
     save({ ...data, applications: applications.map(x => x.id === appId ? { ...x, workflow: w } : x) });
   };
+  const saveCreditFinding = (appId, fieldIndex, field, value) => {
+    const a = applications.find(x => x.id === appId);
+    if (!a) return;
+    const w = { ...(a.workflow || {}) };
+    const findings = [...(w.creditFindings || [])];
+    if (findings[fieldIndex]) findings[fieldIndex] = { ...findings[fieldIndex], [field]: value };
+    w.creditFindings = findings;
+    save({ ...data, applications: applications.map(x => x.id === appId ? { ...x, workflow: w } : x) });
+  };
 
   const runDDStep = (appId, stepKey) => {
     const a = applications.find(x => x.id === appId);
@@ -1001,26 +1010,31 @@ export default function App() {
     }
 
     if (stepKey === "credit") {
-      // Gate: KYC and docs should be done first
       if (!w.kycComplete) { alert("Complete KYC/FICA verification before running credit analysis."); return; }
       if (!w.docsComplete) { alert("Complete document review before running credit analysis."); return; }
-      const bureauScore = Math.floor(Math.random() * 200 + 500);
+      // System-computed values (simulated API — would come from TransUnion, financial spreading tool)
+      const bureauScore = w.creditBureauScore || Math.floor(Math.random() * 200 + 500);
       const monthlyPmt = Math.round(a.amount * (0.145 / 12) / (1 - Math.pow(1 + 0.145 / 12, -a.term)));
       const monthlyIncome = Math.round((c?.revenue || 3000000) / 12);
-      const existingDebt = Math.round(monthlyIncome * (Math.random() * 0.2 + 0.05));
+      const existingDebt = Math.round(monthlyIncome * 0.12);
       const dscr = +((monthlyIncome - existingDebt) / monthlyPmt).toFixed(2);
       const currentRatio = +(1.0 + Math.random() * 1.5).toFixed(2);
       const debtEquity = +(Math.random() * 1.8).toFixed(2);
       const grossMargin = +(Math.random() * 0.25 + 0.2).toFixed(2);
       const affordable = dscr >= 1.2;
-      const findings = [
-        { item:"Credit Bureau Report", detail:`TransUnion report pulled. Bureau score: ${bureauScore}/900. ${bureauScore >= 650 ? "No adverse information. Clean payment record across all listed accounts." : bureauScore >= 550 ? "Minor adverse items noted (1 late payment >30 days in past 24 months). Overall profile acceptable." : "Material adverse information present. Multiple defaults/judgments. Elevated credit risk."}` },
-        { item:"Affordability Assessment (NCA)", detail:`Monthly gross income: ${fmt.cur(monthlyIncome)}. Existing debt service: ${fmt.cur(existingDebt)}. Proposed instalment: ${fmt.cur(monthlyPmt)}. Disposable income after all obligations: ${fmt.cur(monthlyIncome - existingDebt - monthlyPmt)}. NCA affordability result: ${affordable ? "PASSED" : "FAILED"}.` },
-        { item:"Debt Service Coverage Ratio", detail:`DSCR: ${dscr}x. ${dscr >= 1.5 ? "Strong — cash flow comfortably covers debt service with buffer for variability." : dscr >= 1.2 ? "Adequate — debt service covered with limited buffer. Sensitivity to revenue decline noted." : dscr >= 1.0 ? "Marginal — cash flow barely covers obligations. High vulnerability to adverse events." : "Insufficient — projected cash flow does not cover proposed debt service."}` },
-        { item:"Balance Sheet Analysis", detail:`Current ratio: ${currentRatio}x (${currentRatio >= 1.5 ? "strong" : currentRatio >= 1.0 ? "adequate" : "weak"} liquidity). Debt-to-equity: ${debtEquity}x (${debtEquity <= 0.5 ? "conservative" : debtEquity <= 1.0 ? "moderate" : "elevated"} leverage). Gross margin: ${fmt.pct(grossMargin, 0)}.` },
-        { item:"Cash Flow Projection Review", detail:`${a.term}-month cash flow projection reviewed. Revenue assumptions ${c?.years >= 5 ? "supported by established track record" : "based on limited operating history — conservative scenario applied"}. Seasonal variation ${c?.industry === "Agriculture" ? "significant — mitigated by crop insurance and seasonal payment structure" : "within normal range for sector"}.` },
-        { item:"Comprehensive Risk Score", detail:`Composite score: ${Math.min(99, Math.max(20, Math.round(bureauScore / 10 + dscr * 10 + (currentRatio > 1.2 ? 10 : 0) - (debtEquity > 1.0 ? 10 : 0))))}/100. Risk grade: ${bureauScore >= 600 && dscr >= 1.3 ? "Low-Medium" : dscr >= 1.0 ? "Medium" : "High"}.` },
+      const riskScore = Math.min(99, Math.max(20, Math.round(bureauScore / 10 + dscr * 10 + (currentRatio > 1.2 ? 10 : 0) - (debtEquity > 1.0 ? 10 : 0))));
+
+      // Structured findings with system values + editable analyst commentary
+      const existing = w.creditFindings || [];
+      const findings = existing.length > 0 && existing[0].analystNote !== undefined ? existing : [
+        { item:"Credit Bureau Report", systemValue:`Bureau score: ${bureauScore}/900`, systemDetail: bureauScore >= 650 ? "No adverse information." : bureauScore >= 550 ? "Minor adverse items." : "Material adverse information.", analystNote:"", flag:"" },
+        { item:"Affordability (NCA)", systemValue:`DSCR: ${dscr}x | Affordable: ${affordable?"YES":"NO"}`, systemDetail:`Income: ${fmt.cur(monthlyIncome)}/m. Existing debt: ${fmt.cur(existingDebt)}/m. Proposed: ${fmt.cur(monthlyPmt)}/m. Disposable: ${fmt.cur(monthlyIncome-existingDebt-monthlyPmt)}/m.`, analystNote:"", flag:"" },
+        { item:"Balance Sheet Ratios", systemValue:`CR: ${currentRatio}x | D/E: ${debtEquity}x | Margin: ${fmt.pct(grossMargin,0)}`, systemDetail:`Current ratio ${currentRatio>=1.5?"strong":currentRatio>=1.0?"adequate":"weak"}. Leverage ${debtEquity<=0.5?"conservative":debtEquity<=1.0?"moderate":"elevated"}.`, analystNote:"", flag:"" },
+        { item:"Cash Flow Projections", systemValue:`${a.term}-month projection`, systemDetail:`Revenue assumptions ${c?.years>=5?"supported by track record":"limited history — conservative scenario"}. Seasonal variation ${c?.industry==="Agriculture"?"significant":"within normal range"}.`, analystNote:"", flag:"" },
+        { item:"Industry & Market Risk", systemValue:c?.industry||"—", systemDetail:"", analystNote:"", flag:"", placeholder:`Assess ${c?.industry} sector risk, competitive position, market conditions, regulatory environment` },
+        { item:"Risk Score & Recommendation", systemValue:`Score: ${riskScore}/100 | Grade: ${bureauScore>=600&&dscr>=1.3?"Low-Medium":dscr>=1.0?"Medium":"High"}`, systemDetail:"", analystNote:"", flag:"", placeholder:"Analyst's overall credit risk assessment and recommendation with rationale" },
       ];
+
       w.creditPulled = true;
       w.creditBureauScore = bureauScore;
       w.creditDate = Date.now();
@@ -1030,9 +1044,8 @@ export default function App() {
       updatedApp.dscr = dscr;
       updatedApp.currentRatio = currentRatio;
       updatedApp.debtEquity = debtEquity;
-      updatedApp.riskScore = Math.min(99, Math.max(20, Math.round(bureauScore / 10 + dscr * 10 + (currentRatio > 1.2 ? 10 : 0) - (debtEquity > 1.0 ? 10 : 0))));
-      newAudit.push(addAudit("Credit Report Pulled", a.id, "System (TransUnion API)", `Bureau: ${bureauScore}. DSCR: ${dscr}x. Affordability: ${affordable ? "Pass" : "Fail"}.`, "Underwriting"));
-      newAudit.push(addAudit("Financial Analysis", a.id, "Credit Analyst – P. Sithole", `Risk score: ${updatedApp.riskScore}. CR: ${currentRatio}x. D/E: ${debtEquity}x. Margin: ${fmt.pct(grossMargin,0)}.`, "Underwriting"));
+      updatedApp.riskScore = riskScore;
+      newAudit.push(addAudit("Credit Report Pulled", a.id, "System (TransUnion API)", `Bureau: ${bureauScore}. DSCR: ${dscr}x. Risk: ${riskScore}. Affordability: ${affordable?"Pass":"Fail"}.`, "Underwriting"));
     }
 
     if (stepKey === "collateral") {
@@ -2814,12 +2827,54 @@ export default function App() {
           {w.siteVisitComplete && <div style={{ marginTop:4, fontSize:10, color:C.green }}>Signed off by {w.siteVisitOfficer}</div>}
         </div>);
         }
-        if (s.key==="credit") return (<div>
-          {!w.creditDate && <div style={{ fontSize:11, color:C.textMuted, marginBottom:6 }}>Pull credit bureau report, run affordability and ratio analysis. Review results and confirm.</div>}
-          {w.creditFindings && renderReadOnly(w.creditFindings)}
-          {isUW && w.creditDate && !w.financialAnalysisComplete && <div style={{ marginTop:4, display:"flex", justifyContent:"flex-end" }}><Btn size="sm" onClick={()=>signOffStep(a.id,"credit")}>Confirm Analysis</Btn></div>}
+        if (s.key==="credit") {
+          const findings = w.creditFindings || [];
+          const hasNewFormat = findings.length > 0 && findings[0].analystNote !== undefined;
+          const notedCount = findings.filter(f => f.analystNote && f.analystNote.trim().length > 3).length;
+          const riskFinding = findings.find(f => f.item === "Risk Score & Recommendation");
+          const canSignOff = hasNewFormat && riskFinding?.analystNote && riskFinding.analystNote.trim().length > 10;
+          return (<div>
+          {!w.creditDate && <div style={{ fontSize:11, color:C.textMuted, marginBottom:6 }}>Pull credit bureau report and run automated financial analysis. System computes key ratios from submitted financials. Review each finding, add your professional assessment, flag concerns, then confirm.</div>}
+          {hasNewFormat && findings.length > 0 && <div>
+            <div style={{ fontSize:10, color:C.textMuted, marginBottom:6 }}>{notedCount}/{findings.length} findings reviewed by analyst{canSignOff ? " — ready for confirmation" : ""}</div>
+            <div style={{ border:`1px solid ${C.border}` }}>
+              {findings.map((f, i) => (
+                <div key={i} style={{ padding:"8px 10px", borderBottom:i<findings.length-1?`1px solid ${C.border}`:"none" }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:3 }}>
+                    <span style={{ fontSize:11, fontWeight:600, color:C.text }}>{f.item}</span>
+                    {f.flag && <span style={{ fontSize:9, padding:"1px 6px", background:f.flag==="Accept"?C.green:f.flag==="Override"?C.purple:C.red, color:"#fff" }}>{f.flag}</span>}
+                  </div>
+                  {/* System-computed value — always visible as reference */}
+                  <div style={{ fontSize:11, color:C.accent, fontWeight:500, marginBottom:2 }}>{f.systemValue}</div>
+                  {f.systemDetail && <div style={{ fontSize:10, color:C.textDim, marginBottom:4, lineHeight:1.5 }}>{f.systemDetail}</div>}
+                  {/* Analyst commentary */}
+                  {isUW && !w.financialAnalysisComplete ? (
+                    <div>
+                      <textarea value={f.analystNote||""} onChange={e=>saveCreditFinding(a.id,i,"analystNote",e.target.value)} placeholder={f.placeholder || "Analyst assessment — confirm, qualify, or override the system finding..."} rows={2} style={{ width:"100%", padding:"4px 6px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:11, fontFamily:"inherit", outline:"none", resize:"vertical", boxSizing:"border-box", lineHeight:1.5, marginBottom:4 }} />
+                      <div style={{ display:"flex", gap:4 }}>
+                        {["Accept","Override","Concern"].map(fl => (
+                          <button key={fl} onClick={()=>saveCreditFinding(a.id,i,"flag",f.flag===fl?"":fl)} style={{ padding:"1px 7px", fontSize:9, border:`1px solid ${f.flag===fl?(fl==="Accept"?C.green:fl==="Override"?C.purple:C.red):C.border}`, background:f.flag===fl?(fl==="Accept"?C.green:fl==="Override"?C.purple:C.red):"transparent", color:f.flag===fl?"#fff":(fl==="Accept"?C.green:fl==="Override"?C.purple:C.red), cursor:"pointer", fontFamily:"inherit" }}>{fl}</button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : f.analystNote ? (
+                    <div style={{ fontSize:11, color:C.textDim, lineHeight:1.5, marginTop:2, paddingLeft:8, borderLeft:`2px solid ${C.border}` }}>{f.analystNote}</div>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          </div>}
+          {/* Fallback for old-format findings */}
+          {!hasNewFormat && w.creditFindings && renderReadOnly(w.creditFindings)}
+          {isUW && w.creditDate && !w.financialAnalysisComplete && (
+            <div style={{ marginTop:6, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+              <span style={{ fontSize:10, color:canSignOff?C.green:C.amber }}>{canSignOff ? "Risk assessment complete. Ready for confirmation." : "Provide analyst assessment on 'Risk Score & Recommendation' to confirm."}</span>
+              <Btn size="sm" onClick={()=>signOffStep(a.id,"credit")} disabled={!canSignOff}>Confirm Analysis</Btn>
+            </div>
+          )}
           {w.financialAnalysisComplete && <div style={{ marginTop:4, fontSize:10, color:C.green }}>Confirmed by Credit Analyst</div>}
         </div>);
+        }
         if (s.key==="collateral") return (<div>
           {!w.collateralDate && <div style={{ fontSize:11, color:C.textMuted, marginBottom:6 }}>Assess collateral and security linked to the customer. Computes LTV.</div>}
           {w.collateralFindings && renderReadOnly(w.collateralFindings)}
