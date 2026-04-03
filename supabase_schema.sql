@@ -275,3 +275,8 @@ CREATE INDEX IF NOT EXISTS idx_collections_loan ON collections(loan_id);
 CREATE INDEX IF NOT EXISTS idx_audit_entity ON audit_trail(entity);
 CREATE INDEX IF NOT EXISTS idx_audit_ts ON audit_trail(ts);
 CREATE INDEX IF NOT EXISTS idx_alerts_read ON alerts(read);
+
+-- Migration: Add designated group ownership fields to customers
+ALTER TABLE customers ADD COLUMN IF NOT EXISTS women_owned NUMERIC DEFAULT 0;
+ALTER TABLE customers ADD COLUMN IF NOT EXISTS youth_owned NUMERIC DEFAULT 0;
+ALTER TABLE customers ADD COLUMN IF NOT EXISTS disability_owned NUMERIC DEFAULT 0;

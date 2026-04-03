@@ -516,7 +516,7 @@ export default function App() {
 
   const createCustomer = (form) => {
     if (!canDo("customers","create")) { alert("Permission denied."); return; }
-    const c = { ...form, id:`C${String(customers.length+1).padStart(3,"0")}`, ficaStatus:"Pending", ficaDate:null, riskCategory:"Medium", created:Date.now(), beeStatus:"Pending Review", beeExpiry:null };
+    const c = { ...form, id:`C${String(customers.length+1).padStart(3,"0")}`, ficaStatus:"Pending", ficaDate:null, riskCategory:"Medium", created:Date.now(), beeStatus:"Pending Review", beeExpiry:null, womenOwned:+form.womenOwned||0, youthOwned:+form.youthOwned||0, disabilityOwned:+form.disabilityOwned||0 };
     save({ ...data, customers:[...customers, c], audit:[...audit, addAudit("Customer Created", c.id, currentUser.name, `New customer: ${c.name}. Industry: ${c.industry}.`, "Onboarding")] });
     return c.id;
   };
@@ -1268,7 +1268,7 @@ export default function App() {
         )}
         {/* Impact — everyone */}
         <SectionCard title="Development Impact">
-          {[["Jobs Supported", fmt.num(jobs), C.green], ["BEE Level 1 Clients", customers.filter(c => c.beeLevel === 1).length, C.accent], ["BEE Level 1-2 Clients", customers.filter(c => c.beeLevel <= 2).length, C.purple], ["Avg Social Impact Score", applications.filter(a => a.socialScore).length > 0 ? Math.round(applications.filter(a => a.socialScore).reduce((s, a) => s + a.socialScore, 0) / applications.filter(a => a.socialScore).length) : "—", C.amber]].map(([l, v, c], i) => (
+          {[["Jobs Supported", fmt.num(jobs), C.green], ["BEE Level 1-2 Clients", customers.filter(c => c.beeLevel <= 2).length, C.accent], ["Women-Owned (>50%)", customers.filter(c => (c.womenOwned||0) > 50).length, C.purple], ["Youth-Owned (>50%)", customers.filter(c => (c.youthOwned||0) > 50).length, C.blue], ["Disability-Owned (>50%)", customers.filter(c => (c.disabilityOwned||0) > 50).length, C.amber], ["Avg Social Impact Score", applications.filter(a => a.socialScore).length > 0 ? Math.round(applications.filter(a => a.socialScore).reduce((s, a) => s + a.socialScore, 0) / applications.filter(a => a.socialScore).length) : "—", C.textDim]].map(([l, v, c], i) => (
             <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 0", borderBottom:`1px solid ${C.border}` }}>
               <span style={{ fontSize:12, color:C.textDim }}>{l}</span><span style={{ fontSize:18, fontWeight:700, color:c }}>{v}</span>
             </div>
@@ -1370,7 +1370,7 @@ export default function App() {
       if (!cForm.name || !cForm.contact || !cForm.idNum || !cForm.regNum) { alert("Name, contact, ID number, and registration number are required."); return; }
       createCustomer({ ...cForm, revenue:+cForm.revenue||0, employees:+cForm.employees||0, years:+cForm.years||0, beeLevel:+cForm.beeLevel||3 });
       setShowCreate(false);
-      setCForm({ name:"", contact:"", email:"", phone:"", idNum:"", regNum:"", industry:"Retail", sector:"", revenue:"", employees:"", years:"", beeLevel:3, address:"", province:"Eastern Cape" });
+      setCForm({ name:"", contact:"", email:"", phone:"", idNum:"", regNum:"", industry:"Retail", sector:"", revenue:"", employees:"", years:"", beeLevel:3, address:"", province:"Eastern Cape", womenOwned:0, youthOwned:0, disabilityOwned:0 });
     };
 
     return (<div>
@@ -1400,6 +1400,9 @@ export default function App() {
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:10, marginBottom:10 }}>
             <Field label="Years in Business"><Input type="number" value={cForm.years} onChange={e=>setCForm({...cForm,years:e.target.value})} /></Field>
             <Field label="BEE Level"><Select value={cForm.beeLevel} onChange={e=>setCForm({...cForm,beeLevel:e.target.value})} options={[1,2,3,4,5,6,7,8].map(v=>({value:v,label:`Level ${v}`}))} /></Field>
+            <Field label="Women Ownership %"><Input type="number" min="0" max="100" value={cForm.womenOwned} onChange={e=>setCForm({...cForm,womenOwned:e.target.value})} placeholder="0-100" /></Field>
+            <Field label="Youth Ownership %"><Input type="number" min="0" max="100" value={cForm.youthOwned} onChange={e=>setCForm({...cForm,youthOwned:e.target.value})} placeholder="0-100" /></Field>
+            <Field label="Disability Ownership %"><Input type="number" min="0" max="100" value={cForm.disabilityOwned} onChange={e=>setCForm({...cForm,disabilityOwned:e.target.value})} placeholder="0-100" /></Field>
             <Field label="Address"><Input value={cForm.address} onChange={e=>setCForm({...cForm,address:e.target.value})} /></Field>
             <Field label="Province"><Select value={cForm.province} onChange={e=>setCForm({...cForm,province:e.target.value})} options={["Eastern Cape","Western Cape","Gauteng","KwaZulu-Natal","Free State","North West","Limpopo","Mpumalanga","Northern Cape"].map(v=>({value:v,label:v}))} /></Field>
           </div>
@@ -2351,7 +2354,7 @@ export default function App() {
           })}
         </SectionCard>
         <SectionCard title="Development Impact">
-          {[["Total Jobs Supported",fmt.num(customers.reduce((s,c)=>s+c.employees,0))],["BEE Level 1 Clients",customers.filter(c=>c.beeLevel===1).length],["BEE Level 1-2 Exposure",fmt.cur(activeLoans.filter(l=>cust(l.custId)?.beeLevel<=2).reduce((s,l)=>s+l.balance,0))],["Avg Social Impact Score",Math.round(applications.filter(a=>a.socialScore).reduce((s,a)=>s+a.socialScore,0)/(applications.filter(a=>a.socialScore).length||1))],["Provinces Covered",new Set(customers.map(c=>c.province)).size],["Industries Covered",new Set(customers.map(c=>c.industry)).size]].map(([l,v],i) => (
+          {[["Total Jobs Supported",fmt.num(customers.reduce((s,c)=>s+c.employees,0))],["BEE Level 1 Clients",customers.filter(c=>c.beeLevel===1).length],["BEE Level 1-2 Exposure",fmt.cur(activeLoans.filter(l=>cust(l.custId)?.beeLevel<=2).reduce((s,l)=>s+l.balance,0))],["Women-Owned (>50%)",customers.filter(c=>(c.womenOwned||0)>50).length],["Youth-Owned (>50%)",customers.filter(c=>(c.youthOwned||0)>50).length],["Disability-Owned (>50%)",customers.filter(c=>(c.disabilityOwned||0)>50).length],["Avg Social Impact Score",applications.filter(a=>a.socialScore).length>0?Math.round(applications.filter(a=>a.socialScore).reduce((s,a)=>s+a.socialScore,0)/applications.filter(a=>a.socialScore).length):"—"],["Provinces Covered",new Set(customers.map(c=>c.province)).size],["Industries Covered",new Set(customers.map(c=>c.industry)).size]].map(([l,v],i) => (
             <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"6px 0", borderBottom:`1px solid ${C.border}` }}>
               <span style={{ fontSize:12, color:C.textDim }}>{l}</span><span style={{ fontSize:13, fontWeight:700, color:C.accent }}>{v}</span>
             </div>
@@ -2405,7 +2408,7 @@ export default function App() {
         {/* Profile — read or edit */}
         <SectionCard title="Customer Profile" actions={canDo("customers","update") && !detailEditing ? <Btn size="sm" variant="ghost" onClick={()=>{setDetailForm({...c});setDetailEditing(true)}}>Edit</Btn> : null}>
           {!detailEditing ? (
-            <InfoGrid items={[["Contact",c.contact],["Email",c.email],["Phone",c.phone],["ID Number",c.idNum],["Reg Number",c.regNum],["Address",c.address],["Annual Revenue",fmt.cur(c.revenue)],["Employees",c.employees],["Years in Business",c.years],["Sector",c.sector],["BEE Expiry",fmt.date(c.beeExpiry)],["FICA Date",fmt.date(c.ficaDate)],["Created",fmt.date(c.created)]]} />
+            <InfoGrid items={[["Contact",c.contact],["Email",c.email],["Phone",c.phone],["ID Number",c.idNum],["Reg Number",c.regNum],["Address",c.address],["Annual Revenue",fmt.cur(c.revenue)],["Employees",c.employees],["Years in Business",c.years],["Sector",c.sector],["BEE Expiry",fmt.date(c.beeExpiry)],["Women Ownership",(c.womenOwned||0)+"%"],["Youth Ownership",(c.youthOwned||0)+"%"],["Disability Ownership",(c.disabilityOwned||0)+"%"],["FICA Date",fmt.date(c.ficaDate)],["Created",fmt.date(c.created)]]} />
           ) : (
             <div>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:10 }}>
@@ -2423,6 +2426,11 @@ export default function App() {
                 <Field label="Address"><Input value={detailForm.address} onChange={e=>setDetailForm({...detailForm,address:e.target.value})} /></Field>
                 <Field label="Province"><Select value={detailForm.province} onChange={e=>setDetailForm({...detailForm,province:e.target.value})} options={["Eastern Cape","Western Cape","Gauteng","KwaZulu-Natal","Free State","North West","Limpopo","Mpumalanga","Northern Cape"].map(v=>({value:v,label:v}))} /></Field>
                 <Field label="Risk Category"><Select value={detailForm.riskCategory} onChange={e=>setDetailForm({...detailForm,riskCategory:e.target.value})} options={["Low","Medium","High"].map(v=>({value:v,label:v}))} /></Field>
+              </div>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:10 }}>
+                <Field label="Women Ownership %"><Input type="number" min="0" max="100" value={detailForm.womenOwned||0} onChange={e=>setDetailForm({...detailForm,womenOwned:+e.target.value})} /></Field>
+                <Field label="Youth Ownership %"><Input type="number" min="0" max="100" value={detailForm.youthOwned||0} onChange={e=>setDetailForm({...detailForm,youthOwned:+e.target.value})} /></Field>
+                <Field label="Disability Ownership %"><Input type="number" min="0" max="100" value={detailForm.disabilityOwned||0} onChange={e=>setDetailForm({...detailForm,disabilityOwned:+e.target.value})} /></Field>
               </div>
               <div style={{ display:"flex", gap:8 }}>
                 <Btn onClick={()=>{updateCustomer(c.id,detailForm);setDetailEditing(false)}}>Save Changes</Btn>
