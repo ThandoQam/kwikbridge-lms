@@ -656,25 +656,43 @@ export default function App() {
           </div>
         </div>}
         {page === "public_products" && <div>
-          <h2 style={{ fontSize:24, fontWeight:700, margin:"0 0 4px" }}>Our Finance Products</h2>
-          <p style={{ fontSize:13, color:C.textDim, margin:"0 0 20px" }}>Tailored solutions for South African SMEs and empowerment businesses.</p>
-          <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-            {(data?.products||[]).filter(p=>p.status==="Active").map(p=>(
-              <div key={p.id} style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"24px", display:"flex", gap:24 }}>
-                <div style={{ flex:1 }}>
-                  <div style={{ fontSize:18, fontWeight:700, color:C.text }}>{p.name}</div>
-                  <div style={{ fontSize:13, color:C.textDim, marginTop:8, lineHeight:1.6 }}>{p.description}</div>
-                  {p.idealFor && <div style={{ fontSize:12, color:C.accent, marginTop:10, fontWeight:500 }}>Ideal for: <span style={{ fontWeight:400, color:C.textDim }}>{p.idealFor}</span></div>}
+          <h2 style={{ fontSize:28, fontWeight:700, margin:"0 0 4px", letterSpacing:-0.5 }}>Our Finance Products</h2>
+          <p style={{ fontSize:14, color:C.textDim, margin:"0 0 28px", lineHeight:1.5 }}>Tailored solutions for South African SMEs and empowerment businesses.</p>
+          <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+            {(data?.products||[]).filter(p=>p.status==="Active").map((p,idx)=>{
+              const termMin = p.minTerm < 1 ? `${Math.round(p.minTerm*30)}d` : `${p.minTerm}m`;
+              const termMax = p.maxTerm < 1 ? `${Math.round(p.maxTerm*30)}d` : `${p.maxTerm}m`;
+              const accents = [C.accent, C.green, C.blue, C.purple, C.amber];
+              const ac = accents[idx % accents.length];
+              return (
+              <div key={p.id} style={{ background:C.surface, border:`1px solid ${C.border}`, overflow:"hidden" }}>
+                <div style={{ height:4, background:ac }} />
+                <div style={{ padding:"24px 28px 20px" }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:12 }}>
+                    <div>
+                      <div style={{ fontSize:20, fontWeight:700, color:C.text, letterSpacing:-0.3 }}>{p.name}</div>
+                      <div style={{ fontSize:11, color:ac, fontWeight:600, marginTop:3, textTransform:"uppercase", letterSpacing:0.8 }}>{p.repaymentType} · From {p.baseRate}% p.a.</div>
+                    </div>
+                    <div style={{ textAlign:"right" }}>
+                      <div style={{ fontSize:22, fontWeight:800, color:C.text, letterSpacing:-0.5 }}>{fmt.cur(p.maxAmount)}</div>
+                      <div style={{ fontSize:10, color:C.textMuted }}>up to</div>
+                    </div>
+                  </div>
+                  <div style={{ fontSize:13, color:C.textDim, lineHeight:1.65, marginBottom:14 }}>{p.description}</div>
+                  {p.idealFor && <div style={{ background:C.surface3, border:`1px solid ${C.border}`, padding:"10px 14px", marginBottom:16, fontSize:12, lineHeight:1.5 }}>
+                    <span style={{ fontWeight:600, color:C.text }}>Ideal for:</span> <span style={{ color:C.textDim }}>{p.idealFor}</span>
+                  </div>}
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                    <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                      {[[`${fmt.cur(p.minAmount)} – ${fmt.cur(p.maxAmount)}`],[`${termMin} – ${termMax}`],[`${p.baseRate}%`],[p.arrangementFee?`${p.arrangementFee}% fee`:null]].filter(([v])=>v).map(([v],i)=>(
+                        <span key={i} style={{ display:"inline-block", padding:"4px 10px", background:C.surface2, border:`1px solid ${C.border}`, fontSize:11, fontWeight:500, color:C.textDim }}>{v}</span>
+                      ))}
+                    </div>
+                    <button onClick={()=>setPage("public_apply")} style={{ background:ac, color:"#fff", border:"none", padding:"10px 24px", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit", flexShrink:0 }}>Apply Now</button>
+                  </div>
                 </div>
-                <div style={{ width:220, flexShrink:0, borderLeft:`1px solid ${C.border}`, paddingLeft:20, display:"flex", flexDirection:"column", gap:8, fontSize:12 }}>
-                  <div><span style={{ color:C.textMuted, display:"block", fontSize:10, textTransform:"uppercase", letterSpacing:0.5 }}>Amount</span><span style={{ fontWeight:600 }}>{fmt.cur(p.minAmount)} – {fmt.cur(p.maxAmount)}</span></div>
-                  <div><span style={{ color:C.textMuted, display:"block", fontSize:10, textTransform:"uppercase", letterSpacing:0.5 }}>Term</span><span style={{ fontWeight:600 }}>{p.minTerm < 1 ? `${Math.round(p.minTerm*30)} days` : `${p.minTerm}m`} – {p.maxTerm < 1 ? `${Math.round(p.maxTerm*30)} days` : `${p.maxTerm}m`}</span></div>
-                  <div><span style={{ color:C.textMuted, display:"block", fontSize:10, textTransform:"uppercase", letterSpacing:0.5 }}>Rate from</span><span style={{ fontWeight:600 }}>{p.baseRate}%</span></div>
-                  <div><span style={{ color:C.textMuted, display:"block", fontSize:10, textTransform:"uppercase", letterSpacing:0.5 }}>Repayment</span><span style={{ fontWeight:600 }}>{p.repaymentType}</span></div>
-                  <button onClick={()=>setPage("public_apply")} style={{ marginTop:8, background:C.text, color:"#fff", border:"none", padding:"9px 20px", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Apply Now</button>
-                </div>
-              </div>
-            ))}
+              </div>);
+            })}
           </div>
         </div>}
         {page === "public_apply" && <div>
