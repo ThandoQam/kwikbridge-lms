@@ -230,9 +230,9 @@ function statusBadge(s) {
 function KPI({ label, value, sub }) {
   return (
     <div style={{ background: C.surface, borderRadius: 4, padding: "16px 20px", border: `1px solid ${C.border}`, flex: "1 1 200px", minWidth: 170 }}>
-      <div style={{fontSize:11,fontWeight:500,color:C.textMuted,textTransform:"uppercase",letterSpacing:0.8,marginBottom:6 }}>{label}</div>
-      <div style={{fontSize:24,fontWeight:700,color:C.text,letterSpacing:-0.5,lineHeight:1 }}>{value}</div>
-      {sub && <div style={{fontSize:11,color:C.textDim,marginTop:6 }}>{sub}</div>}
+      <div style={{ fontSize: 11, fontWeight: 500, color: C.textMuted, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 6 }}>{label}</div>
+      <div style={{ fontSize: 24, fontWeight: 700, color: C.text, letterSpacing: -0.5, lineHeight: 1 }}>{value}</div>
+      {sub && <div style={{ fontSize: 11, color: C.textDim, marginTop: 6 }}>{sub}</div>}
     </div>
   );
 }
@@ -247,14 +247,14 @@ function Btn({ children, onClick, variant = "primary", size = "md", icon, disabl
   const s = styles[variant];
   const pad = size === "sm" ? "5px 10px" : size === "lg" ? "10px 20px" : "7px 14px";
   const fs = size === "sm" ? 12 : 13;
-  return <button disabled={disabled} onClick={onClick} style={{display:"inline-flex",alignItems:"center",gap:6,padding:pad,background:s.bg,color:s.color,border:s.border,borderRadius:3,fontSize:fs,fontWeight:500,cursor:disabled?"not-allowed":"pointer",opacity:disabled?0.4:1,transition:"all .15s",fontFamily:"inherit",letterSpacing:0.1 }}>{icon}{children}</button>;
+  return <button disabled={disabled} onClick={onClick} style={{ display:"inline-flex", alignItems:"center", gap:6, padding:pad, background:s.bg, color:s.color, border:s.border, borderRadius:3, fontSize:fs, fontWeight:500, cursor:disabled?"not-allowed":"pointer", opacity:disabled?0.4:1, transition:"all .15s", fontFamily:"inherit", letterSpacing:0.1 }}>{icon}{children}</button>;
 }
 
 function Table({ columns, rows, onRowClick, emptyMsg = "No records found" }) {
   return (
     <div style={{ overflowX: "auto", border: `1px solid ${C.border}` }}>
-      <table style={{width:"100%",borderCollapse:"collapse",fontSize:13 }}>
-        <thead><tr style={{background:C.surface2 }}>
+      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+        <thead><tr style={{ background: C.surface2 }}>
           {columns.map((c, i) => <th key={i} style={{ padding: "8px 14px", textAlign: "left", fontWeight: 500, color: C.textMuted, borderBottom: `1px solid ${C.border}`, whiteSpace: "nowrap", fontSize: 11, textTransform: "uppercase", letterSpacing: 0.6 }}>{c.label}</th>)}
         </tr></thead>
         <tbody>
@@ -262,10 +262,10 @@ function Table({ columns, rows, onRowClick, emptyMsg = "No records found" }) {
             <tr key={ri} onClick={() => onRowClick?.(row)} style={{ cursor: onRowClick ? "pointer" : "default", borderBottom: `1px solid ${C.border}` }}
               onMouseEnter={e => { if (onRowClick) e.currentTarget.style.background = C.surface2; }}
               onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-              {columns.map((c, ci) => <td key={ci} style={{padding:"8px 14px",color:C.text,whiteSpace:"nowrap" }}>{c.render ? c.render(row) : row[c.key]}</td>)}
+              {columns.map((c, ci) => <td key={ci} style={{ padding: "8px 14px", color: C.text, whiteSpace: "nowrap" }}>{c.render ? c.render(row) : row[c.key]}</td>)}
             </tr>
           ))}
-          {rows.length === 0 && <tr><td colSpan={columns.length} style={{padding:32,textAlign:"center",color:C.textMuted,fontSize:12 }}>{emptyMsg}</td></tr>}
+          {rows.length === 0 && <tr><td colSpan={columns.length} style={{ padding: 32, textAlign: "center", color: C.textMuted, fontSize: 12 }}>{emptyMsg}</td></tr>}
         </tbody>
       </table>
     </div>
@@ -275,20 +275,20 @@ function Table({ columns, rows, onRowClick, emptyMsg = "No records found" }) {
 function Modal({ open, onClose, title, width = 520, children }) {
   if (!open) return null;
   return (
-    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.25)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center" }} onClick={onClose}>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.25)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={onClose}>
       <div style={{ background: C.surface, borderRadius: 2, padding: 0, width, maxWidth: "95vw", maxHeight: "90vh", overflow: "hidden", border: `1px solid ${C.borderLight}`, boxShadow: "0 8px 30px rgba(0,0,0,0.08)" }} onClick={e => e.stopPropagation()}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderBottom: `1px solid ${C.border}` }}>
-          <h3 style={{margin:0,fontSize:15,fontWeight:600,color:C.text }}>{title}</h3>
-          <button onClick={onClose} style={{background:"none",border:"none",color:C.textMuted,cursor:"pointer",padding:4 }}>{I.x}</button>
+          <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: C.text }}>{title}</h3>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: C.textMuted, cursor: "pointer", padding: 4 }}>{I.x}</button>
         </div>
-        <div style={{padding:20,overflowY:"auto",maxHeight:"calc(90vh - 60px)" }}>{children}</div>
+        <div style={{ padding: 20, overflowY: "auto", maxHeight: "calc(90vh - 60px)" }}>{children}</div>
       </div>
     </div>
   );
 }
 
 function Field({ label, children }) {
-  return <div style={{marginBottom:16 }}><label style={{display:"block",fontSize:11,fontWeight:600,color:C.textMuted,marginBottom:4,textTransform:"uppercase",letterSpacing:0.5 }}>{label}</label>{children}</div>;
+  return <div style={{ marginBottom: 16 }}><label style={{ display: "block", fontSize: 11, fontWeight: 600, color: C.textMuted, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>{label}</label>{children}</div>;
 }
 function Input(props) {
   return <input {...props} style={{ width: "100%", padding: "8px 10px", borderRadius: 2, border: `1px solid ${C.border}`, background: C.surface, color: C.text, fontSize: 13, fontFamily: "inherit", outline: "none", boxSizing: "border-box", ...props.style }} />;
@@ -304,7 +304,7 @@ function Tab({ tabs, active, onChange }) {
   return (
     <div style={{ display: "flex", gap: 0, borderBottom: `1px solid ${C.border}`, marginBottom: 20 }}>
       {tabs.map(t => (
-        <button key={t.key} onClick={() => onChange(t.key)} style={{ padding: "8px 16px", border: "none", borderBottom: active === t.key ? `2px solid ${C.text}` : "2px solid transparent", background: "transparent", color: active === t.key ? C.text : C.textMuted, fontSize: 12, fontWeight: active === t.key ? 600 : 400, cursor: "pointer", fontFamily: "inherit", marginBottom: -1 }}>{t.label}{t.count != null && <span style={{marginLeft:6,color:C.textMuted,fontWeight:400 }}>({t.count})</span>}</button>
+        <button key={t.key} onClick={() => onChange(t.key)} style={{ padding: "8px 16px", border: "none", borderBottom: active === t.key ? `2px solid ${C.text}` : "2px solid transparent", background: "transparent", color: active === t.key ? C.text : C.textMuted, fontSize: 12, fontWeight: active === t.key ? 600 : 400, cursor: "pointer", fontFamily: "inherit", marginBottom: -1 }}>{t.label}{t.count != null && <span style={{ marginLeft: 6, color: C.textMuted, fontWeight: 400 }}>({t.count})</span>}</button>
       ))}
     </div>
   );
@@ -313,7 +313,7 @@ function Tab({ tabs, active, onChange }) {
 function ProgressBar({ value, max = 100, color = C.textMuted, height = 4 }) {
   const pct = Math.min(100, Math.max(0, (value / max) * 100));
   return (
-    <div style={{height,borderRadius:0,background:"#ebebeb",overflow:"hidden" }}>
+    <div style={{ height, borderRadius: 0, background: "#ebebeb", overflow: "hidden" }}>
       <div style={{ height: "100%", borderRadius: 0, background: color, width: `${pct}%`, transition: "width .5s ease" }} />
     </div>
   );
@@ -324,8 +324,8 @@ function InfoGrid({ items }) {
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 0, border: `1px solid ${C.border}` }}>
       {items.map(([l, v], i) => (
         <div key={i} style={{ padding: "8px 12px", borderBottom: `1px solid ${C.border}`, borderRight: `1px solid ${C.border}` }}>
-          <div style={{fontSize:10,fontWeight:500,color:C.textMuted,textTransform:"uppercase",letterSpacing:0.5 }}>{l}</div>
-          <div style={{fontSize:13,fontWeight:500,color:C.text,marginTop:2 }}>{v}</div>
+          <div style={{ fontSize: 10, fontWeight: 500, color: C.textMuted, textTransform: "uppercase", letterSpacing: 0.5 }}>{l}</div>
+          <div style={{ fontSize: 13, fontWeight: 500, color: C.text, marginTop: 2 }}>{v}</div>
         </div>
       ))}
     </div>
@@ -336,10 +336,35 @@ function SectionCard({ title, children, actions }) {
   return (
     <div style={{ background: C.surface, border: `1px solid ${C.border}`, marginBottom: 16, overflow: "hidden" }}>
       {title && <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 16px", borderBottom: `1px solid ${C.border}`, background: C.surface2 }}>
-        <h3 style={{margin:0,fontSize:12,fontWeight:600,color:C.textDim,textTransform:"uppercase",letterSpacing:0.5 }}>{title}</h3>
-        {actions && <div style={{display:"flex",gap:8 }}>{actions}</div>}
+        <h3 style={{ margin: 0, fontSize: 12, fontWeight: 600, color: C.textDim, textTransform: "uppercase", letterSpacing: 0.5 }}>{title}</h3>
+        {actions && <div style={{ display: "flex", gap: 8 }}>{actions}</div>}
       </div>}
-      <div style={{padding:16 }}>{children}</div>
+      <div style={{ padding: 16 }}>{children}</div>
+    </div>
+  );
+}
+
+function StepTracker({ steps, current }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+      {steps.map((s, i) => {
+        const done = i < current;
+        const active = i === current;
+        return (
+          <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <div style={{ width: 22, height: 22, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, background: done ? C.text : "transparent", color: done ? "#fff" : active ? C.text : C.textMuted, fontSize: 10, fontWeight: 600, border: `1px solid ${done ? C.text : C.border}` }}>
+                {done ? I.check : i + 1}
+              </div>
+              {i < steps.length - 1 && <div style={{ width: 1, height: 20, background: C.border }} />}
+            </div>
+            <div style={{ paddingBottom: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: active ? 600 : 400, color: done ? C.text : active ? C.text : C.textMuted }}>{s.label}</div>
+              {s.detail && <div style={{ fontSize: 11, color: C.textMuted, marginTop: 1 }}>{s.detail}</div>}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -462,7 +487,7 @@ export default function App() {
   const prod = id => data?.products?.find(p => p.id === id);
   const loanForApp = appId => data?.loans?.find(l => l.appId === appId);
 
-  if (!data) return <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100vh",background:C.bg,color:C.textMuted,fontFamily:"'Outfit',sans-serif",fontSize:13 }}>Loading…</div>;
+  if (!data) return <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100vh", background:C.bg, color:C.textMuted, fontFamily:"'Outfit',sans-serif", fontSize:13 }}>Loading…</div>;
 
   const { customers, products, applications, loans, collections, alerts, audit, provisions, comms, documents, statutoryReports, settings } = data;
   const unread = alerts.filter(a => !a.read).length;
@@ -1186,16 +1211,16 @@ export default function App() {
     };
 
     return (<div>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:20 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
         <div>
-          <h2 style={{margin:0,fontSize:22,fontWeight:700,color:C.text }}>Dashboard</h2>
-          <p style={{margin:"4px 0 0",fontSize:12,color:C.textMuted }}>{currentUser.name} · {ROLES[role]?.label} · {roleSummary[role] || ""}</p>
+          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: C.text }}>Dashboard</h2>
+          <p style={{ margin: "4px 0 0", fontSize: 12, color: C.textMuted }}>{currentUser.name} · {ROLES[role]?.label} · {roleSummary[role] || ""}</p>
         </div>
         {canDo("origination","create") && <Btn onClick={() => setModal("newApp")} icon={I.plus}>New Application</Btn>}
       </div>
 
       {/* KPIs — tiered by role */}
-      <div style={{display:"flex",gap:12,flexWrap:"wrap",marginBottom:20 }}>
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 20 }}>
         {/* Everyone sees portfolio total and loan count */}
         <KPI label="Total Loan Book" value={fmt.cur(totalBook)} sub={`${loans.length} active loans`} />
         {/* Tier 0-3: see full financial KPIs */}
@@ -1210,7 +1235,7 @@ export default function App() {
         {tier <= 2 && <KPI label="Weighted Avg Rate" value={`${avgRate}%`} />}
       </div>
 
-      <div style={{display:"grid",gridTemplateColumns:tier <= 2 ? "1fr 1fr 1fr" :tier <= 4 ? "1fr 1fr" :"1fr",gap:16,marginBottom:20 }}>
+      <div style={{ display: "grid", gridTemplateColumns: tier <= 2 ? "1fr 1fr 1fr" : tier <= 4 ? "1fr 1fr" : "1fr", gap: 16, marginBottom: 20 }}>
         {/* IFRS 9 — Finance, Credit, Compliance, Exec, Admin */}
         {canDo("provisioning","view") && (
           <SectionCard title="IFRS 9 Staging">
@@ -1220,8 +1245,8 @@ export default function App() {
               const bal = sl.reduce((sum, l) => sum + l.balance, 0);
               const colors = { 1: C.green, 2: C.amber, 3: C.red };
               const labels = { 1: "Performing", 2: "Underperforming", 3: "Non-performing" };
-              return (<div key={s} style={{marginBottom:14 }}>
-                <div style={{display:"flex",justifyContent:"space-between",fontSize:11,fontWeight:600,color:C.textDim,marginBottom:4 }}>
+              return (<div key={s} style={{ marginBottom: 14 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 600, color: C.textDim, marginBottom: 4 }}>
                   <span>Stage {s}: {labels[s]}</span><span>{sl.length} ({pct}%) · {fmt.cur(bal)}</span>
                 </div>
                 <ProgressBar value={pct} color={colors[s]} />
@@ -1236,7 +1261,7 @@ export default function App() {
               const count = applications.filter(a => a.status === s).length;
               const amt = applications.filter(a => a.status === s).reduce((sum, a) => sum + a.amount, 0);
               return (<div key={s} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 0", borderBottom:`1px solid ${C.border}` }}>
-                {statusBadge(s)}<div style={{textAlign:"right" }}><div style={{fontSize:18,fontWeight:700,color:C.text }}>{count}</div><div style={{fontSize:10,color:C.textMuted }}>{fmt.cur(amt)}</div></div>
+                {statusBadge(s)}<div style={{ textAlign:"right" }}><div style={{ fontSize:18, fontWeight:700, color:C.text }}>{count}</div><div style={{ fontSize:10, color:C.textMuted }}>{fmt.cur(amt)}</div></div>
               </div>);
             })}
           </SectionCard>
@@ -1245,7 +1270,7 @@ export default function App() {
         <SectionCard title="Development Impact">
           {[["Jobs Supported", fmt.num(jobs), C.green], ["BEE Level 1 Clients", customers.filter(c => c.beeLevel === 1).length, C.accent], ["Women-Owned", "2", C.purple], ["Avg Social Impact Score", Math.round(applications.filter(a => a.socialScore).reduce((s, a) => s + a.socialScore, 0) / (applications.filter(a => a.socialScore).length || 1)), C.amber]].map(([l, v, c], i) => (
             <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 0", borderBottom:`1px solid ${C.border}` }}>
-              <span style={{fontSize:12,color:C.textDim }}>{l}</span><span style={{fontSize:18,fontWeight:700,color:c }}>{v}</span>
+              <span style={{ fontSize:12, color:C.textDim }}>{l}</span><span style={{ fontSize:18, fontWeight:700, color:c }}>{v}</span>
             </div>
           ))}
         </SectionCard>
@@ -1260,12 +1285,12 @@ export default function App() {
             return (
               <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "10px 0", borderBottom: `1px solid ${C.border}` }}>
                 <div style={{ width: 36, height: 36, border: `1px solid ${C.border}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <div style={{fontSize:14,fontWeight:700,color:uc,lineHeight:1 }}>{days < 0 ? "!" : days}</div>
-                  <div style={{fontSize:7,color:C.textMuted,fontWeight:500 }}>{days < 0 ? "LATE" : "DAYS"}</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: uc, lineHeight: 1 }}>{days < 0 ? "!" : days}</div>
+                  <div style={{ fontSize: 7, color: C.textMuted, fontWeight: 500 }}>{days < 0 ? "LATE" : "DAYS"}</div>
                 </div>
-                <div style={{flex:1 }}>
-                  <div style={{fontSize:13,fontWeight:600,color:C.text }}>{r.name}</div>
-                  <div style={{fontSize:11,color:C.textMuted }}>Due: {fmt.date(new Date(r.dueDate))} · {r.submitTo}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: C.text }}>{r.name}</div>
+                  <div style={{ fontSize: 11, color: C.textMuted }}>Due: {fmt.date(new Date(r.dueDate))} · {r.submitTo}</div>
                 </div>
                 <Badge color={r.type === "Form 39" ? "blue" : "purple"}>{r.type}</Badge>
                 {statusBadge(r.status)}
@@ -1280,25 +1305,25 @@ export default function App() {
         <SectionCard title="My Tasks">
           {role === "LOAN_OFFICER" && applications.filter(a => a.status === "Submitted").map(a => (
             <div key={a.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"6px 0", borderBottom:`1px solid ${C.border}`, fontSize:12 }}>
-              <span><span style={{fontWeight:600 }}>{a.id}</span> — {cust(a.custId)?.name} — {fmt.cur(a.amount)} — awaiting DD initiation</span>
+              <span><span style={{ fontWeight:600 }}>{a.id}</span> — {cust(a.custId)?.name} — {fmt.cur(a.amount)} — awaiting DD initiation</span>
               <Btn size="sm" variant="secondary" onClick={()=>setDetail({type:"application",id:a.id})}>Open</Btn>
             </div>
           ))}
           {(role === "CREDIT" || role === "CREDIT_SNR") && applications.filter(a => a.status === "Underwriting").map(a => (
             <div key={a.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"6px 0", borderBottom:`1px solid ${C.border}`, fontSize:12 }}>
-              <span><span style={{fontWeight:600 }}>{a.id}</span> — {cust(a.custId)?.name} — {fmt.cur(a.amount)} — underwriting in progress</span>
+              <span><span style={{ fontWeight:600 }}>{a.id}</span> — {cust(a.custId)?.name} — {fmt.cur(a.amount)} — underwriting in progress</span>
               <Btn size="sm" variant="secondary" onClick={()=>setDetail({type:"application",id:a.id})}>Open</Btn>
             </div>
           ))}
           {role === "COLLECTIONS" && arrLoans.map(l => (
             <div key={l.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"6px 0", borderBottom:`1px solid ${C.border}`, fontSize:12 }}>
-              <span><span style={{fontWeight:600 }}>{l.id}</span> — {cust(l.custId)?.name} — {l.dpd} DPD — {fmt.cur(l.balance)}</span>
+              <span><span style={{ fontWeight:600 }}>{l.id}</span> — {cust(l.custId)?.name} — {l.dpd} DPD — {fmt.cur(l.balance)}</span>
               <Btn size="sm" variant="secondary" onClick={()=>setDetail({type:"loan",id:l.id})}>Open</Btn>
             </div>
           ))}
-          {role === "LOAN_OFFICER" && applications.filter(a=>a.status==="Submitted").length===0 && <div style={{fontSize:12,color:C.textMuted }}>No pending tasks.</div>}
-          {(role === "CREDIT" || role === "CREDIT_SNR") && applications.filter(a=>a.status==="Underwriting").length===0 && <div style={{fontSize:12,color:C.textMuted }}>No pending tasks.</div>}
-          {role === "COLLECTIONS" && arrLoans.length===0 && <div style={{fontSize:12,color:C.textMuted }}>No delinquent accounts.</div>}
+          {role === "LOAN_OFFICER" && applications.filter(a=>a.status==="Submitted").length===0 && <div style={{ fontSize:12, color:C.textMuted }}>No pending tasks.</div>}
+          {(role === "CREDIT" || role === "CREDIT_SNR") && applications.filter(a=>a.status==="Underwriting").length===0 && <div style={{ fontSize:12, color:C.textMuted }}>No pending tasks.</div>}
+          {role === "COLLECTIONS" && arrLoans.length===0 && <div style={{ fontSize:12, color:C.textMuted }}>No delinquent accounts.</div>}
         </SectionCard>
       )}
 
@@ -1315,13 +1340,13 @@ export default function App() {
           return false;
         }).slice(0, 6).map(a => (
           <div key={a.id} style={{ display:"flex", alignItems:"flex-start", gap:12, padding:"8px 0", borderBottom:`1px solid ${C.border}`, opacity:a.read?0.4:1 }}>
-            <div style={{width:8,height:8,borderRadius:4,marginTop:5,flexShrink:0,background:a.severity==="critical"?C.red:a.severity==="warning"?C.amber:C.blue }} />
-            <div style={{flex:1 }}><div style={{fontSize:12,fontWeight:600,color:C.text }}>{a.title}</div><div style={{fontSize:11,color:C.textMuted,marginTop:2 }}>{a.msg}</div></div>
-            <div style={{fontSize:10,color:C.textMuted,whiteSpace:"nowrap" }}>{fmt.date(a.ts)}</div>
+            <div style={{ width:8, height:8, borderRadius:4, marginTop:5, flexShrink:0, background:a.severity==="critical"?C.red:a.severity==="warning"?C.amber:C.blue }} />
+            <div style={{ flex:1 }}><div style={{ fontSize:12, fontWeight:600, color:C.text }}>{a.title}</div><div style={{ fontSize:11, color:C.textMuted, marginTop:2 }}>{a.msg}</div></div>
+            <div style={{ fontSize:10, color:C.textMuted, whiteSpace:"nowrap" }}>{fmt.date(a.ts)}</div>
             {!a.read && <Btn size="sm" variant="ghost" onClick={() => markRead(a.id)}>Dismiss</Btn>}
           </div>
         ))}
-        {alerts.length === 0 && <div style={{fontSize:12,color:C.textMuted }}>No alerts.</div>}
+        {alerts.length === 0 && <div style={{ fontSize:12, color:C.textMuted }}>No alerts.</div>}
       </SectionCard>
     </div>);
   }
@@ -1349,50 +1374,50 @@ export default function App() {
     };
 
     return (<div>
-      <div style={{display:"flex",justifyContent:"space-between",marginBottom:16 }}>
-        <div><h2 style={{margin:0,fontSize:22,fontWeight:700,color:C.text }}>Customer Management</h2><p style={{margin:"4px 0 0",fontSize:13,color:C.textMuted }}>Onboarding, KYC/FICA verification, BEE profiling & relationship management</p></div>
+      <div style={{ display:"flex", justifyContent:"space-between", marginBottom:16 }}>
+        <div><h2 style={{ margin:0, fontSize:22, fontWeight:700, color:C.text }}>Customer Management</h2><p style={{ margin:"4px 0 0", fontSize:13, color:C.textMuted }}>Onboarding, KYC/FICA verification, BEE profiling & relationship management</p></div>
         {canDo("customers","create") && <Btn onClick={()=>setShowCreate(!showCreate)} icon={I.plus}>New Customer</Btn>}
       </div>
 
       {showCreate && (
         <SectionCard title="Register New Customer">
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:10 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:10 }}>
             <Field label="Business Name *"><Input value={cForm.name} onChange={e=>setCForm({...cForm,name:e.target.value})} placeholder="e.g. Nomsa Trading (Pty) Ltd" /></Field>
             <Field label="Contact Person *"><Input value={cForm.contact} onChange={e=>setCForm({...cForm,contact:e.target.value})} placeholder="Full name" /></Field>
             <Field label="Email"><Input value={cForm.email} onChange={e=>setCForm({...cForm,email:e.target.value})} placeholder="email@company.co.za" /></Field>
           </div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:10 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:10 }}>
             <Field label="Phone"><Input value={cForm.phone} onChange={e=>setCForm({...cForm,phone:e.target.value})} placeholder="0XX XXX XXXX" /></Field>
             <Field label="ID Number *"><Input value={cForm.idNum} onChange={e=>setCForm({...cForm,idNum:e.target.value})} placeholder="13-digit SA ID" /></Field>
             <Field label="Company Registration *"><Input value={cForm.regNum} onChange={e=>setCForm({...cForm,regNum:e.target.value})} placeholder="YYYY/XXXXXX/07" /></Field>
           </div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:10,marginBottom:10 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:10, marginBottom:10 }}>
             <Field label="Industry"><Select value={cForm.industry} onChange={e=>setCForm({...cForm,industry:e.target.value})} options={["Retail","Agriculture","Technology","Construction","Food Processing","Transport","Manufacturing","Professional Services","Other"].map(v=>({value:v,label:v}))} /></Field>
             <Field label="Sector"><Input value={cForm.sector} onChange={e=>setCForm({...cForm,sector:e.target.value})} placeholder="e.g. Consumer Goods" /></Field>
             <Field label="Annual Revenue (R)"><Input type="number" value={cForm.revenue} onChange={e=>setCForm({...cForm,revenue:e.target.value})} /></Field>
             <Field label="Employees"><Input type="number" value={cForm.employees} onChange={e=>setCForm({...cForm,employees:e.target.value})} /></Field>
           </div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:10,marginBottom:10 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:10, marginBottom:10 }}>
             <Field label="Years in Business"><Input type="number" value={cForm.years} onChange={e=>setCForm({...cForm,years:e.target.value})} /></Field>
             <Field label="BEE Level"><Select value={cForm.beeLevel} onChange={e=>setCForm({...cForm,beeLevel:e.target.value})} options={[1,2,3,4,5,6,7,8].map(v=>({value:v,label:`Level ${v}`}))} /></Field>
             <Field label="Address"><Input value={cForm.address} onChange={e=>setCForm({...cForm,address:e.target.value})} /></Field>
             <Field label="Province"><Select value={cForm.province} onChange={e=>setCForm({...cForm,province:e.target.value})} options={["Eastern Cape","Western Cape","Gauteng","KwaZulu-Natal","Free State","North West","Limpopo","Mpumalanga","Northern Cape"].map(v=>({value:v,label:v}))} /></Field>
           </div>
-          <div style={{display:"flex",gap:8 }}><Btn onClick={handleCreate}>Register Customer</Btn><Btn variant="ghost" onClick={()=>setShowCreate(false)}>Cancel</Btn></div>
+          <div style={{ display:"flex", gap:8 }}><Btn onClick={handleCreate}>Register Customer</Btn><Btn variant="ghost" onClick={()=>setShowCreate(false)}>Cancel</Btn></div>
         </SectionCard>
       )}
 
       <Tab tabs={tabs} active={tab} onChange={setTab} />
       <Table columns={[
-        { label:"ID", render:r=><span style={{fontFamily:"monospace",fontSize:12 }}>{r.id}</span> },
-        { label:"Business Name", render:r=><span style={{fontWeight:600 }}>{r.name}</span> },
+        { label:"ID", render:r=><span style={{ fontFamily:"monospace", fontSize:12 }}>{r.id}</span> },
+        { label:"Business Name", render:r=><span style={{ fontWeight:600 }}>{r.name}</span> },
         { label:"Contact", key:"contact" },
         { label:"Industry", key:"industry" },
         { label:"Revenue", render:r=>fmt.cur(r.revenue) },
         { label:"BEE", render:r=><Badge color="purple">Level {r.beeLevel}</Badge> },
         { label:"FICA", render:r=>statusBadge(r.ficaStatus) },
         { label:"Risk", render:r=><Badge color={r.riskCategory==="Low"?"green":r.riskCategory==="Medium"?"amber":"red"}>{r.riskCategory}</Badge> },
-        { label:"", render:()=><span style={{color:C.accent }}>{I.chev}</span> },
+        { label:"", render:()=><span style={{ color:C.accent }}>{I.chev}</span> },
       ]} rows={filtered} onRowClick={r=>setDetail({type:"customer",id:r.id})} />
     </div>);
   }
@@ -1414,12 +1439,12 @@ export default function App() {
     const assignableUsers = SYSTEM_USERS.filter(u => ["LOAN_OFFICER","CREDIT","CREDIT_SNR","CREDIT_HEAD"].includes(u.role));
 
     return (<div>
-      <div style={{display:"flex",justifyContent:"space-between",marginBottom:16 }}>
-        <div><h2 style={{margin:0,fontSize:22,fontWeight:700,color:C.text }}>Loan Origination</h2><p style={{margin:"4px 0 0",fontSize:13,color:C.textMuted }}>Application intake, QA & document validation, assignment & pipeline management</p></div>
+      <div style={{ display:"flex", justifyContent:"space-between", marginBottom:16 }}>
+        <div><h2 style={{ margin:0, fontSize:22, fontWeight:700, color:C.text }}>Loan Origination</h2><p style={{ margin:"4px 0 0", fontSize:13, color:C.textMuted }}>Application intake, QA & document validation, assignment & pipeline management</p></div>
         {canDo("origination","create") && <Btn onClick={() => setModal("newApp")} icon={I.plus}>New Application</Btn>}
       </div>
 
-      <div style={{display:"flex",gap:12,flexWrap:"wrap",marginBottom:16 }}>
+      <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:16 }}>
         <KPI label="Drafts (QA Pending)" value={drafts.length} sub={expiredDrafts.length > 0 ? `${expiredDrafts.length} expired` : ""} />
         <KPI label="Submitted" value={applications.filter(a=>a.status==="Submitted").length} sub="awaiting DD" />
         <KPI label="Underwriting" value={applications.filter(a=>a.status==="Underwriting").length} />
@@ -1430,7 +1455,7 @@ export default function App() {
 
       <Tab tabs={tabs} active={tab} onChange={setTab} />
       <Table columns={[
-        { label:"App ID", render:r=><span style={{fontFamily:"monospace",fontWeight:600,fontSize:12 }}>{r.id}</span> },
+        { label:"App ID", render:r=><span style={{ fontFamily:"monospace", fontWeight:600, fontSize:12 }}>{r.id}</span> },
         { label:"Applicant", render:r=>cust(r.custId)?.name },
         { label:"Product", render:r=>prod(r.product)?.name || r.product },
         { label:"Amount", render:r=>fmt.cur(r.amount) },
@@ -1438,29 +1463,29 @@ export default function App() {
         { label:"Date", render:r=>fmt.date(r.submitted || r.createdAt) },
         { label:"Assigned To", render:r=>{
           const u = SYSTEM_USERS.find(x=>x.id===r.assignedTo);
-          if (u) return <span style={{fontSize:11 }}>{u.name}</span>;
-          if (!["Submitted","Underwriting"].includes(r.status)) return <span style={{fontSize:10,color:C.textMuted }}>—</span>;
-          if (!canDo("origination","assign")) return <span style={{fontSize:10,color:C.amber }}>Unassigned</span>;
+          if (u) return <span style={{ fontSize:11 }}>{u.name}</span>;
+          if (!["Submitted","Underwriting"].includes(r.status)) return <span style={{ fontSize:10, color:C.textMuted }}>—</span>;
+          if (!canDo("origination","assign")) return <span style={{ fontSize:10, color:C.amber }}>Unassigned</span>;
           return <select onChange={e=>{if(e.target.value)assignApplication(r.id,e.target.value)}} defaultValue="" style={{ fontSize:10, border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontFamily:"inherit", padding:"1px 3px" }}>
             <option value="">Assign...</option>
             {assignableUsers.map(u=><option key={u.id} value={u.id}>{u.name}</option>)}
           </select>;
         }},
-        { label:"QA", render:r=> r.qaSignedOff ? <span style={{fontSize:10,color:C.green }}>Passed</span> : r.qaFindings?.result==="Failed" ? <span style={{fontSize:10,color:C.red }}>Failed</span> : r.status==="Draft" ? <span style={{fontSize:10,color:C.amber }}>Pending</span> : <span style={{fontSize:10,color:C.textMuted }}>—</span> },
+        { label:"QA", render:r=> r.qaSignedOff ? <span style={{ fontSize:10, color:C.green }}>Passed</span> : r.qaFindings?.result==="Failed" ? <span style={{ fontSize:10, color:C.red }}>Failed</span> : r.status==="Draft" ? <span style={{ fontSize:10, color:C.amber }}>Pending</span> : <span style={{ fontSize:10, color:C.textMuted }}>—</span> },
         { label:"Status", render:r=>{
           if (r.status==="Draft" && r.expiresAt && r.expiresAt < Date.now()) return <Badge color="red">Expired</Badge>;
           return statusBadge(r.status);
         }},
-        { label:"Actions", render:r=><div style={{display:"flex",gap:4 }}>
+        { label:"Actions", render:r=><div style={{ display:"flex", gap:4 }}>
           {r.status==="Draft" && !(r.expiresAt && r.expiresAt < Date.now()) && canDo("origination","update") && <Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();qaSignOffApplication(r.id)}}>QA & Submit</Btn>}
           {["Draft","Submitted","Underwriting"].includes(r.status) && canDo("origination","update") && <Btn size="sm" variant="ghost" onClick={e=>{e.stopPropagation();setWithdrawId(r.id)}}>Withdraw</Btn>}
         </div> },
       ]} rows={filtered} onRowClick={r=>setDetail({type:"application",id:r.id})} />
 
       <Modal open={!!withdrawId} onClose={()=>setWithdrawId(null)} title={`Withdraw Application ${withdrawId}`} width={420}>
-        <div style={{fontSize:12,color:C.textDim,marginBottom:12 }}>This will cancel the application. The customer can re-apply later.</div>
+        <div style={{ fontSize:12, color:C.textDim, marginBottom:12 }}>This will cancel the application. The customer can re-apply later.</div>
         <Field label="Reason for withdrawal"><Textarea value={withdrawReason} onChange={e=>setWithdrawReason(e.target.value)} rows={3} placeholder="Customer request / Duplicate / Failed validation..." /></Field>
-        <div style={{display:"flex",gap:8,marginTop:16 }}>
+        <div style={{ display:"flex", gap:8, marginTop:16 }}>
           <Btn variant="danger" onClick={()=>{withdrawApplication(withdrawId,withdrawReason);setWithdrawId(null);setWithdrawReason("")}}>Confirm Withdrawal</Btn>
           <Btn variant="ghost" onClick={()=>{setWithdrawId(null);setWithdrawReason("")}}>Cancel</Btn>
         </div>
@@ -1472,24 +1497,24 @@ export default function App() {
     const pending = applications.filter(a => ["Submitted","Underwriting"].includes(a.status));
     const decided = applications.filter(a => ["Approved","Declined"].includes(a.status)).slice(-5);
     return (<div>
-      <h2 style={{margin:"0 0 4px",fontSize:22,fontWeight:700,color:C.text }}>Credit Assessment & Underwriting</h2>
-      <p style={{margin:"0 0 20px",fontSize:13,color:C.textMuted }}>Risk analysis, affordability, scoring & credit decisions</p>
+      <h2 style={{ margin:"0 0 4px", fontSize:22, fontWeight:700, color:C.text }}>Credit Assessment & Underwriting</h2>
+      <p style={{ margin:"0 0 20px", fontSize:13, color:C.textMuted }}>Risk analysis, affordability, scoring & credit decisions</p>
       <SectionCard title={`Pending Decisions (${pending.length})`}>
         <Table columns={[
-          { label:"App ID", render:r=><span style={{fontFamily:"monospace",fontWeight:600,fontSize:12 }}>{r.id}</span> },
+          { label:"App ID", render:r=><span style={{ fontFamily:"monospace", fontWeight:600, fontSize:12 }}>{r.id}</span> },
           { label:"Applicant", render:r=>cust(r.custId)?.name },
           { label:"Amount", render:r=>fmt.cur(r.amount) },
           { label:"Authority", render:r=>r.amount>1000000?"Credit Committee":r.amount>500000?"Head of Credit":r.amount>250000?"Senior Analyst":"Analyst" },
           { label:"Status", render:r=>statusBadge(r.status) },
-          { label:"Actions", render:r=><div style={{display:"flex",gap:6 }}>{r.status==="Submitted"&&canDo("underwriting","update")&&<Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();moveToUnderwriting(r.id)}}>Start DD</Btn>}{r.status==="Underwriting"&&canDo("underwriting","view")&&<Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();setDetail({type:"application",id:r.id})}}>Open Workflow</Btn>}</div> },
+          { label:"Actions", render:r=><div style={{ display:"flex", gap:6 }}>{r.status==="Submitted"&&canDo("underwriting","update")&&<Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();moveToUnderwriting(r.id)}}>Start DD</Btn>}{r.status==="Underwriting"&&canDo("underwriting","view")&&<Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();setDetail({type:"application",id:r.id})}}>Open Workflow</Btn>}</div> },
         ]} rows={pending} onRowClick={r=>setDetail({type:"application",id:r.id})} />
       </SectionCard>
       <SectionCard title="Recent Decisions">
         <Table columns={[
-          { label:"App ID", render:r=><span style={{fontFamily:"monospace",fontSize:12 }}>{r.id}</span> },
+          { label:"App ID", render:r=><span style={{ fontFamily:"monospace", fontSize:12 }}>{r.id}</span> },
           { label:"Applicant", render:r=>cust(r.custId)?.name },
           { label:"Amount", render:r=>fmt.cur(r.amount) },
-          { label:"Risk Score", render:r=>r.riskScore!=null?<span style={{fontWeight:700,color:r.riskScore>=70?C.green:r.riskScore>=50?C.amber:C.red }}>{r.riskScore}</span>:"—" },
+          { label:"Risk Score", render:r=>r.riskScore!=null?<span style={{ fontWeight:700, color:r.riskScore>=70?C.green:r.riskScore>=50?C.amber:C.red }}>{r.riskScore}</span>:"—" },
           { label:"DSCR", render:r=>r.dscr||"—" },
           { label:"Decision", render:r=>statusBadge(r.status) },
           { label:"Approver", key:"approver" },
@@ -1504,9 +1529,9 @@ export default function App() {
     const activeLoans = loans.filter(l => l.status === "Active");
     const shown = tab === "booked" ? bookedLoans : tab === "active" ? activeLoans : loans;
     return (<div>
-      <h2 style={{margin:"0 0 4px",fontSize:22,fontWeight:700,color:C.text }}>Loans</h2>
-      <p style={{margin:"0 0 16px",fontSize:13,color:C.textMuted }}>Booking, disbursement, portfolio monitoring & covenant tracking</p>
-      <div style={{display:"flex",gap:12,flexWrap:"wrap",marginBottom:16 }}>
+      <h2 style={{ margin:"0 0 4px", fontSize:22, fontWeight:700, color:C.text }}>Loans</h2>
+      <p style={{ margin:"0 0 16px", fontSize:13, color:C.textMuted }}>Booking, disbursement, portfolio monitoring & covenant tracking</p>
+      <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:16 }}>
         <KPI label="Total Portfolio" value={fmt.cur(activeLoans.reduce((s,l)=>s+l.balance,0))} />
         <KPI label="Active" value={activeLoans.length} />
         <KPI label="Booked (Awaiting Disbursement)" value={bookedLoans.length} />
@@ -1514,15 +1539,15 @@ export default function App() {
       </div>
       <Tab tabs={[{key:"all",label:"All",count:loans.length},{key:"booked",label:"Booked",count:bookedLoans.length},{key:"active",label:"Active",count:activeLoans.length}]} active={tab} onChange={setTab} />
       <Table columns={[
-        { label:"Loan ID", render:r=><span style={{fontFamily:"monospace",fontWeight:600,fontSize:12 }}>{r.id}</span> },
+        { label:"Loan ID", render:r=><span style={{ fontFamily:"monospace", fontWeight:600, fontSize:12 }}>{r.id}</span> },
         { label:"Borrower", render:r=>cust(r.custId)?.name },
         { label:"Amount", render:r=>fmt.cur(r.amount) },
-        { label:"Balance", render:r=><span style={{fontWeight:700 }}>{fmt.cur(r.balance)}</span> },
+        { label:"Balance", render:r=><span style={{ fontWeight:700 }}>{fmt.cur(r.balance)}</span> },
         { label:"Rate", render:r=>`${r.rate}%` },
         { label:"Status", render:r=>statusBadge(r.status) },
-        { label:"DPD", render:r=>r.status==="Active"?<span style={{fontWeight:700,color:r.dpd===0?C.green:r.dpd<=30?C.amber:C.red }}>{r.dpd}</span>:<span style={{color:C.textMuted }}>—</span> },
-        { label:"Stage", render:r=>r.status==="Active"?<Badge color={r.stage===1?"green":r.stage===2?"amber":"red"}>Stage {r.stage}</Badge>:<span style={{color:C.textMuted }}>—</span> },
-        { label:"Actions", render:r=><div style={{display:"flex",gap:4 }}>
+        { label:"DPD", render:r=>r.status==="Active"?<span style={{ fontWeight:700, color:r.dpd===0?C.green:r.dpd<=30?C.amber:C.red }}>{r.dpd}</span>:<span style={{ color:C.textMuted }}>—</span> },
+        { label:"Stage", render:r=>r.status==="Active"?<Badge color={r.stage===1?"green":r.stage===2?"amber":"red"}>Stage {r.stage}</Badge>:<span style={{ color:C.textMuted }}>—</span> },
+        { label:"Actions", render:r=><div style={{ display:"flex", gap:4 }}>
           {r.status==="Booked"&&canDoAny("loans",["update"])&&<Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();disburseLoan(r.id)}}>Disburse</Btn>}
         </div> },
       ]} rows={shown} onRowClick={r=>setDetail({type:"loan",id:r.id})} />
@@ -1553,10 +1578,10 @@ export default function App() {
     };
 
     return (<div>
-      <h2 style={{margin:"0 0 4px",fontSize:22,fontWeight:700,color:C.text }}>Loan Servicing</h2>
-      <p style={{margin:"0 0 16px",fontSize:13,color:C.textMuted }}>Payment processing, amortization schedules, statements & account management</p>
+      <h2 style={{ margin:"0 0 4px", fontSize:22, fontWeight:700, color:C.text }}>Loan Servicing</h2>
+      <p style={{ margin:"0 0 16px", fontSize:13, color:C.textMuted }}>Payment processing, amortization schedules, statements & account management</p>
 
-      <div style={{display:"flex",gap:12,flexWrap:"wrap",marginBottom:16 }}>
+      <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:16 }}>
         <KPI label="Active Loans" value={activeLoans.length} />
         <KPI label="Total Collected" value={fmt.cur(totalCollected)} />
         <KPI label="Interest Collected" value={fmt.cur(totalInterest)} />
@@ -1574,13 +1599,13 @@ export default function App() {
 
       {tab==="upcoming" && (
         <Table columns={[
-          { label:"Due Date", render:r=>{ const d=Math.ceil((r.nextDue-Date.now())/day); return <span style={{fontWeight:d<0?700:400,color:d<0?C.red:d<=7?C.amber:C.textDim }}>{fmt.date(r.nextDue)}{d<0?` (${Math.abs(d)}d overdue)`:""}</span>; }},
-          { label:"Loan", render:r=><span style={{fontFamily:"monospace",fontSize:12 }}>{r.id}</span> },
+          { label:"Due Date", render:r=>{ const d=Math.ceil((r.nextDue-Date.now())/day); return <span style={{ fontWeight:d<0?700:400, color:d<0?C.red:d<=7?C.amber:C.textDim }}>{fmt.date(r.nextDue)}{d<0?` (${Math.abs(d)}d overdue)`:""}</span>; }},
+          { label:"Loan", render:r=><span style={{ fontFamily:"monospace", fontSize:12 }}>{r.id}</span> },
           { label:"Borrower", render:r=>cust(r.custId)?.name },
           { label:"Instalment", render:r=>fmt.cur(r.monthlyPmt) },
           { label:"Balance", render:r=>fmt.cur(r.balance) },
-          { label:"DPD", render:r=><span style={{fontWeight:700,color:r.dpd===0?C.green:C.amber }}>{r.dpd}</span> },
-          { label:"Action", render:r=>canDo("servicing","create")?<Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();recordPayment(r.id, r.monthlyPmt)}}>Record Payment</Btn>:<span style={{ontSize:10,color:C.textMuted}}>View only</span> },
+          { label:"DPD", render:r=><span style={{ fontWeight:700, color:r.dpd===0?C.green:C.amber }}>{r.dpd}</span> },
+          { label:"Action", render:r=>canDo("servicing","create")?<Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();recordPayment(r.id, r.monthlyPmt)}}>Record Payment</Btn>:<span style={{fontSize:10,color:C.textMuted}}>View only</span> },
         ]} rows={[...activeLoans].sort((a,b)=>a.nextDue-b.nextDue)} onRowClick={r=>setDetail({type:"loan",id:r.id})} />
       )}
 
@@ -1589,9 +1614,9 @@ export default function App() {
           { label:"Date", render:r=>fmt.date(r.date) },
           { label:"Loan", key:"loanId" },
           { label:"Borrower", render:r=>cust(loans.find(l=>l.id===r.loanId)?.custId)?.name },
-          { label:"Total", render:r=><span style={{fontWeight:700 }}>{fmt.cur(r.amount)}</span> },
-          { label:"Interest", render:r=><span style={{color:C.amber }}>{fmt.cur(r.interest||0)}</span> },
-          { label:"Principal", render:r=><span style={{color:C.green }}>{fmt.cur(r.principal||0)}</span> },
+          { label:"Total", render:r=><span style={{ fontWeight:700 }}>{fmt.cur(r.amount)}</span> },
+          { label:"Interest", render:r=><span style={{ color:C.amber }}>{fmt.cur(r.interest||0)}</span> },
+          { label:"Principal", render:r=><span style={{ color:C.green }}>{fmt.cur(r.principal||0)}</span> },
           { label:"Type", key:"type" },
           { label:"Status", render:r=>statusBadge(r.status) },
         ]} rows={allPmts.slice(0,20)} />
@@ -1599,7 +1624,7 @@ export default function App() {
 
       {tab==="schedule" && (
         <div>
-          <div style={{marginBottom:12 }}>
+          <div style={{ marginBottom:12 }}>
             <Field label="Select Loan">
               <Select value={schedLoan||""} onChange={e=>setSchedLoan(e.target.value)} options={[{value:"",label:"— Select —"},...activeLoans.map(l=>({value:l.id,label:`${l.id} – ${cust(l.custId)?.name} – ${fmt.cur(l.amount)} @ ${l.rate}%`}))]} />
             </Field>
@@ -1609,15 +1634,15 @@ export default function App() {
             if (!l) return null;
             const sched = genSchedule(l);
             return (<div>
-              <div style={{fontSize:12,color:C.textDim,marginBottom:8 }}>
+              <div style={{ fontSize:12, color:C.textDim, marginBottom:8 }}>
                 {cust(l.custId)?.name} · {fmt.cur(l.amount)} @ {l.rate}% over {l.term}m · Monthly: {fmt.cur(l.monthlyPmt)} · Total interest: {fmt.cur(sched.reduce((s,r)=>s+r.interest,0))} · Total cost: {fmt.cur(sched.reduce((s,r)=>s+r.pmt,0))}
               </div>
-              <div style={{maxHeight:400,overflow:"auto" }}>
+              <div style={{ maxHeight:400, overflow:"auto" }}>
                 <Table columns={[
                   { label:"#", render:r=>r.month },
                   { label:"Payment", render:r=>fmt.cur(r.pmt) },
-                  { label:"Interest", render:r=><span style={{color:C.amber }}>{fmt.cur(r.interest)}</span> },
-                  { label:"Principal", render:r=><span style={{color:C.green }}>{fmt.cur(r.principal)}</span> },
+                  { label:"Interest", render:r=><span style={{ color:C.amber }}>{fmt.cur(r.interest)}</span> },
+                  { label:"Principal", render:r=><span style={{ color:C.green }}>{fmt.cur(r.principal)}</span> },
                   { label:"Balance", render:r=>fmt.cur(r.balance) },
                   { label:"Status", render:r=>statusBadge(r.status) },
                 ]} rows={sched} />
@@ -1629,13 +1654,13 @@ export default function App() {
 
       {tab==="overdue" && (
         <Table columns={[
-          { label:"Loan", render:r=><span style={{fontFamily:"monospace",fontWeight:600,fontSize:12 }}>{r.id}</span> },
+          { label:"Loan", render:r=><span style={{ fontFamily:"monospace", fontWeight:600, fontSize:12 }}>{r.id}</span> },
           { label:"Borrower", render:r=>cust(r.custId)?.name },
           { label:"Balance", render:r=>fmt.cur(r.balance) },
           { label:"Instalment", render:r=>fmt.cur(r.monthlyPmt) },
-          { label:"DPD", render:r=><span style={{fontSize:18,fontWeight:700,color:r.dpd<=30?C.amber:C.red }}>{r.dpd}</span> },
-          { label:"Last Payment", render:r=>r.lastPmt ? fmt.date(r.lastPmt) : <span style={{color:C.textMuted }}>None</span> },
-          { label:"Action", render:r=>canDo("servicing","create")?<Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();recordPayment(r.id, r.monthlyPmt)}}>Record Payment</Btn>:<span style={{ontSize:10,color:C.textMuted}}>View only</span> },
+          { label:"DPD", render:r=><span style={{ fontSize:18, fontWeight:700, color:r.dpd<=30?C.amber:C.red }}>{r.dpd}</span> },
+          { label:"Last Payment", render:r=>r.lastPmt ? fmt.date(r.lastPmt) : <span style={{ color:C.textMuted }}>None</span> },
+          { label:"Action", render:r=>canDo("servicing","create")?<Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();recordPayment(r.id, r.monthlyPmt)}}>Record Payment</Btn>:<span style={{fontSize:10,color:C.textMuted}}>View only</span> },
         ]} rows={overdue.sort((a,b)=>b.dpd-a.dpd)} onRowClick={r=>setDetail({type:"loan",id:r.id})} />
       )}
     </div>);
@@ -1652,9 +1677,9 @@ export default function App() {
     const late = delinquent.filter(l=>l.dpd>90);
 
     return (<div>
-      <h2 style={{margin:"0 0 4px",fontSize:22,fontWeight:700,color:C.text }}>Collections & Recovery</h2>
-      <p style={{margin:"0 0 16px",fontSize:13,color:C.textMuted }}>NCA-compliant delinquency management, PTP tracking, restructuring & legal recovery</p>
-      <div style={{display:"flex",gap:12,flexWrap:"wrap",marginBottom:16 }}>
+      <h2 style={{ margin:"0 0 4px", fontSize:22, fontWeight:700, color:C.text }}>Collections & Recovery</h2>
+      <p style={{ margin:"0 0 16px", fontSize:13, color:C.textMuted }}>NCA-compliant delinquency management, PTP tracking, restructuring & legal recovery</p>
+      <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:16 }}>
         <KPI label="Early (1-30)" value={early.length} sub={fmt.cur(early.reduce((s,l)=>s+l.balance,0))} />
         <KPI label="Mid (31-90)" value={mid.length} sub={fmt.cur(mid.reduce((s,l)=>s+l.balance,0))} />
         <KPI label="Late (91+)" value={late.length} sub={fmt.cur(late.reduce((s,l)=>s+l.balance,0))} />
@@ -1671,20 +1696,20 @@ export default function App() {
       ]} active={tab} onChange={setTab} />
 
       {tab==="accounts" && <Table columns={[
-        { label:"Loan", render:r=><span style={{fontFamily:"monospace",fontWeight:600,fontSize:12 }}>{r.id}</span> },
+        { label:"Loan", render:r=><span style={{ fontFamily:"monospace", fontWeight:600, fontSize:12 }}>{r.id}</span> },
         { label:"Borrower", render:r=>cust(r.custId)?.name },
         { label:"Balance", render:r=>fmt.cur(r.balance) },
-        { label:"DPD", render:r=><span style={{fontSize:18,fontWeight:700,color:r.dpd<=30?C.amber:C.red }}>{r.dpd}</span> },
+        { label:"DPD", render:r=><span style={{ fontSize:18, fontWeight:700, color:r.dpd<=30?C.amber:C.red }}>{r.dpd}</span> },
         { label:"Stage", render:r=><Badge color={r.dpd<=30?"amber":r.dpd<=90?"red":"red"}>{r.dpd<=30?"Early":r.dpd<=90?"Mid":"Late"}</Badge> },
-        { label:"Last Action", render:r=>{ const last=collections.filter(c=>c.loanId===r.id).sort((a,b)=>b.created-a.created)[0]; return last?<span style={{fontSize:10,color:C.textDim }}>{last.action} ({fmt.date(last.created)})</span>:<span style={{fontSize:10,color:C.textMuted }}>None</span>; }},
-        { label:"Actions", render:r=>canDo("collections","create") ? <div style={{display:"flex",gap:3 }}>
+        { label:"Last Action", render:r=>{ const last=collections.filter(c=>c.loanId===r.id).sort((a,b)=>b.created-a.created)[0]; return last?<span style={{ fontSize:10, color:C.textDim }}>{last.action} ({fmt.date(last.created)})</span>:<span style={{ fontSize:10, color:C.textMuted }}>None</span>; }},
+        { label:"Actions", render:r=>canDo("collections","create") ? <div style={{ display:"flex", gap:3 }}>
           <Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();addCollectionAction(r.id,"Phone Call","Outbound call.",{channel:"Phone"})}}>Call</Btn>
           <Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();setActionModal({loanId:r.id,type:"ptp"})}}>PTP</Btn>
           {r.dpd>30&&<Btn size="sm" variant="danger" onClick={e=>{e.stopPropagation();addCollectionAction(r.id,"Letter of Demand","Formal NCA demand issued.",{channel:"Letter"})}}>Demand</Btn>}
           {r.dpd>30&&<Btn size="sm" variant="ghost" onClick={e=>{e.stopPropagation();setActionModal({loanId:r.id,type:"restructure"})}}>Restructure</Btn>}
           {r.dpd>90&&<Btn size="sm" variant="danger" onClick={e=>{e.stopPropagation();addCollectionAction(r.id,"Legal Handover","Referred to Legal Department for recovery.",{channel:"Legal"})}}>Legal</Btn>}
           {r.dpd>90&&<Btn size="sm" variant="ghost" onClick={e=>{e.stopPropagation();setActionModal({loanId:r.id,type:"writeoff"})}}>Write-Off</Btn>}
-        </div> : <span style={{fontSize:10,color:C.textMuted }}>View only</span> },
+        </div> : <span style={{ fontSize:10, color:C.textMuted }}>View only</span> },
       ]} rows={delinquent.sort((a,b)=>b.dpd-a.dpd)} onRowClick={r=>setDetail({type:"loan",id:r.id})} />}
 
       {tab==="activity" && <Table columns={[
@@ -1692,10 +1717,10 @@ export default function App() {
         { label:"Loan", key:"loanId" },
         { label:"Borrower", render:r=>cust(r.custId)?.name },
         { label:"Stage", render:r=>statusBadge(r.stage) },
-        { label:"Action", render:r=><span style={{fontWeight:600 }}>{r.action}</span> },
+        { label:"Action", render:r=><span style={{ fontWeight:600 }}>{r.action}</span> },
         { label:"Channel", key:"channel" },
         { label:"Officer", key:"officer" },
-        { label:"Notes", render:r=><span style={{fontSize:11,color:C.textDim,maxWidth:250,overflow:"hidden",textOverflow:"ellipsis",display:"inline-block",whiteSpace:"nowrap" }}>{r.notes}</span> },
+        { label:"Notes", render:r=><span style={{ fontSize:11, color:C.textDim, maxWidth:250, overflow:"hidden", textOverflow:"ellipsis", display:"inline-block", whiteSpace:"nowrap" }}>{r.notes}</span> },
       ]} rows={[...collections].sort((a,b)=>b.created-a.created)} />}
 
       {tab==="ptp" && <div>
@@ -1705,7 +1730,7 @@ export default function App() {
           { label:"PTP Date", render:r=>fmt.date(r.ptpDate) },
           { label:"PTP Amount", render:r=>fmt.cur(r.ptpAmount) },
           { label:"Status", render:r=>{
-            if (!r.ptpDate) return <span style={{color:C.textMuted }}>—</span>;
+            if (!r.ptpDate) return <span style={{ color:C.textMuted }}>—</span>;
             const met = loans.find(l=>l.id===r.loanId)?.payments?.some(p=>p.date>=r.created&&p.amount>=r.ptpAmount);
             return met ? <Badge color="green">Honoured</Badge> : r.ptpDate > Date.now() ? <Badge color="amber">Pending</Badge> : <Badge color="red">Broken</Badge>;
           }},
@@ -1720,7 +1745,7 @@ export default function App() {
           { label:"Borrower", render:r=>cust(r.custId)?.name },
           { label:"Balance", render:r=>fmt.cur(loans.find(l=>l.id===r.loanId)?.balance||0) },
           { label:"DPD", render:r=>r.dpd },
-          { label:"Reason", render:r=><span style={{fontSize:11,color:C.textDim }}>{r.notes}</span> },
+          { label:"Reason", render:r=><span style={{ fontSize:11, color:C.textDim }}>{r.notes}</span> },
           { label:"Proposed By", key:"officer" },
           { label:"Date", render:r=>fmt.date(r.created) },
           { label:"Action", render:r=>{
@@ -1733,13 +1758,13 @@ export default function App() {
 
       {/* PTP Modal */}
       <Modal open={actionModal?.type==="ptp"} onClose={()=>setActionModal(null)} title={`Promise-to-Pay — ${actionModal?.loanId}`} width={440}>
-        <div style={{fontSize:12,color:C.textDim,marginBottom:12 }}>Record a payment commitment from the customer.</div>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10 }}>
+        <div style={{ fontSize:12, color:C.textDim, marginBottom:12 }}>Record a payment commitment from the customer.</div>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
           <Field label="PTP Date"><Input type="date" value={ptpForm.date} onChange={e=>setPtpForm({...ptpForm,date:e.target.value})} /></Field>
           <Field label="PTP Amount (R)"><Input type="number" value={ptpForm.amount} onChange={e=>setPtpForm({...ptpForm,amount:e.target.value})} /></Field>
         </div>
         <Field label="Notes"><Textarea value={ptpForm.notes} onChange={e=>setPtpForm({...ptpForm,notes:e.target.value})} rows={2} placeholder="Context from call..." /></Field>
-        <div style={{display:"flex",gap:8,marginTop:12 }}>
+        <div style={{ display:"flex", gap:8, marginTop:12 }}>
           <Btn onClick={()=>{if(ptpForm.date&&ptpForm.amount){createPTP(actionModal.loanId,ptpForm.date,ptpForm.amount,ptpForm.notes);setActionModal(null);setPtpForm({date:"",amount:"",notes:""})}}} disabled={!ptpForm.date||!ptpForm.amount}>Record PTP</Btn>
           <Btn variant="ghost" onClick={()=>setActionModal(null)}>Cancel</Btn>
         </div>
@@ -1747,11 +1772,11 @@ export default function App() {
 
       {/* Restructure Modal */}
       <Modal open={actionModal?.type==="restructure"} onClose={()=>setActionModal(null)} title={`Restructuring Proposal — ${actionModal?.loanId}`} width={480}>
-        <div style={{fontSize:12,color:C.textDim,marginBottom:12 }}>Propose a restructuring plan. Requires Credit Committee or Head of Credit approval.</div>
+        <div style={{ fontSize:12, color:C.textDim, marginBottom:12 }}>Propose a restructuring plan. Requires Credit Committee or Head of Credit approval.</div>
         <Field label="Restructure Type"><Select value={restructForm.type} onChange={e=>setRestructForm({...restructForm,type:e.target.value})} options={["Term Extension","Payment Holiday","Rate Reduction","Reduced Instalments","Combined"].map(v=>({value:v,label:v}))} /></Field>
         <Field label="Proposal Detail"><Textarea value={restructForm.detail} onChange={e=>setRestructForm({...restructForm,detail:e.target.value})} rows={3} placeholder="e.g. Extend term by 6 months with 3-month reduced payment plan..." /></Field>
         <Field label="Approval Required From"><Select value={restructForm.approver} onChange={e=>setRestructForm({...restructForm,approver:e.target.value})} options={["Collections Manager","Head of Credit","Credit Committee"].map(v=>({value:v,label:v}))} /></Field>
-        <div style={{display:"flex",gap:8,marginTop:12 }}>
+        <div style={{ display:"flex", gap:8, marginTop:12 }}>
           <Btn onClick={()=>{if(restructForm.detail){proposeRestructure(actionModal.loanId,restructForm);setActionModal(null);setRestructForm({type:"Term Extension",detail:"",approver:"Credit Committee"})}}} disabled={!restructForm.detail}>Submit Proposal</Btn>
           <Btn variant="ghost" onClick={()=>setActionModal(null)}>Cancel</Btn>
         </div>
@@ -1759,9 +1784,9 @@ export default function App() {
 
       {/* Write-Off Modal */}
       <Modal open={actionModal?.type==="writeoff"} onClose={()=>setActionModal(null)} title={`Write-Off Proposal — ${actionModal?.loanId}`} width={440}>
-        <div style={{fontSize:12,color:C.textDim,marginBottom:12 }}>Propose this loan for write-off. Requires Credit Committee approval.</div>
+        <div style={{ fontSize:12, color:C.textDim, marginBottom:12 }}>Propose this loan for write-off. Requires Credit Committee approval.</div>
         <Field label="Reason / Justification"><Textarea value={writeOffReason} onChange={e=>setWriteOffReason(e.target.value)} rows={3} placeholder="e.g. Debtor absconded, no assets, recovery unviable..." /></Field>
-        <div style={{display:"flex",gap:8,marginTop:12 }}>
+        <div style={{ display:"flex", gap:8, marginTop:12 }}>
           <Btn variant="danger" onClick={()=>{if(writeOffReason){proposeWriteOff(actionModal.loanId,writeOffReason);setActionModal(null);setWriteOffReason("")}}} disabled={!writeOffReason}>Submit Write-Off Proposal</Btn>
           <Btn variant="ghost" onClick={()=>setActionModal(null)}>Cancel</Btn>
         </div>
@@ -1773,9 +1798,9 @@ export default function App() {
     const totalECL = provisions.reduce((s,p)=>s+p.ecl,0);
     const totalEAD = provisions.reduce((s,p)=>s+p.ead,0);
     return (<div>
-      <h2 style={{margin:"0 0 4px",fontSize:22,fontWeight:700,color:C.text }}>IFRS 9 Impairment & Provisioning</h2>
-      <p style={{margin:"0 0 20px",fontSize:13,color:C.textMuted }}>Expected Credit Loss calculation, staging & forward-looking ECL models</p>
-      <div style={{display:"flex",gap:12,flexWrap:"wrap",marginBottom:20 }}>
+      <h2 style={{ margin:"0 0 4px", fontSize:22, fontWeight:700, color:C.text }}>IFRS 9 Impairment & Provisioning</h2>
+      <p style={{ margin:"0 0 20px", fontSize:13, color:C.textMuted }}>Expected Credit Loss calculation, staging & forward-looking ECL models</p>
+      <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:20 }}>
         <KPI label="Total ECL Provision" value={fmt.cur(totalECL)} accent={C.purple} />
         <KPI label="Total EAD" value={fmt.cur(totalEAD)} accent={C.blue} />
         <KPI label="Coverage Ratio" value={fmt.pct(totalECL / totalEAD)} accent={C.amber} />
@@ -1783,16 +1808,16 @@ export default function App() {
       </div>
       <SectionCard title="ECL by Loan">
         <Table columns={[
-          { label:"Loan ID", render:r=><span style={{fontFamily:"monospace",fontWeight:600,fontSize:12 }}>{r.loanId}</span> },
+          { label:"Loan ID", render:r=><span style={{ fontFamily:"monospace", fontWeight:600, fontSize:12 }}>{r.loanId}</span> },
           { label:"Borrower", render:r=>cust(loans.find(l=>l.id===r.loanId)?.custId)?.name },
           { label:"Stage", render:r=><Badge color={r.stage===1?"green":r.stage===2?"amber":"red"}>Stage {r.stage}</Badge> },
           { label:"EAD", render:r=>fmt.cur(r.ead) },
           { label:"PD", render:r=>fmt.pct(r.pd) },
           { label:"LGD", render:r=>fmt.pct(r.lgd,0) },
-          { label:"ECL", render:r=><span style={{fontWeight:700,color:C.purple }}>{fmt.cur(r.ecl)}</span> },
-          { label:"Method", render:r=><span style={{fontSize:11,color:C.textDim }}>{r.method}</span> },
+          { label:"ECL", render:r=><span style={{ fontWeight:700, color:C.purple }}>{fmt.cur(r.ecl)}</span> },
+          { label:"Method", render:r=><span style={{ fontSize:11, color:C.textDim }}>{r.method}</span> },
         ]} rows={provisions} />
-        <div style={{textAlign:"right",marginTop:14,fontSize:15,fontWeight:700,color:C.text }}>Total ECL: <span style={{color:C.purple }}>{fmt.cur(totalECL)}</span></div>
+        <div style={{ textAlign:"right", marginTop:14, fontSize:15, fontWeight:700, color:C.text }}>Total ECL: <span style={{ color:C.purple }}>{fmt.cur(totalECL)}</span></div>
       </SectionCard>
       <SectionCard title="IFRS 9 Stage Distribution">
         {[1,2,3].map(s => {
@@ -1802,8 +1827,8 @@ export default function App() {
           const colors = {1:C.green,2:C.amber,3:C.red};
           const labels = {1:"Performing (12-month ECL)",2:"Underperforming (Lifetime ECL)",3:"Credit-impaired (Lifetime ECL)"};
           return (<div key={s} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"12px 0", borderBottom:`1px solid ${C.border}` }}>
-            <div><Badge color={s===1?"green":s===2?"amber":"red"}>Stage {s}</Badge><span style={{fontSize:12,color:C.textDim,marginLeft:10 }}>{labels[s]}</span></div>
-            <div style={{textAlign:"right" }}><div style={{fontSize:14,fontWeight:700,color:C.text }}>EAD: {fmt.cur(ead)}</div><div style={{fontSize:12,color:colors[s] }}>ECL: {fmt.cur(ecl)}</div></div>
+            <div><Badge color={s===1?"green":s===2?"amber":"red"}>Stage {s}</Badge><span style={{ fontSize:12, color:C.textDim, marginLeft:10 }}>{labels[s]}</span></div>
+            <div style={{ textAlign:"right" }}><div style={{ fontSize:14, fontWeight:700, color:C.text }}>EAD: {fmt.cur(ead)}</div><div style={{ fontSize:12, color:colors[s] }}>ECL: {fmt.cur(ecl)}</div></div>
           </div>);
         })}
       </SectionCard>
@@ -1833,9 +1858,9 @@ export default function App() {
     ];
 
     return (<div>
-      <h2 style={{margin:"0 0 4px",fontSize:22,fontWeight:700,color:C.text }}>Governance, Risk & Compliance</h2>
-      <p style={{margin:"0 0 16px",fontSize:13,color:C.textMuted }}>Audit trail, control points, approval authorities, regulatory compliance & alerts</p>
-      <div style={{display:"flex",gap:12,flexWrap:"wrap",marginBottom:16 }}>
+      <h2 style={{ margin:"0 0 4px", fontSize:22, fontWeight:700, color:C.text }}>Governance, Risk & Compliance</h2>
+      <p style={{ margin:"0 0 16px", fontSize:13, color:C.textMuted }}>Audit trail, control points, approval authorities, regulatory compliance & alerts</p>
+      <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:16 }}>
         <KPI label="Audit Entries" value={audit.length} />
         <KPI label="Controls Active" value={controlPoints.filter(c=>c.ok).length} sub={`of ${controlPoints.length}`} />
         <KPI label="Unread Alerts" value={alerts.filter(a=>!a.read).length} />
@@ -1850,7 +1875,7 @@ export default function App() {
       ]} active={tab} onChange={setTab} />
 
       {tab==="audit" && <div>
-        <div style={{display:"flex",gap:8,marginBottom:10 }}>
+        <div style={{ display:"flex", gap:8, marginBottom:10 }}>
           <select value={auditFilter.category} onChange={e=>setAuditFilter({...auditFilter,category:e.target.value})} style={{ padding:"4px 6px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:11, fontFamily:"inherit" }}>
             <option value="">All Categories</option>
             {categories.map(c=><option key={c} value={c}>{c}</option>)}
@@ -1861,33 +1886,33 @@ export default function App() {
           </select>
           <input value={auditFilter.entity} onChange={e=>setAuditFilter({...auditFilter,entity:e.target.value})} placeholder="Filter by entity ID..." style={{ padding:"4px 6px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:11, fontFamily:"inherit", width:160 }} />
           {(auditFilter.category||auditFilter.user||auditFilter.entity) && <Btn size="sm" variant="ghost" onClick={()=>setAuditFilter({category:"",user:"",entity:""})}>Clear</Btn>}
-          <span style={{fontSize:10,color:C.textMuted,alignSelf:"center" }}>{filteredAudit.length} of {audit.length} entries</span>
+          <span style={{ fontSize:10, color:C.textMuted, alignSelf:"center" }}>{filteredAudit.length} of {audit.length} entries</span>
         </div>
         <Table columns={[
           { label:"Timestamp", render:r=>fmt.dateTime(r.ts) },
           { label:"Category", render:r=><Badge color={r.category==="Risk"||r.category==="Collections"?"red":r.category==="Compliance"?"amber":r.category==="Decision"?"purple":"cyan"}>{r.category}</Badge> },
-          { label:"Action", render:r=><span style={{fontWeight:600 }}>{r.action}</span> },
-          { label:"Entity", render:r=><span style={{fontFamily:"monospace",fontSize:11 }}>{r.entity}</span> },
+          { label:"Action", render:r=><span style={{ fontWeight:600 }}>{r.action}</span> },
+          { label:"Entity", render:r=><span style={{ fontFamily:"monospace", fontSize:11 }}>{r.entity}</span> },
           { label:"User", key:"user" },
-          { label:"Detail", render:r=><span style={{fontSize:11,color:C.textDim,maxWidth:300,overflow:"hidden",textOverflow:"ellipsis",display:"inline-block",whiteSpace:"nowrap" }}>{r.detail}</span> },
+          { label:"Detail", render:r=><span style={{ fontSize:11, color:C.textDim, maxWidth:300, overflow:"hidden", textOverflow:"ellipsis", display:"inline-block", whiteSpace:"nowrap" }}>{r.detail}</span> },
         ]} rows={filteredAudit.slice(0,50)} />
-        {filteredAudit.length > 50 && <div style={{fontSize:11,color:C.textMuted,marginTop:8 }}>Showing 50 of {filteredAudit.length} entries. Use filters to narrow.</div>}
+        {filteredAudit.length > 50 && <div style={{ fontSize:11, color:C.textMuted, marginTop:8 }}>Showing 50 of {filteredAudit.length} entries. Use filters to narrow.</div>}
       </div>}
 
       {tab==="controls" && <div>
         <Table columns={[
-          { label:"Control", render:r=><span style={{fontWeight:600 }}>{r.control}</span> },
-          { label:"Module", render:r=><span style={{fontSize:11,color:C.textDim }}>{r.module}</span> },
-          { label:"Status", render:r=><span style={{fontSize:12,color:r.ok?C.green:C.red,fontWeight:500 }}>{r.status}</span> },
+          { label:"Control", render:r=><span style={{ fontWeight:600 }}>{r.control}</span> },
+          { label:"Module", render:r=><span style={{ fontSize:11, color:C.textDim }}>{r.module}</span> },
+          { label:"Status", render:r=><span style={{ fontSize:12, color:r.ok?C.green:C.red, fontWeight:500 }}>{r.status}</span> },
           { label:"Health", render:r=>r.ok ? <Badge color="green">OK</Badge> : <Badge color="red">Attention</Badge> },
         ]} rows={controlPoints} />
       </div>}
 
       {tab==="authority" && <SectionCard title="Credit Approval Authority Matrix (Live)">
         <Table columns={[
-          { label:"Role", render:r=><span style={{fontWeight:500 }}>{ROLES[r.role]?.label}</span> },
-          { label:"Approval Limit", render:r=>r.limit===Infinity ? "Unlimited" : r.limit > 0 ? fmt.cur(r.limit) : <span style={{color:C.textMuted }}>No approval authority</span> },
-          { label:"Current Users", render:r=>SYSTEM_USERS.filter(u=>u.role===r.role).map(u=>u.name).join(", ") || <span style={{color:C.textMuted }}>—</span> },
+          { label:"Role", render:r=><span style={{ fontWeight:500 }}>{ROLES[r.role]?.label}</span> },
+          { label:"Approval Limit", render:r=>r.limit===Infinity ? "Unlimited" : r.limit > 0 ? fmt.cur(r.limit) : <span style={{ color:C.textMuted }}>No approval authority</span> },
+          { label:"Current Users", render:r=>SYSTEM_USERS.filter(u=>u.role===r.role).map(u=>u.name).join(", ") || <span style={{ color:C.textMuted }}>—</span> },
           { label:"Tier", render:r=>ROLES[r.role]?.tier },
         ]} rows={Object.keys(ROLES).map(k=>({role:k,limit:APPROVAL_LIMITS[k]||0}))} />
       </SectionCard>}
@@ -1914,24 +1939,24 @@ export default function App() {
             ["Debt Collectors Act 114 of 1998","Collection conduct standards. Enforced: staged collections, NCA-compliant demand process."],
           ].map(([name, desc], i) => (
             <div key={i} style={{ padding:"10px 0", borderBottom:`1px solid ${C.border}` }}>
-              <div style={{fontSize:13,fontWeight:600,color:C.accent }}>{name}</div>
-              <div style={{fontSize:12,color:C.textDim,marginTop:2 }}>{desc}</div>
+              <div style={{ fontSize:13, fontWeight:600, color:C.accent }}>{name}</div>
+              <div style={{ fontSize:12, color:C.textDim, marginTop:2 }}>{desc}</div>
             </div>
           ))}
         </SectionCard>
       </div>}
 
       {tab==="alerts" && <div>
-        <div style={{display:"flex",gap:8,marginBottom:10 }}>
-          <span style={{fontSize:11,color:C.textMuted }}>{alerts.filter(a=>!a.read).length} unread of {alerts.length} total</span>
+        <div style={{ display:"flex", gap:8, marginBottom:10 }}>
+          <span style={{ fontSize:11, color:C.textMuted }}>{alerts.filter(a=>!a.read).length} unread of {alerts.length} total</span>
           {canDo("governance","update") && alerts.some(a=>!a.read) && <Btn size="sm" variant="ghost" onClick={()=>save({...data,alerts:alerts.map(a=>({...a,read:true}))})}>Mark All Read</Btn>}
         </div>
         <Table columns={[
           { label:"Date", render:r=>fmt.dateTime(r.ts) },
           { label:"Severity", render:r=><Badge color={r.severity==="critical"?"red":r.severity==="warning"?"amber":"blue"}>{r.severity}</Badge> },
           { label:"Type", render:r=><Badge color="cyan">{r.type}</Badge> },
-          { label:"Title", render:r=><span style={{fontWeight:600 }}>{r.title}</span> },
-          { label:"Message", render:r=><span style={{fontSize:11,color:C.textDim,maxWidth:300,overflow:"hidden",textOverflow:"ellipsis",display:"inline-block",whiteSpace:"nowrap" }}>{r.msg}</span> },
+          { label:"Title", render:r=><span style={{ fontWeight:600 }}>{r.title}</span> },
+          { label:"Message", render:r=><span style={{ fontSize:11, color:C.textDim, maxWidth:300, overflow:"hidden", textOverflow:"ellipsis", display:"inline-block", whiteSpace:"nowrap" }}>{r.msg}</span> },
           { label:"Status", render:r=>r.read?<Badge color="slate">Read</Badge>:<Badge color="amber">Unread</Badge> },
           { label:"", render:r=>!r.read && canDo("governance","update") ? <Btn size="sm" variant="ghost" onClick={e=>{e.stopPropagation();markRead(r.id)}}>Dismiss</Btn> : null },
         ]} rows={[...alerts].sort((a,b)=>b.ts-a.ts)} />
@@ -1947,38 +1972,213 @@ export default function App() {
   function StatutoryReporting() {
     const reports = statutoryReports || [];
     const [tab, setTab] = useState("upcoming");
+    const today = new Date();
     const upcoming = reports.filter(r => r.status !== "Submitted").sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
     const submitted = reports.filter(r => r.status === "Submitted");
-    const daysUntil = d => Math.ceil((new Date(d) - new Date()) / 864e5);
+    const daysUntil = d => { const diff = Math.ceil((new Date(d) - today) / 864e5); return diff; };
+
+    const urgencyColor = days => days < 0 ? C.red : days <= 30 ? C.red : days <= 60 ? C.amber : C.textDim;
+    const urgencyBadge = days => days < 0 ? <span style={{ fontSize:11, fontWeight:600, color:C.red }}>OVERDUE ({Math.abs(days)}d)</span> : days <= 14 ? <span style={{ fontSize:11, fontWeight:600, color:C.red }}>{days}d – Urgent</span> : days <= 30 ? <span style={{ fontSize:11, fontWeight:600, color:C.red }}>{days} days</span> : days <= 60 ? <span style={{ fontSize:11, fontWeight:500, color:C.amber }}>{days} days</span> : <span style={{ fontSize:11, color:C.textDim }}>{days} days</span>;
+
+    const totalDisbursedAmt = loans.reduce((s,l)=>s+l.amount,0);
+    const form39Frequency = totalDisbursedAmt > 15000000 ? "Quarterly" : "Annual";
+
     return (<div>
-      <h2 style={{margin:"0 0 4px",fontSize:22,fontWeight:700,color:C.text}}>NCR Statutory Reporting</h2>
-      <p style={{margin:"0 0 16px",fontSize:13,color:C.textMuted}}>Regulatory reporting calendar & submission tracking — NCRCP22396</p>
-      <div style={{display:"flex",gap:12,flexWrap:"wrap",marginBottom:16}}>
-        <KPI label="Pending" value={upcoming.length} />
-        <KPI label="Submitted" value={submitted.length} />
-        <KPI label="Form 39" value={loans.reduce((s,l)=>s+l.amount,0)>15000000?"Quarterly":"Annual"} />
+      <h2 style={{ margin:"0 0 4px", fontSize:22, fontWeight:700, color:C.text }}>NCR Statutory Reporting</h2>
+      <p style={{ margin:"0 0 20px", fontSize:13, color:C.textMuted }}>Regulatory reporting calendar, deadlines & submission tracking — NCRCP22396</p>
+
+      {/* Critical deadline banner */}
+      {upcoming.length > 0 && (() => {
+        const next = upcoming[0];
+        const days = daysUntil(next.dueDate);
+        return (
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, padding: "12px 16px", marginBottom: 20, display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{ flexShrink: 0 }}>{I.warning}</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>Next Deadline: {next.name}</div>
+              <div style={{ fontSize: 12, color: C.textDim, marginTop: 2 }}>Due: {fmt.date(new Date(next.dueDate))} · Period: {next.period} · Submit to: {next.submitTo}</div>
+            </div>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: 28, fontWeight: 800, color: urgencyColor(days), lineHeight: 1 }}>{days < 0 ? "OVERDUE" : days}</div>
+              <div style={{ fontSize: 10, color: C.textMuted, marginTop: 2 }}>{days < 0 ? `${Math.abs(days)} days overdue` : "days remaining"}</div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* KPI row */}
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 24 }}>
+        <KPI label="Pending Reports" value={upcoming.length} accent={C.amber} sub={`${upcoming.filter(r => daysUntil(r.dueDate) <= 60).length} due within 60 days`} />
+        <KPI label="Submitted" value={submitted.length} accent={C.green} />
+        <KPI label="Form 39 Frequency" value={form39Frequency} sub={`Disbursements: ${fmt.cur(totalDisbursedAmt)} ${totalDisbursedAmt > 15000000 ? "(> R15M)" : "(< R15M)"}`} accent={C.blue} />
+        <KPI label="Year-End" value={settings.yearEnd || "28 Feb 2026"} sub={`Annual reports due: ${settings.annualDueDate || "31 Aug 2026"}`} accent={C.purple} />
       </div>
-      <Tab tabs={[{key:"upcoming",label:"Upcoming",count:upcoming.length},{key:"submitted",label:"Submitted",count:submitted.length}]} active={tab} onChange={setTab} />
-      {tab==="upcoming" && <div>{upcoming.map(r=>{const days=daysUntil(r.dueDate);return(<div key={r.id} style={{background:C.surface,border:`1px solid ${C.border}`,padding:"10px 14px",marginBottom:6}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-          <div><span style={{fontSize:13,fontWeight:700,color:C.text}}>{r.name}</span> <Badge color={r.type==="Form 39"?"blue":"purple"}>{r.type}</Badge> {statusBadge(r.status)}</div>
-          <span style={{fontSize:13,fontWeight:700,color:days<30?C.red:days<60?C.amber:C.textDim}}>{days<0?`OVERDUE (${Math.abs(days)}d)`:days+"d"}</span>
-        </div>
-        <div style={{fontSize:11,color:C.textDim,marginBottom:6}}>Due: {fmt.date(new Date(r.dueDate))} · Period: {r.period} · To: {r.submitTo}</div>
-        <div style={{fontSize:11,color:C.textDim,marginBottom:6}}>{r.notes}</div>
-        <div style={{display:"flex",gap:6}}>
-          {r.status==="Not Started"&&canDo("statutory","update")&&<Btn size="sm" variant="secondary" onClick={()=>updateStatutoryStatus(r.id,"In Progress")}>Start</Btn>}
-          {r.status==="In Progress"&&canDo("statutory","update")&&<Btn size="sm" variant="secondary" onClick={()=>updateStatutoryStatus(r.id,"Under Review")}>Submit for Review</Btn>}
-          {r.status==="Under Review"&&canDo("statutory","update")&&<Btn size="sm" onClick={()=>updateStatutoryStatus(r.id,"Submitted")}>Mark Submitted</Btn>}
-        </div>
-      </div>)})}</div>}
-      {tab==="submitted" && <Table columns={[
-        {label:"Report",render:r=><span style={{fontWeight:600}}>{r.name}</span>},
-        {label:"Type",render:r=><Badge color={r.type==="Form 39"?"blue":"purple"}>{r.type}</Badge>},
-        {label:"Period",key:"period"},
-        {label:"Submitted",render:r=>r.submittedDate||"—"},
-        {label:"Status",render:r=>statusBadge(r.status)},
-      ]} rows={submitted} />}
+
+      <Tab tabs={[
+        { key: "upcoming", label: "Upcoming Deadlines", count: upcoming.length },
+        { key: "calendar", label: "Full Calendar" },
+        { key: "submitted", label: "Submitted", count: submitted.length },
+        { key: "guide", label: "Submission Guide" },
+      ]} active={tab} onChange={setTab} />
+
+      {tab === "upcoming" && (<div>
+        {upcoming.map(r => {
+          const days = daysUntil(r.dueDate);
+          return (
+            <div key={r.id} style={{ background: C.surface, border: `1px solid ${C.border}`, padding: "12px 16px", marginBottom: 8 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{r.name}</span>
+                    <Badge color={r.type === "Form 39" ? "blue" : "purple"}>{r.type}</Badge>
+                    {statusBadge(r.status)}
+                  </div>
+                  <div style={{ fontSize: 12, color: C.textDim }}>Period: {r.period} · Submit to: <span style={{ color: C.accent, fontWeight: 600 }}>{r.submitTo}</span></div>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  {urgencyBadge(days)}
+                  <div style={{ fontSize: 11, color: C.textMuted, marginTop: 4 }}>Due: {fmt.date(new Date(r.dueDate))}</div>
+                </div>
+              </div>
+              <div style={{ fontSize: 12, color: C.textDim, marginBottom: 10, lineHeight: 1.5 }}>{r.notes}</div>
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                {r.status === "Not Started" && canDo("statutory","update") && <Btn size="sm" variant="secondary" onClick={() => updateStatutoryStatus(r.id, "In Progress")}>Start Preparation</Btn>}
+                {r.status === "In Progress" && canDo("statutory","update") && <Btn size="sm" variant="secondary" onClick={() => updateStatutoryStatus(r.id, "Under Review")}>Submit for Review</Btn>}
+                {r.status === "Under Review" && canDo("statutory","update") && <Btn size="sm" onClick={() => updateStatutoryStatus(r.id, "Submitted")}>Mark as Submitted</Btn>}
+                {!canDo("statutory","update") && <span style={{ fontSize:10, color:C.textMuted }}>View only</span>}
+                {r.preparer && <span style={{ fontSize: 11, color: C.textMuted }}>Preparer: {r.preparer}</span>}
+                {r.reviewer && <span style={{ fontSize: 11, color: C.textMuted }}>Reviewer: {r.reviewer}</span>}
+              </div>
+              {/* Countdown bar */}
+              <div style={{ marginTop: 10 }}>
+                <ProgressBar value={Math.max(0, 100 - Math.max(0, days) / 1.8)} color={urgencyColor(days)} height={4} />
+              </div>
+            </div>
+          );
+        })}
+      </div>)}
+
+      {tab === "calendar" && (<div>
+        <SectionCard title="Annual Statutory Reports (Due within 6 months of year-end)">
+          <div style={{ fontSize: 12, color: C.textDim, marginBottom: 14, lineHeight: 1.6, padding: "10px 14px", background: C.surface2 }}>
+            Credit providers registered under the NCA must submit the following reports to the NCR within <span style={{ fontWeight: 600, color: C.text }}>6 months</span> of their financial year-end. Year-end: <span style={{ fontWeight: 600, color: C.text }}>{settings.yearEnd}</span> → Deadline: <span style={{ fontWeight: 600, color: C.red }}>{settings.annualDueDate}</span>
+          </div>
+          <Table columns={[
+            { label: "Report", render: r => <span style={{ fontWeight: 600 }}>{r.name}</span> },
+            { label: "Period", key: "period" },
+            { label: "Due Date", render: r => <span style={{ fontWeight: 700, color: urgencyColor(daysUntil(r.dueDate)) }}>{fmt.date(new Date(r.dueDate))}</span> },
+            { label: "Days Left", render: r => urgencyBadge(daysUntil(r.dueDate)) },
+            { label: "Submit To", render: r => <span style={{ fontSize: 11, color: C.accent }}>{r.submitTo}</span> },
+            { label: "Status", render: r => statusBadge(r.status) },
+          ]} rows={reports.filter(r => r.type === "Annual" && r.status !== "Submitted")} />
+        </SectionCard>
+
+        <SectionCard title="Form 39 – Statistical Returns (Quarterly)">
+          <div style={{ fontSize: 12, color: C.textDim, marginBottom: 14, lineHeight: 1.6, padding: "10px 14px", background: C.surface2 }}>
+            Annual disbursements: <span style={{ fontWeight: 700, color: C.text }}>{fmt.cur(totalDisbursedAmt)}</span> — {totalDisbursedAmt > 15000000
+              ? <span style={{ color: C.red, fontWeight: 700 }}>Exceeds R15 million → Form 39 must be submitted QUARTERLY</span>
+              : <span style={{ color: C.green, fontWeight: 700 }}>Below R15 million → Form 39 submitted annually (1 Jan – 31 Dec)</span>
+            }
+          </div>
+          <Table columns={[
+            { label: "Quarter", render: r => <span style={{ fontWeight: 600 }}>{r.name}</span> },
+            { label: "Period", key: "period" },
+            { label: "Due Date", render: r => <span style={{ fontWeight: 700, color: urgencyColor(daysUntil(r.dueDate)) }}>{fmt.date(new Date(r.dueDate))}</span> },
+            { label: "Days Left", render: r => urgencyBadge(daysUntil(r.dueDate)) },
+            { label: "Status", render: r => statusBadge(r.status) },
+          ]} rows={reports.filter(r => r.type === "Form 39")} />
+
+          <div style={{ marginTop: 16, padding: "12px 14px", background: C.surface2 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: C.text, marginBottom: 8 }}>Form 39 Quarterly Schedule</div>
+            <table style={{ width: "100%", fontSize: 12, color: C.textDim, borderCollapse: "collapse" }}>
+              <thead><tr style={{ borderBottom: `1px solid ${C.border}` }}>
+                <th style={{ textAlign: "left", padding: "6px 10px", fontWeight: 600, color: C.textMuted, fontSize: 10, textTransform: "uppercase" }}>Quarter</th>
+                <th style={{ textAlign: "left", padding: "6px 10px", fontWeight: 600, color: C.textMuted, fontSize: 10, textTransform: "uppercase" }}>Reporting Period</th>
+                <th style={{ textAlign: "left", padding: "6px 10px", fontWeight: 600, color: C.textMuted, fontSize: 10, textTransform: "uppercase" }}>Due Date</th>
+              </tr></thead>
+              <tbody>
+                {[["Q1","1 January – 31 March","15 May"],["Q2","1 April – 30 June","15 August"],["Q3","1 July – 30 September","15 November"],["Q4","1 October – 31 December","15 February (following year)"]].map(([q,p,d],i) => (
+                  <tr key={i} style={{ borderBottom: `1px solid ${C.border}` }}>
+                    <td style={{ padding: "8px 10px", fontWeight: 600, color: C.accent }}>{q}</td>
+                    <td style={{ padding: "8px 10px" }}>{p}</td>
+                    <td style={{ padding: "8px 10px", fontWeight: 700, color: C.amber }}>{d}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </SectionCard>
+      </div>)}
+
+      {tab === "submitted" && (
+        <Table columns={[
+          { label: "Report", render: r => <span style={{ fontWeight: 600 }}>{r.name}</span> },
+          { label: "Type", render: r => <Badge color={r.type === "Form 39" ? "blue" : "purple"}>{r.type}</Badge> },
+          { label: "Period", key: "period" },
+          { label: "Due Date", render: r => fmt.date(new Date(r.dueDate)) },
+          { label: "Submitted", render: r => <span style={{ fontWeight: 600, color: C.green }}>{fmt.date(new Date(r.submittedDate))}</span> },
+          { label: "Submit To", render: r => <span style={{ fontSize: 11, color: C.accent }}>{r.submitTo}</span> },
+          { label: "Status", render: () => <Badge color="green">Submitted</Badge> },
+        ]} rows={submitted} />
+      )}
+
+      {tab === "guide" && (<div>
+        <SectionCard title="NCR Submission Requirements">
+          <div style={{ fontSize: 13, color: C.textDim, lineHeight: 1.8 }}>
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 6 }}>Annual Statutory Reports</div>
+              <div>Registered credit providers must submit the following within <span style={{ fontWeight: 700, color: C.amber }}>6 months of their financial year-end</span>:</div>
+              <div style={{ padding: "10px 0 10px 16px" }}>
+                {["Annual Compliance Report", "Annual Financial Statements (must include auditor's report)", "Annual Financial & Operational Return", "Assurance Engagement Report"].map((item, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 0" }}>
+                    <span style={{ color: C.accent }}>{I.check}</span>
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 6 }}>Form 39 – Statistical Returns</div>
+              <div style={{ padding: "8px 12px", background: C.surface2, border: `1px solid ${C.border}`, marginBottom: 10 }}>
+                <span style={{ fontWeight: 700 }}>Current annual disbursements: {fmt.cur(totalDisbursedAmt)}</span> — {totalDisbursedAmt > 15000000
+                  ? <span style={{ color: C.red, fontWeight: 700 }}>Exceeds R15 million → Quarterly submission required</span>
+                  : <span style={{ color: C.green, fontWeight: 700 }}>Below R15 million → Annual submission (1 Jan – 31 Dec)</span>
+                }
+              </div>
+            </div>
+
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 6 }}>Submission Channels</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                {[
+                  ["Annual Statutory Reports", "submissions@ncr.org.za", C.purple],
+                  ["Form 39 Statistical Returns", "returns@ncr.org.za", C.blue],
+                  ["Hand Delivery", settings.ncrAddress, C.amber],
+                  ["Courier / Post", settings.ncrPO, C.green],
+                ].map(([label, value, color], i) => (
+                  <div key={i} style={{ background: C.surface2, padding: "8px 12px", border: `1px solid ${C.border}` }}>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: C.textMuted, textTransform: "uppercase", letterSpacing: 0.5 }}>{label}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: C.accent, marginTop: 3, wordBreak: "break-all" }}>{value}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 6 }}>Company Details</div>
+              <InfoGrid items={[
+                ["Registered Name", settings.companyName],
+                ["NCR Registration", settings.ncrReg],
+                ["Registration Expiry", settings.ncrExpiry],
+                ["Branch", settings.branch],
+                ["Financial Year-End", settings.yearEnd || "28 February"],
+                ["Annual Reports Deadline", settings.annualDueDate || "31 August"],
+              ]} />
+            </div>
+          </div>
+        </SectionCard>
+      </div>)}
     </div>);
   }
 
@@ -1996,10 +2196,10 @@ export default function App() {
     const verified = docs.filter(d => d.status === "Verified");
 
     return (<div>
-      <h2 style={{margin:"0 0 4px",fontSize:22,fontWeight:700,color:C.text }}>Document Management</h2>
-      <p style={{margin:"0 0 16px",fontSize:13,color:C.textMuted }}>Centralised document registry — KYC/KYB, financial, legal, collateral & compliance</p>
+      <h2 style={{ margin:"0 0 4px", fontSize:22, fontWeight:700, color:C.text }}>Document Management</h2>
+      <p style={{ margin:"0 0 16px", fontSize:13, color:C.textMuted }}>Centralised document registry — KYC/KYB, financial, legal, collateral & compliance</p>
 
-      <div style={{display:"flex",gap:12,flexWrap:"wrap",marginBottom:16 }}>
+      <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:16 }}>
         <KPI label="Total Documents" value={docs.length} />
         <KPI label="Verified" value={verified.length} sub={`${Math.round(verified.length/docs.length*100)}% complete`} />
         <KPI label="Pending Action" value={pending.length} sub={pending.length > 0 ? `${pending.filter(d=>d.status==="Pending").length} outstanding` : "All received"} />
@@ -2021,39 +2221,39 @@ export default function App() {
       </div>
 
       <Table columns={[
-        { label:"Doc ID", render:r=><span style={{fontFamily:"monospace",fontSize:11 }}>{r.id}</span> },
-        { label:"Document Name", render:r=><span style={{fontWeight:500 }}>{r.name}</span> },
-        { label:"Category", render:r=><span style={{fontSize:11 }}>{r.category}</span> },
-        { label:"Type", render:r=><span style={{fontSize:11,color:C.textDim }}>{r.type}</span> },
-        { label:"Customer", render:r=><span style={{fontSize:12 }}>{cust(r.custId)?.name}</span> },
-        { label:"Linked To", render:r=><span style={{fontFamily:"monospace",fontSize:10,color:C.textDim }}>{[r.appId, r.loanId].filter(Boolean).join(" / ") || "—"}</span> },
+        { label:"Doc ID", render:r=><span style={{ fontFamily:"monospace", fontSize:11 }}>{r.id}</span> },
+        { label:"Document Name", render:r=><span style={{ fontWeight:500 }}>{r.name}</span> },
+        { label:"Category", render:r=><span style={{ fontSize:11 }}>{r.category}</span> },
+        { label:"Type", render:r=><span style={{ fontSize:11, color:C.textDim }}>{r.type}</span> },
+        { label:"Customer", render:r=><span style={{ fontSize:12 }}>{cust(r.custId)?.name}</span> },
+        { label:"Linked To", render:r=><span style={{ fontFamily:"monospace", fontSize:10, color:C.textDim }}>{[r.appId, r.loanId].filter(Boolean).join(" / ") || "—"}</span> },
         { label:"Status", render:r=>statusBadge(r.status) },
         { label:"Uploaded", render:r=>r.uploadedAt ? fmt.date(r.uploadedAt) : "—" },
-        { label:"Verified By", render:r=><span style={{fontSize:11,color:C.textDim }}>{r.verifiedBy || "—"}</span> },
+        { label:"Verified By", render:r=><span style={{ fontSize:11, color:C.textDim }}>{r.verifiedBy || "—"}</span> },
         { label:"Expiry", render:r=>{
-          if (!r.expiryDate) return <span style={{color:C.textMuted,fontSize:11 }}>N/A</span>;
+          if (!r.expiryDate) return <span style={{ color:C.textMuted, fontSize:11 }}>N/A</span>;
           const d = Math.ceil((r.expiryDate - now) / day);
-          return <span style={{fontSize:11,fontWeight:d<=30?600:400,color:d<=30?C.red:d<=90?C.amber:C.textDim }}>{fmt.date(r.expiryDate)} ({d}d)</span>;
+          return <span style={{ fontSize:11, fontWeight:d<=30?600:400, color:d<=30?C.red:d<=90?C.amber:C.textDim }}>{fmt.date(r.expiryDate)} ({d}d)</span>;
         }},
-        { label:"Req", render:r=>r.required ? <span style={{fontSize:10,fontWeight:500 }}>Yes</span> : <span style={{fontSize:10,color:C.textMuted }}>No</span> },
+        { label:"Req", render:r=>r.required ? <span style={{ fontSize:10, fontWeight:500 }}>Yes</span> : <span style={{ fontSize:10, color:C.textMuted }}>No</span> },
       ]} rows={filtered} />
 
       {/* Document checklist by customer */}
       {tab === "pending" && pending.length > 0 && (
-        <div style={{marginTop:20 }}>
+        <div style={{ marginTop:20 }}>
           <SectionCard title="Outstanding Documents by Customer">
             {Object.entries(pending.reduce((acc, d) => { const n = cust(d.custId)?.name || d.custId; (acc[n] = acc[n] || []).push(d); return acc; }, {})).map(([name, docs], i) => (
-              <div key={i} style={{marginBottom:12 }}>
-                <div style={{fontSize:13,fontWeight:600,color:C.text,marginBottom:6 }}>{name}</div>
+              <div key={i} style={{ marginBottom:12 }}>
+                <div style={{ fontSize:13, fontWeight:600, color:C.text, marginBottom:6 }}>{name}</div>
                 {docs.map((d, j) => (
                   <div key={j} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"4px 0", borderBottom:`1px solid ${C.border}`, fontSize:12 }}>
-                    <div style={{display:"flex",alignItems:"center",gap:8 }}>
-                      <span style={{color:C.textDim,width:60,fontSize:10 }}>{d.category}</span>
+                    <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                      <span style={{ color:C.textDim, width:60, fontSize:10 }}>{d.category}</span>
                       <span>{d.name}</span>
                     </div>
-                    <div style={{display:"flex",alignItems:"center",gap:8 }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                       {statusBadge(d.status)}
-                      {d.notes && <span style={{fontSize:10,color:C.textMuted,maxWidth:200,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",display:"inline-block" }}>{d.notes}</span>}
+                      {d.notes && <span style={{ fontSize:10, color:C.textMuted, maxWidth:200, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", display:"inline-block" }}>{d.notes}</span>}
                     </div>
                   </div>
                 ))}
@@ -2065,19 +2265,19 @@ export default function App() {
 
       {/* Expiry schedule */}
       {tab === "expiring" && expiring.length > 0 && (
-        <div style={{marginTop:20 }}>
+        <div style={{ marginTop:20 }}>
           <SectionCard title="Document Expiry Schedule">
             {expiring.sort((a,b)=>a.expiryDate-b.expiryDate).map((d, i) => {
               const daysLeft = Math.ceil((d.expiryDate - now) / day);
               return (
                 <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"6px 0", borderBottom:`1px solid ${C.border}` }}>
                   <div>
-                    <div style={{fontSize:12,fontWeight:500,color:C.text }}>{d.name}</div>
-                    <div style={{fontSize:11,color:C.textMuted }}>{cust(d.custId)?.name} · {d.type}</div>
+                    <div style={{ fontSize:12, fontWeight:500, color:C.text }}>{d.name}</div>
+                    <div style={{ fontSize:11, color:C.textMuted }}>{cust(d.custId)?.name} · {d.type}</div>
                   </div>
-                  <div style={{textAlign:"right" }}>
-                    <div style={{fontSize:12,fontWeight:600,color:daysLeft<=30?C.red:C.amber }}>{daysLeft} days</div>
-                    <div style={{fontSize:10,color:C.textMuted }}>Expires {fmt.date(d.expiryDate)}</div>
+                  <div style={{ textAlign:"right" }}>
+                    <div style={{ fontSize:12, fontWeight:600, color:daysLeft<=30?C.red:C.amber }}>{daysLeft} days</div>
+                    <div style={{ fontSize:10, color:C.textMuted }}>Expires {fmt.date(d.expiryDate)}</div>
                   </div>
                 </div>
               );
@@ -2104,25 +2304,25 @@ export default function App() {
     };
 
     return (<div>
-      <div style={{display:"flex",justifyContent:"space-between",marginBottom:16 }}>
-        <div><h2 style={{margin:0,fontSize:22,fontWeight:700,color:C.text }}>Reports & Analytics</h2><p style={{margin:"4px 0 0",fontSize:13,color:C.textMuted }}>Portfolio performance, risk analysis, collections, servicing & impact reporting</p></div>
-        {canDo("reports","export") && <div style={{display:"flex",gap:6 }}>
+      <div style={{ display:"flex", justifyContent:"space-between", marginBottom:16 }}>
+        <div><h2 style={{ margin:0, fontSize:22, fontWeight:700, color:C.text }}>Reports & Analytics</h2><p style={{ margin:"4px 0 0", fontSize:13, color:C.textMuted }}>Portfolio performance, risk analysis, collections, servicing & impact reporting</p></div>
+        {canDo("reports","export") && <div style={{ display:"flex", gap:6 }}>
           <Btn size="sm" variant="secondary" onClick={()=>exportCSV("Portfolio_Report",["Loan ID","Borrower","Amount","Balance","Rate","DPD","Stage","Status"],loans.map(l=>[l.id,cust(l.custId)?.name,l.amount,l.balance,l.rate,l.dpd,l.stage,l.status]))}>Export Portfolio</Btn>
           <Btn size="sm" variant="secondary" onClick={()=>exportCSV("Audit_Trail",["Timestamp","Category","Action","Entity","User","Detail"],audit.map(a=>[fmt.dateTime(a.ts),a.category,a.action,a.entity,a.user,a.detail]))}>Export Audit</Btn>
         </div>}
       </div>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16 }}>
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
         <SectionCard title="Portfolio Summary">
           {[["Total Loan Book",fmt.cur(totalBook)],["Active Loans",activeLoans.length],["Booked (Awaiting Disbursement)",loans.filter(l=>l.status==="Booked").length],["Settled",loans.filter(l=>l.status==="Settled").length],["Written Off",loans.filter(l=>l.status==="Written Off").length],["Total Disbursed",fmt.cur(loans.reduce((s,l)=>s+l.amount,0))],["Weighted Avg Rate",`${activeLoans.length?(activeLoans.reduce((s,l)=>s+l.rate,0)/activeLoans.length).toFixed(1):0}%`],["Total ECL",fmt.cur(totalECL)],["ECL Coverage",totalBook>0?fmt.pct(totalECL/totalBook):"0%"]].map(([l,v],i) => (
             <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"6px 0", borderBottom:`1px solid ${C.border}` }}>
-              <span style={{fontSize:12,color:C.textDim }}>{l}</span><span style={{fontSize:13,fontWeight:700,color:C.text }}>{v}</span>
+              <span style={{ fontSize:12, color:C.textDim }}>{l}</span><span style={{ fontSize:13, fontWeight:700, color:C.text }}>{v}</span>
             </div>
           ))}
         </SectionCard>
         <SectionCard title="Concentration by Industry">
           {Object.entries(activeLoans.reduce((acc, l) => { const ind = cust(l.custId)?.industry || "Unknown"; acc[ind] = (acc[ind]||0) + l.balance; return acc; }, {})).sort((a,b)=>b[1]-a[1]).map(([ind, bal], i) => (
-            <div key={i} style={{marginBottom:8 }}>
-              <div style={{display:"flex",justifyContent:"space-between",fontSize:12,color:C.textDim,marginBottom:3 }}><span>{ind}</span><span>{fmt.cur(bal)} ({totalBook>0?fmt.pct(bal/totalBook,0):"0%"})</span></div>
+            <div key={i} style={{ marginBottom:8 }}>
+              <div style={{ display:"flex", justifyContent:"space-between", fontSize:12, color:C.textDim, marginBottom:3 }}><span>{ind}</span><span>{fmt.cur(bal)} ({totalBook>0?fmt.pct(bal/totalBook,0):"0%"})</span></div>
               <ProgressBar value={bal} max={totalBook||1} color={C.accent} />
             </div>
           ))}
@@ -2130,14 +2330,14 @@ export default function App() {
         <SectionCard title="Collections Summary">
           {[["Delinquent Accounts",delinquent.length],["Total Arrears",fmt.cur(delinquent.reduce((s,l)=>s+l.balance,0))],["Early (1-30 DPD)",delinquent.filter(l=>l.dpd<=30).length],["Mid (31-90 DPD)",delinquent.filter(l=>l.dpd>30&&l.dpd<=90).length],["Late (91+ DPD)",delinquent.filter(l=>l.dpd>90).length],["Collection Actions (Total)",collections.length],["Active PTPs",collections.filter(c=>c.ptpDate&&c.ptpDate>Date.now()).length],["Write-Off Proposals",collections.filter(c=>c.writeOff).length]].map(([l,v],i) => (
             <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"6px 0", borderBottom:`1px solid ${C.border}` }}>
-              <span style={{fontSize:12,color:C.textDim }}>{l}</span><span style={{fontSize:13,fontWeight:700,color:typeof v==="number"&&v>0?C.red:C.text }}>{v}</span>
+              <span style={{ fontSize:12, color:C.textDim }}>{l}</span><span style={{ fontSize:13, fontWeight:700, color:typeof v==="number"&&v>0?C.red:C.text }}>{v}</span>
             </div>
           ))}
         </SectionCard>
         <SectionCard title="Servicing Summary">
           {[["Payments Processed",allPmts.length],["Total Collected",fmt.cur(allPmts.reduce((s,p)=>s+p.amount,0))],["Interest Collected",fmt.cur(allPmts.reduce((s,p)=>s+(p.interest||0),0))],["Principal Collected",fmt.cur(allPmts.reduce((s,p)=>s+(p.principal||0),0))],["Monthly Receivable",fmt.cur(activeLoans.reduce((s,l)=>s+l.monthlyPmt,0))],["Overdue Accounts",delinquent.length]].map(([l,v],i) => (
             <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"6px 0", borderBottom:`1px solid ${C.border}` }}>
-              <span style={{fontSize:12,color:C.textDim }}>{l}</span><span style={{fontSize:13,fontWeight:700,color:C.text }}>{v}</span>
+              <span style={{ fontSize:12, color:C.textDim }}>{l}</span><span style={{ fontSize:13, fontWeight:700, color:C.text }}>{v}</span>
             </div>
           ))}
         </SectionCard>
@@ -2146,14 +2346,14 @@ export default function App() {
             const count = applications.filter(a => a.status === s).length;
             if (count === 0) return null;
             return (<div key={s} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"6px 0", borderBottom:`1px solid ${C.border}` }}>
-              {statusBadge(s)}<div><span style={{fontSize:16,fontWeight:700,color:C.text }}>{count}</span><span style={{fontSize:11,color:C.textMuted,marginLeft:8 }}>({applications.length>0?fmt.pct(count/applications.length,0):"0%"})</span></div>
+              {statusBadge(s)}<div><span style={{ fontSize:16, fontWeight:700, color:C.text }}>{count}</span><span style={{ fontSize:11, color:C.textMuted, marginLeft:8 }}>({applications.length>0?fmt.pct(count/applications.length,0):"0%"})</span></div>
             </div>);
           })}
         </SectionCard>
         <SectionCard title="Development Impact">
           {[["Total Jobs Supported",fmt.num(customers.reduce((s,c)=>s+c.employees,0))],["BEE Level 1 Clients",customers.filter(c=>c.beeLevel===1).length],["BEE Level 1-2 Exposure",fmt.cur(activeLoans.filter(l=>cust(l.custId)?.beeLevel<=2).reduce((s,l)=>s+l.balance,0))],["Avg Social Impact Score",Math.round(applications.filter(a=>a.socialScore).reduce((s,a)=>s+a.socialScore,0)/(applications.filter(a=>a.socialScore).length||1))],["Provinces Covered",new Set(customers.map(c=>c.province)).size],["Industries Covered",new Set(customers.map(c=>c.industry)).size]].map(([l,v],i) => (
             <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"6px 0", borderBottom:`1px solid ${C.border}` }}>
-              <span style={{fontSize:12,color:C.textDim }}>{l}</span><span style={{fontSize:13,fontWeight:700,color:C.accent }}>{v}</span>
+              <span style={{ fontSize:12, color:C.textDim }}>{l}</span><span style={{ fontSize:13, fontWeight:700, color:C.accent }}>{v}</span>
             </div>
           ))}
         </SectionCard>
@@ -2163,23 +2363,23 @@ export default function App() {
 
   function Comms() {
     return (<div>
-      <h2 style={{margin:"0 0 4px",fontSize:22,fontWeight:700,color:C.text }}>Communication Center</h2>
-      <p style={{margin:"0 0 20px",fontSize:13,color:C.textMuted }}>Omnichannel communication log — Phone, Email, SMS, Letters, Meetings</p>
+      <h2 style={{ margin:"0 0 4px", fontSize:22, fontWeight:700, color:C.text }}>Communication Center</h2>
+      <p style={{ margin:"0 0 20px", fontSize:13, color:C.textMuted }}>Omnichannel communication log — Phone, Email, SMS, Letters, Meetings</p>
       <Table columns={[
         { label:"Date", render:r=>fmt.dateTime(r.ts) },
         { label:"Customer", render:r=>cust(r.custId)?.name },
         { label:"Channel", render:r=><Badge color={r.channel==="Phone"?"blue":r.channel==="Email"?"cyan":r.channel==="Letter"?"amber":r.channel==="In-Person"?"green":"slate"}>{r.channel||"—"}</Badge> },
         { label:"Direction", render:r=><Badge color={r.direction==="Inbound"?"purple":"slate"}>{r.direction}</Badge> },
-        { label:"Subject", render:r=><span style={{fontWeight:600 }}>{r.subject}</span> },
+        { label:"Subject", render:r=><span style={{ fontWeight:600 }}>{r.subject}</span> },
         { label:"From/By", key:"from" },
-        { label:"Summary", render:r=><span style={{fontSize:11,color:C.textDim,maxWidth:250,overflow:"hidden",textOverflow:"ellipsis",display:"inline-block",whiteSpace:"nowrap" }}>{r.body}</span> },
+        { label:"Summary", render:r=><span style={{ fontSize:11, color:C.textDim, maxWidth:250, overflow:"hidden", textOverflow:"ellipsis", display:"inline-block", whiteSpace:"nowrap" }}>{r.body}</span> },
       ]} rows={[...comms].sort((a,b)=>b.ts-a.ts)} />
     </div>);
   }
 
   function renderDetail() {
     const goBack = () => setDetail(null);
-    const BackBtn = () => <button onClick={goBack} style={{background:"none",border:"none",color:C.accent,fontSize:13,fontWeight:600,cursor:"pointer",marginBottom:16,display:"flex",alignItems:"center",gap:4,fontFamily:"inherit" }}>{I.back} Back</button>;
+    const BackBtn = () => <button onClick={goBack} style={{ background:"none", border:"none", color:C.accent, fontSize:13, fontWeight:600, cursor:"pointer", marginBottom:16, display:"flex", alignItems:"center", gap:4, fontFamily:"inherit" }}>{I.back} Back</button>;
 
     if (detail.type === "customer") {
       const c = customers.find(x=>x.id===detail.id); if (!c) return <div>Not found</div>;
@@ -2196,10 +2396,10 @@ export default function App() {
       };
 
       return (<div><BackBtn />
-        <div style={{display:"flex",alignItems:"center",gap:16,marginBottom:20 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:16, marginBottom:20 }}>
           <div style={{ width:40, height:40, borderRadius:2, background:C.surface2, border:`1px solid ${C.border}`, display:"flex", alignItems:"center", justifyContent:"center", color:C.textDim, fontSize:16, fontWeight:600 }}>{c.name.charAt(0)}</div>
-          <div><h2 style={{margin:0,fontSize:22,fontWeight:700,color:C.text }}>{c.name}</h2><p style={{margin:"2px 0 0",fontSize:12,color:C.textMuted }}>{c.id} · {c.industry} · {c.province}</p></div>
-          <div style={{marginLeft:"auto",display:"flex",gap:8 }}>{statusBadge(c.ficaStatus)}<Badge color="purple">BEE Level {c.beeLevel}</Badge><Badge color={c.riskCategory==="Low"?"green":c.riskCategory==="Medium"?"amber":"red"}>{c.riskCategory} Risk</Badge></div>
+          <div><h2 style={{ margin:0, fontSize:22, fontWeight:700, color:C.text }}>{c.name}</h2><p style={{ margin:"2px 0 0", fontSize:12, color:C.textMuted }}>{c.id} · {c.industry} · {c.province}</p></div>
+          <div style={{ marginLeft:"auto", display:"flex", gap:8 }}>{statusBadge(c.ficaStatus)}<Badge color="purple">BEE Level {c.beeLevel}</Badge><Badge color={c.riskCategory==="Low"?"green":c.riskCategory==="Medium"?"amber":"red"}>{c.riskCategory} Risk</Badge></div>
         </div>
 
         {/* Profile — read or edit */}
@@ -2208,23 +2408,23 @@ export default function App() {
             <InfoGrid items={[["Contact",c.contact],["Email",c.email],["Phone",c.phone],["ID Number",c.idNum],["Reg Number",c.regNum],["Address",c.address],["Annual Revenue",fmt.cur(c.revenue)],["Employees",c.employees],["Years in Business",c.years],["Sector",c.sector],["BEE Expiry",fmt.date(c.beeExpiry)],["FICA Date",fmt.date(c.ficaDate)],["Created",fmt.date(c.created)]]} />
           ) : (
             <div>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:10 }}>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:10 }}>
                 <Field label="Business Name"><Input value={detailForm.name} onChange={e=>setDetailForm({...detailForm,name:e.target.value})} /></Field>
                 <Field label="Contact"><Input value={detailForm.contact} onChange={e=>setDetailForm({...detailForm,contact:e.target.value})} /></Field>
                 <Field label="Email"><Input value={detailForm.email} onChange={e=>setDetailForm({...detailForm,email:e.target.value})} /></Field>
               </div>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:10,marginBottom:10 }}>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:10, marginBottom:10 }}>
                 <Field label="Phone"><Input value={detailForm.phone} onChange={e=>setDetailForm({...detailForm,phone:e.target.value})} /></Field>
                 <Field label="Industry"><Select value={detailForm.industry} onChange={e=>setDetailForm({...detailForm,industry:e.target.value})} options={["Retail","Agriculture","Technology","Construction","Food Processing","Transport","Manufacturing","Professional Services","Other"].map(v=>({value:v,label:v}))} /></Field>
                 <Field label="Revenue"><Input type="number" value={detailForm.revenue} onChange={e=>setDetailForm({...detailForm,revenue:+e.target.value})} /></Field>
                 <Field label="Employees"><Input type="number" value={detailForm.employees} onChange={e=>setDetailForm({...detailForm,employees:+e.target.value})} /></Field>
               </div>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:10 }}>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:10 }}>
                 <Field label="Address"><Input value={detailForm.address} onChange={e=>setDetailForm({...detailForm,address:e.target.value})} /></Field>
                 <Field label="Province"><Select value={detailForm.province} onChange={e=>setDetailForm({...detailForm,province:e.target.value})} options={["Eastern Cape","Western Cape","Gauteng","KwaZulu-Natal","Free State","North West","Limpopo","Mpumalanga","Northern Cape"].map(v=>({value:v,label:v}))} /></Field>
                 <Field label="Risk Category"><Select value={detailForm.riskCategory} onChange={e=>setDetailForm({...detailForm,riskCategory:e.target.value})} options={["Low","Medium","High"].map(v=>({value:v,label:v}))} /></Field>
               </div>
-              <div style={{display:"flex",gap:8 }}>
+              <div style={{ display:"flex", gap:8 }}>
                 <Btn onClick={()=>{updateCustomer(c.id,detailForm);setDetailEditing(false)}}>Save Changes</Btn>
                 <Btn variant="ghost" onClick={()=>setDetailEditing(false)}>Cancel</Btn>
               </div>
@@ -2234,37 +2434,37 @@ export default function App() {
 
         {/* FICA / KYC Status & Workflow */}
         <SectionCard title="FICA / KYC Verification">
-          <div style={{display:"flex",alignItems:"center",gap:16,marginBottom:12 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:16, marginBottom:12 }}>
             <div>
-              <div style={{fontSize:13,fontWeight:600,color:C.text }}>Status: {c.ficaStatus}</div>
-              <div style={{fontSize:11,color:C.textMuted }}>{c.ficaDate ? `Verified: ${fmt.date(c.ficaDate)}` : "Not yet verified"}</div>
+              <div style={{ fontSize:13, fontWeight:600, color:C.text }}>Status: {c.ficaStatus}</div>
+              <div style={{ fontSize:11, color:C.textMuted }}>{c.ficaDate ? `Verified: ${fmt.date(c.ficaDate)}` : "Not yet verified"}</div>
             </div>
-            <div style={{display:"flex",gap:6,marginLeft:"auto" }}>
+            <div style={{ display:"flex", gap:6, marginLeft:"auto" }}>
               {canDoAny("customers",["update"]) && (ficaActions[c.ficaStatus]||[]).map((a,i) => (
                 <Btn key={i} size="sm" variant={a.target==="Verified"?"default":a.target==="Failed"?"danger":"secondary"} onClick={()=>updateFicaStatus(c.id, a.target)}>{a.label}</Btn>
               ))}
             </div>
           </div>
-          <div style={{fontSize:11,color:C.textMuted,lineHeight:1.6 }}>
+          <div style={{ fontSize:11, color:C.textMuted, lineHeight:1.6 }}>
             FICA verification flow: Pending → Under Review → Verified / Failed. Verified status can expire. Failed can be re-submitted. All transitions are audited.
           </div>
         </SectionCard>
 
         {/* BEE Verification */}
         <SectionCard title="BEE Verification">
-          <div style={{display:"flex",alignItems:"center",gap:16,marginBottom:12 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:16, marginBottom:12 }}>
             <div>
-              <div style={{fontSize:13,fontWeight:600,color:C.text }}>BEE Level {c.beeLevel} — {c.beeStatus}</div>
-              <div style={{fontSize:11,color:C.textMuted }}>{c.beeExpiry ? `Expires: ${fmt.date(c.beeExpiry)}${c.beeExpiry < now + 90*day ? " ⚠ Expiring soon" : ""}` : "No expiry date"}</div>
+              <div style={{ fontSize:13, fontWeight:600, color:C.text }}>BEE Level {c.beeLevel} — {c.beeStatus}</div>
+              <div style={{ fontSize:11, color:C.textMuted }}>{c.beeExpiry ? `Expires: ${fmt.date(c.beeExpiry)}${c.beeExpiry < now + 90*day ? " ⚠ Expiring soon" : ""}` : "No expiry date"}</div>
             </div>
-            {canDoAny("customers",["update"]) && <div style={{display:"flex",gap:6,marginLeft:"auto" }}>
+            {canDoAny("customers",["update"]) && <div style={{ display:"flex", gap:6, marginLeft:"auto" }}>
               {c.beeStatus !== "Verified" && <Btn size="sm" onClick={()=>updateBeeStatus(c.id,"Verified",detailBeeForm.level,detailBeeForm.expiry)}>Verify BEE</Btn>}
               {c.beeStatus === "Verified" && <Btn size="sm" variant="secondary" onClick={()=>updateBeeStatus(c.id,"Expired",null,null)}>Mark Expired</Btn>}
               <Btn size="sm" variant="ghost" onClick={()=>updateBeeStatus(c.id,"Pending Review",null,null)}>Reset</Btn>
             </div>}
           </div>
           {canDoAny("customers",["update"]) && (
-            <div style={{display:"flex",gap:10,alignItems:"flex-end" }}>
+            <div style={{ display:"flex", gap:10, alignItems:"flex-end" }}>
               <Field label="BEE Level"><Select value={detailBeeForm.level} onChange={e=>setDetailBeeForm({...detailBeeForm,level:e.target.value})} options={[1,2,3,4,5,6,7,8].map(v=>({value:v,label:`Level ${v}`}))} /></Field>
               <Field label="Certificate Expiry"><Input type="date" value={detailBeeForm.expiry} onChange={e=>setDetailBeeForm({...detailBeeForm,expiry:e.target.value})} /></Field>
             </div>
@@ -2274,16 +2474,16 @@ export default function App() {
         {/* Documents */}
         <SectionCard title={`Documents (${custDocs.length})`} actions={<Btn size="sm" variant="ghost" onClick={()=>{setDetail(null);setPage("documents")}}>View All</Btn>}>
           <Table columns={[
-            {label:"ID", render:r=><span style={{ontFamily:"monospace",fontSize:10}}>{r.id}</span>},
-            {label:"Document", render:r=><span style={{ontWeight:500}}>{r.name}</span>},
-            {label:"Category", render:r=><span style={{ontSize:11,color:C.textDim}}>{r.category}</span>},
+            {label:"ID", render:r=><span style={{fontFamily:"monospace",fontSize:10}}>{r.id}</span>},
+            {label:"Document", render:r=><span style={{fontWeight:500}}>{r.name}</span>},
+            {label:"Category", render:r=><span style={{fontSize:11,color:C.textDim}}>{r.category}</span>},
             {label:"Status", render:r=>statusBadge(r.status)},
             {label:"Expiry", render:r=>{
-              if(!r.expiryDate) return <span style={{ontSize:10,color:C.textMuted}}>—</span>;
+              if(!r.expiryDate) return <span style={{fontSize:10,color:C.textMuted}}>—</span>;
               const d=Math.ceil((r.expiryDate-now)/day);
-              return <span style={{ontSize:11,fontWeight:d<=30?600:400,color:d<=30?C.red:d<=90?C.amber:C.textDim}}>{fmt.date(r.expiryDate)}</span>;
+              return <span style={{fontSize:11,fontWeight:d<=30?600:400,color:d<=30?C.red:d<=90?C.amber:C.textDim}}>{fmt.date(r.expiryDate)}</span>;
             }},
-            {label:"Actions", render:r=><div style={{display:"flex",gap:3 }}>
+            {label:"Actions", render:r=><div style={{ display:"flex", gap:3 }}>
               {canDo("documents","approve") && r.status!=="Verified" && <Btn size="sm" variant="ghost" onClick={e=>{e.stopPropagation();approveDocument(r.id)}}>Approve</Btn>}
               {canDo("documents","update") && r.status!=="Rejected" && <Btn size="sm" variant="ghost" onClick={e=>{e.stopPropagation();rejectDocument(r.id,"Re-submission required.")}}>Reject</Btn>}
             </div>},
@@ -2292,12 +2492,12 @@ export default function App() {
 
         {/* Applications */}
         {ca.length>0 && <SectionCard title={`Applications (${ca.length})`}>
-          <Table columns={[{label:"ID",render:r=><span style={{ontFamily:"monospace",fontSize:12}}>{r.id}</span>},{label:"Product",render:r=>prod(r.product)?.name},{label:"Amount",render:r=>fmt.cur(r.amount)},{label:"Status",render:r=>statusBadge(r.status)}]} rows={ca} onRowClick={r=>setDetail({type:"application",id:r.id})} />
+          <Table columns={[{label:"ID",render:r=><span style={{fontFamily:"monospace",fontSize:12}}>{r.id}</span>},{label:"Product",render:r=>prod(r.product)?.name},{label:"Amount",render:r=>fmt.cur(r.amount)},{label:"Status",render:r=>statusBadge(r.status)}]} rows={ca} onRowClick={r=>setDetail({type:"application",id:r.id})} />
         </SectionCard>}
 
         {/* Loans */}
         {cl.length>0 && <SectionCard title={`Active Loans (${cl.length})`}>
-          <Table columns={[{label:"ID",render:r=><span style={{ontFamily:"monospace",fontSize:12}}>{r.id}</span>},{label:"Balance",render:r=>fmt.cur(r.balance)},{label:"DPD",render:r=>r.dpd},{label:"Stage",render:r=><Badge color={r.stage===1?"green":r.stage===2?"amber":"red"}>Stage {r.stage}</Badge>}]} rows={cl} onRowClick={r=>setDetail({type:"loan",id:r.id})} />
+          <Table columns={[{label:"ID",render:r=><span style={{fontFamily:"monospace",fontSize:12}}>{r.id}</span>},{label:"Balance",render:r=>fmt.cur(r.balance)},{label:"DPD",render:r=>r.dpd},{label:"Stage",render:r=><Badge color={r.stage===1?"green":r.stage===2?"amber":"red"}>Stage {r.stage}</Badge>}]} rows={cl} onRowClick={r=>setDetail({type:"loan",id:r.id})} />
         </SectionCard>}
       </div>);
     }
@@ -2341,10 +2541,10 @@ export default function App() {
               const isInherited = f.inherited;
               return (
               <div key={i} style={{ borderBottom:i<findings.length-1?`1px solid ${C.border}`:"none", opacity:isInherited?0.6:1 }}>
-                <div style={{display:"flex",gap:6,padding:"5px 8px",fontSize:11,alignItems:"center" }}>
-                  <span style={{width:40,flexShrink:0,fontWeight:500,color:f.status==="Pass"||f.status==="Verified"||f.status==="Confirmed (Override)"?C.green :f.status==="Flagged"?C.amber :f.status==="Rejected"||f.status==="Fail"||f.status==="Missing"?C.red :f.status==="Pending KYC"?C.amber :C.textMuted }}>{f.officerAction?f.status:(f.systemResult||f.status)}</span>
-                  <span style={{width:130,flexShrink:0,fontWeight:500,color:isInherited?C.textDim:C.text,fontSize:11 }}>{f.item}</span>
-                  <span style={{flex:1,color:C.textDim,fontSize:11 }}>{f.detail}{f.source?` (${f.source})`:""}{f.purpose&&!isInherited?<span style={{color:C.textMuted,fontSize:10 }}> — {f.purpose}</span>:""}</span>
+                <div style={{ display:"flex", gap:6, padding:"5px 8px", fontSize:11, alignItems:"center" }}>
+                  <span style={{ width:40, flexShrink:0, fontWeight:500, color: f.status==="Pass"||f.status==="Verified"||f.status==="Confirmed (Override)"?C.green : f.status==="Flagged"?C.amber : f.status==="Rejected"||f.status==="Fail"||f.status==="Missing"?C.red : f.status==="Pending KYC"?C.amber : C.textMuted }}>{f.officerAction?f.status:(f.systemResult||f.status)}</span>
+                  <span style={{ width:130, flexShrink:0, fontWeight:500, color:isInherited?C.textDim:C.text, fontSize:11 }}>{f.item}</span>
+                  <span style={{ flex:1, color:C.textDim, fontSize:11 }}>{f.detail}{f.source?` (${f.source})`:""}{f.purpose&&!isInherited?<span style={{ color:C.textMuted, fontSize:10 }}> — {f.purpose}</span>:""}</span>
                   {/* View Document button */}
                   {doc && !isInherited && <button onClick={()=>setViewingDoc(isExpanded?null:`${stepKey}-${i}`)} style={{ padding:"1px 5px", fontSize:9, border:`1px solid ${C.border}`, background:isExpanded?C.surface2:"transparent", color:C.accent, cursor:"pointer", fontFamily:"inherit", fontWeight:isExpanded?600:400 }}>{isExpanded?"Close":"View"}</button>}
                   {/* Request button — shown for Missing non-inherited docs */}
@@ -2352,20 +2552,20 @@ export default function App() {
                     const reqs = (w.docRequests||[]).filter(r=>r.docType===f.item);
                     const lastReq = reqs[reqs.length-1];
                     return lastReq
-                      ? <span style={{fontSize:9,color:C.textMuted,flexShrink:0 }}>Requested {fmt.date(lastReq.requestedAt)} by {lastReq.requestedBy}</span>
+                      ? <span style={{ fontSize:9, color:C.textMuted, flexShrink:0 }}>Requested {fmt.date(lastReq.requestedAt)} by {lastReq.requestedBy}</span>
                       : <button onClick={()=>requestDocFromApplicant(a.id,f.item,"")} style={{ padding:"1px 5px", fontSize:9, border:`1px solid ${C.border}`, background:"transparent", color:C.text, cursor:"pointer", fontFamily:"inherit" }}>Request</button>;
                   })()}
                   {/* Inherited indicator */}
-                  {isInherited && <span style={{fontSize:9,color:C.textMuted,flexShrink:0,fontStyle:"italic" }}>from Step 2</span>}
+                  {isInherited && <span style={{ fontSize:9, color:C.textMuted, flexShrink:0, fontStyle:"italic" }}>from Step 2</span>}
                   {/* Confirm / Flag / Reject — only for non-inherited items */}
                   {isActionable && !isInherited && !f.officerAction && (
-                    <div style={{display:"flex",gap:3,flexShrink:0 }}>
+                    <div style={{ display:"flex", gap:3, flexShrink:0 }}>
                       <button onClick={()=>actionFindingItem(a.id,stepKey,i,"Confirmed","")} style={{ padding:"1px 5px", fontSize:9, border:`1px solid ${C.border}`, background:"transparent", color:C.green, cursor:"pointer", fontFamily:"inherit" }}>Confirm</button>
                       <button onClick={()=>actionFindingItem(a.id,stepKey,i,"Flagged","")} style={{ padding:"1px 5px", fontSize:9, border:`1px solid ${C.border}`, background:"transparent", color:C.amber, cursor:"pointer", fontFamily:"inherit" }}>Flag</button>
                       <button onClick={()=>actionFindingItem(a.id,stepKey,i,"Rejected","")} style={{ padding:"1px 5px", fontSize:9, border:`1px solid ${C.border}`, background:"transparent", color:C.red, cursor:"pointer", fontFamily:"inherit" }}>Reject</button>
                     </div>
                   )}
-                  {isActionable && !isInherited && f.officerAction && <span style={{fontSize:9,color:C.textMuted,flexShrink:0 }}>{f.officerAction}</span>}
+                  {isActionable && !isInherited && f.officerAction && <span style={{ fontSize:9, color:C.textMuted, flexShrink:0 }}>{f.officerAction}</span>}
                   {/* Doc-level approve/reject — only for non-inherited items */}
                   {doc && !isInherited && isUW && doc.status!=="Verified" && canDo("documents","approve") && <button onClick={()=>approveDocument(doc.id,a.id)} style={{ padding:"1px 5px", fontSize:9, border:`1px solid ${C.border}`, background:"transparent", color:C.green, cursor:"pointer", fontFamily:"inherit" }}>Approve Doc</button>}
                   {doc && !isInherited && isUW && doc.status!=="Rejected" && canDo("documents","update") && <button onClick={()=>rejectDocument(doc.id,"Re-submission required.")} style={{ padding:"1px 5px", fontSize:9, border:`1px solid ${C.border}`, background:"transparent", color:C.red, cursor:"pointer", fontFamily:"inherit" }}>Reject Doc</button>}
@@ -2373,24 +2573,24 @@ export default function App() {
                 {/* Expanded document detail panel */}
                 {isExpanded && doc && (
                   <div style={{ padding:"6px 8px 8px 46px", background:C.surface2, borderTop:`1px solid ${C.border}` }}>
-                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6,fontSize:10 }}>
-                      <div><span style={{color:C.textMuted }}>Document ID:</span> <span style={{fontFamily:"monospace",fontWeight:500 }}>{doc.id}</span></div>
-                      <div><span style={{color:C.textMuted }}>Name:</span> <span style={{fontWeight:500 }}>{doc.name}</span></div>
-                      <div><span style={{color:C.textMuted }}>Category:</span> {doc.category}</div>
-                      <div><span style={{color:C.textMuted }}>Status:</span> <span style={{fontWeight:600,color:doc.status==="Verified"?C.green:doc.status==="Rejected"?C.red:C.amber }}>{doc.status}</span></div>
-                      <div><span style={{color:C.textMuted }}>Uploaded By:</span> {doc.uploadedBy||"—"}</div>
-                      <div><span style={{color:C.textMuted }}>Uploaded:</span> {fmt.date(doc.uploadedAt)}</div>
-                      <div><span style={{color:C.textMuted }}>Verified By:</span> {doc.verifiedBy||"—"}</div>
-                      <div><span style={{color:C.textMuted }}>Verified:</span> {fmt.date(doc.verifiedAt)}</div>
-                      <div><span style={{color:C.textMuted }}>Expiry:</span> {doc.expiryDate ? <span style={{color:doc.expiryDate < now + 90*day ? C.red :C.textDim }}>{fmt.date(doc.expiryDate)}</span> : "None"}</div>
-                      <div style={{gridColumn:"1/4" }}><span style={{color:C.textMuted }}>File:</span> <span style={{fontFamily:"monospace",fontSize:9 }}>{doc.fileRef||"—"}</span></div>
-                      {doc.notes && <div style={{gridColumn:"1/4" }}><span style={{color:C.textMuted }}>Notes:</span> {doc.notes}</div>}
+                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:6, fontSize:10 }}>
+                      <div><span style={{ color:C.textMuted }}>Document ID:</span> <span style={{ fontFamily:"monospace", fontWeight:500 }}>{doc.id}</span></div>
+                      <div><span style={{ color:C.textMuted }}>Name:</span> <span style={{ fontWeight:500 }}>{doc.name}</span></div>
+                      <div><span style={{ color:C.textMuted }}>Category:</span> {doc.category}</div>
+                      <div><span style={{ color:C.textMuted }}>Status:</span> <span style={{ fontWeight:600, color:doc.status==="Verified"?C.green:doc.status==="Rejected"?C.red:C.amber }}>{doc.status}</span></div>
+                      <div><span style={{ color:C.textMuted }}>Uploaded By:</span> {doc.uploadedBy||"—"}</div>
+                      <div><span style={{ color:C.textMuted }}>Uploaded:</span> {fmt.date(doc.uploadedAt)}</div>
+                      <div><span style={{ color:C.textMuted }}>Verified By:</span> {doc.verifiedBy||"—"}</div>
+                      <div><span style={{ color:C.textMuted }}>Verified:</span> {fmt.date(doc.verifiedAt)}</div>
+                      <div><span style={{ color:C.textMuted }}>Expiry:</span> {doc.expiryDate ? <span style={{ color: doc.expiryDate < now + 90*day ? C.red : C.textDim }}>{fmt.date(doc.expiryDate)}</span> : "None"}</div>
+                      <div style={{ gridColumn:"1/4" }}><span style={{ color:C.textMuted }}>File:</span> <span style={{ fontFamily:"monospace", fontSize:9 }}>{doc.fileRef||"—"}</span></div>
+                      {doc.notes && <div style={{ gridColumn:"1/4" }}><span style={{ color:C.textMuted }}>Notes:</span> {doc.notes}</div>}
                     </div>
                   </div>
                 )}
                 {/* Officer note input */}
                 {isActionable && f.officerAction && (
-                  <div style={{padding:"0 8px 4px 46px" }}>
+                  <div style={{ padding:"0 8px 4px 46px" }}>
                     <input value={f.officerNote||""} onChange={e=>updateFindingNote(a.id,stepKey,i,e.target.value)} placeholder="Note..." style={{ width:"100%", padding:"2px 5px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:10, fontFamily:"inherit", outline:"none", boxSizing:"border-box" }} />
                   </div>
                 )}
@@ -2398,8 +2598,8 @@ export default function App() {
               );
             })}
           </div>
-          {isActionable && <div style={{marginTop:6,display:"flex",justifyContent:"space-between",alignItems:"center" }}>
-            <span style={{fontSize:10,color:C.textMuted }}>{allActioned?"Ready for sign-off.":`${reqItems.filter(f=>f.officerAction).length}/${reqItems.length} reviewed.`}</span>
+          {isActionable && <div style={{ marginTop:6, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+            <span style={{ fontSize:10, color:C.textMuted }}>{allActioned?"Ready for sign-off.":`${reqItems.filter(f=>f.officerAction).length}/${reqItems.length} reviewed.`}</span>
             <Btn size="sm" onClick={()=>signOffStep(a.id,stepKey)} disabled={!allActioned}>Sign Off</Btn>
           </div>}
         </div>);
@@ -2410,8 +2610,8 @@ export default function App() {
         return (<div style={{ border:`1px solid ${C.border}` }}>
           {findings.map((f,i) => (
             <div key={i} style={{ display:"flex", gap:6, padding:"5px 8px", fontSize:11, borderBottom:i<findings.length-1?`1px solid ${C.border}`:"none" }}>
-              <span style={{width:140,flexShrink:0,fontWeight:500,color:C.text }}>{f.item}</span>
-              <span style={{flex:1,color:C.textDim,lineHeight:1.5 }}>{f.detail}</span>
+              <span style={{ width:140, flexShrink:0, fontWeight:500, color:C.text }}>{f.item}</span>
+              <span style={{ flex:1, color:C.textDim, lineHeight:1.5 }}>{f.detail}</span>
             </div>
           ))}
         </div>);
@@ -2420,43 +2620,43 @@ export default function App() {
       const renderStepBody = (s) => {
         if (s.key==="submitted") return (<div>
           <InfoGrid items={[["Applicant",c?.name],["Product",p?.name],["Amount",fmt.cur(a.amount)],["Term",`${a.term}m`],["Created",fmt.date(a.createdAt||a.submitted)],["Purpose",a.purpose]]} />
-          {a.qaFindings && <div style={{marginTop:8 }}>
-            <div style={{fontSize:11,fontWeight:600,color:C.text,marginBottom:4 }}>QA Document Check</div>
+          {a.qaFindings && <div style={{ marginTop:8 }}>
+            <div style={{ fontSize:11, fontWeight:600, color:C.text, marginBottom:4 }}>QA Document Check</div>
             <div style={{ border:`1px solid ${C.border}` }}>
               {(a.qaFindings.mandatoryDocs||[]).map((d,i) => (
                 <div key={i} style={{ display:"flex", gap:6, padding:"4px 8px", fontSize:11, borderBottom:i<(a.qaFindings.mandatoryDocs.length-1)?`1px solid ${C.border}`:"none" }}>
-                  <span style={{width:40,fontWeight:500,color:d.onFile && d.status!=="Pending" && d.status!=="Rejected" ? C.green :C.red }}>{d.onFile && d.status!=="Pending" && d.status!=="Rejected" ? "OK" : d.status}</span>
-                  <span style={{width:140,fontWeight:500 }}>{d.type}</span>
-                  <span style={{color:C.textDim }}>{d.docId || "Not on file"}{d.status ? ` — ${d.status}` : ""}</span>
+                  <span style={{ width:40, fontWeight:500, color:d.onFile && d.status!=="Pending" && d.status!=="Rejected" ? C.green : C.red }}>{d.onFile && d.status!=="Pending" && d.status!=="Rejected" ? "OK" : d.status}</span>
+                  <span style={{ width:140, fontWeight:500 }}>{d.type}</span>
+                  <span style={{ color:C.textDim }}>{d.docId || "Not on file"}{d.status ? ` — ${d.status}` : ""}</span>
                 </div>
               ))}
             </div>
-            {a.qaFindings.missingDocs?.length > 0 && <div style={{fontSize:11,color:C.red,marginTop:4 }}>Missing: {a.qaFindings.missingDocs.join(", ")}</div>}
-            {a.qaFindings.incompleteDocs?.length > 0 && <div style={{fontSize:11,color:C.amber,marginTop:2 }}>Incomplete: {a.qaFindings.incompleteDocs.join(", ")}</div>}
-            <div style={{fontSize:10,color:a.qaFindings.result==="Passed"?C.green:C.red,marginTop:4,fontWeight:600 }}>
+            {a.qaFindings.missingDocs?.length > 0 && <div style={{ fontSize:11, color:C.red, marginTop:4 }}>Missing: {a.qaFindings.missingDocs.join(", ")}</div>}
+            {a.qaFindings.incompleteDocs?.length > 0 && <div style={{ fontSize:11, color:C.amber, marginTop:2 }}>Incomplete: {a.qaFindings.incompleteDocs.join(", ")}</div>}
+            <div style={{ fontSize:10, color:a.qaFindings.result==="Passed"?C.green:C.red, marginTop:4, fontWeight:600 }}>
               QA Result: {a.qaFindings.result}{a.qaFindings.officer ? ` — ${a.qaFindings.officer} on ${fmt.date(a.qaFindings.passedAt)}` : ""}
             </div>
           </div>}
-          {a.expiresAt && a.status === "Draft" && <div style={{fontSize:10,color:a.expiresAt < Date.now() ? C.red :C.amber,marginTop:6 }}>
+          {a.expiresAt && a.status === "Draft" && <div style={{ fontSize:10, color: a.expiresAt < Date.now() ? C.red : C.amber, marginTop:6 }}>
             {a.expiresAt < Date.now() ? `EXPIRED on ${fmt.date(a.expiresAt)}` : `Expires: ${fmt.date(a.expiresAt)} (${Math.ceil((a.expiresAt - Date.now())/day)} days remaining)`}
           </div>}
         </div>);
         if (s.key==="kyc") return (<div>
-          {!w.kycDate && <div style={{fontSize:11,color:C.textMuted,marginBottom:6 }}>Verify applicant identity and regulatory compliance: ID against Home Affairs, company registration against CIPC, bank account confirmation, address verification, sanctions screening (OFAC/UN/SA), and PEP check. Each item requires your review and sign-off.</div>}
+          {!w.kycDate && <div style={{ fontSize:11, color:C.textMuted, marginBottom:6 }}>Verify applicant identity and regulatory compliance: ID against Home Affairs, company registration against CIPC, bank account confirmation, address verification, sanctions screening (OFAC/UN/SA), and PEP check. Each item requires your review and sign-off.</div>}
           {w.kycFindings && renderChecklist(w.kycFindings, "kyc")}
-          {w.kycComplete && <div style={{marginTop:4,fontSize:10,color:C.green }}>Signed off by {w.kycOfficer}</div>}
+          {w.kycComplete && <div style={{ marginTop:4, fontSize:10, color:C.green }}>Signed off by {w.kycOfficer}</div>}
         </div>);
         if (s.key==="docs") return (<div>
-          {!w.docsDate && <div style={{fontSize:11,color:C.textMuted,marginBottom:6 }}>Check application document completeness. KYC documents (ID, PoA, Bank, Registration) carry forward from Step 2. This step verifies financial statements, business plan, and any industry-specific documents are on file and adequate for underwriting.</div>}
+          {!w.docsDate && <div style={{ fontSize:11, color:C.textMuted, marginBottom:6 }}>Check application document completeness. KYC documents (ID, PoA, Bank, Registration) carry forward from Step 2. This step verifies financial statements, business plan, and any industry-specific documents are on file and adequate for underwriting.</div>}
           {w.docsFindings && renderChecklist(w.docsFindings, "docs")}
           {isUW && <div style={{ marginTop:8, padding:"6px 8px", border:`1px solid ${C.border}` }}>
-            <div style={{fontSize:10,fontWeight:600,color:C.text,marginBottom:3 }}>Request Document from Applicant</div>
-            <div style={{display:"flex",gap:4 }}>
+            <div style={{ fontSize:10, fontWeight:600, color:C.text, marginBottom:3 }}>Request Document from Applicant</div>
+            <div style={{ display:"flex", gap:4 }}>
               <input value={reqDocType} onChange={e=>setReqDocType(e.target.value)} placeholder="Document type..." style={{ flex:1, padding:"3px 5px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:10, fontFamily:"inherit", outline:"none", boxSizing:"border-box" }} />
               <Btn size="sm" variant="secondary" onClick={()=>{if(reqDocType){requestDocFromApplicant(a.id,reqDocType,"");setReqDocType("")}}}>Send</Btn>
             </div>
           </div>}
-          {w.docsComplete && <div style={{marginTop:4,fontSize:10,color:C.green }}>Signed off by {w.docsOfficer}</div>}
+          {w.docsComplete && <div style={{ marginTop:4, fontSize:10, color:C.green }}>Signed off by {w.docsOfficer}</div>}
         </div>);
         if (s.key==="sitevisit") {
           const findings = w.siteVisitFindings || [];
@@ -2464,52 +2664,52 @@ export default function App() {
           const filledCount = findings.filter(f => f.value && f.value.trim().length > 10).length;
           const allFilled = findings.length > 0 && !isOldFormat && findings.every(f => f.value && f.value.trim().length > 5);
           return (<div>
-          {!w.siteVisitDate && <div style={{fontSize:11,color:C.textMuted,marginBottom:6 }}>Click "Generate Findings" to create the site visit assessment form. Complete each field after the physical visit, then sign off.</div>}
+          {!w.siteVisitDate && <div style={{ fontSize:11, color:C.textMuted, marginBottom:6 }}>Click "Generate Findings" to create the site visit assessment form. Complete each field after the physical visit, then sign off.</div>}
           {isOldFormat && <div style={{ padding:10, background:"#fff8e1", border:`1px solid ${C.amber}`, marginBottom:8, fontSize:11 }}>
-            <div style={{fontWeight:600,marginBottom:4 }}>Site visit data is in a legacy format (static/read-only).</div>
-            <div style={{color:C.textDim }}>Click "Re-generate" above to create the interactive assessment form. You will need to re-enter your observations.</div>
+            <div style={{ fontWeight:600, marginBottom:4 }}>Site visit data is in a legacy format (static/read-only).</div>
+            <div style={{ color:C.textDim }}>Click "Re-generate" above to create the interactive assessment form. You will need to re-enter your observations.</div>
           </div>}
           {findings.length > 0 && !isOldFormat && <div>
-            <div style={{fontSize:10,color:C.textMuted,marginBottom:6 }}>{filledCount}/{findings.length} sections completed{allFilled ? " — ready for sign-off" : ""}</div>
+            <div style={{ fontSize:10, color:C.textMuted, marginBottom:6 }}>{filledCount}/{findings.length} sections completed{allFilled ? " — ready for sign-off" : ""}</div>
             <div style={{ border:`1px solid ${C.border}` }}>
               {findings.map((f, i) => (
                 <div key={i} style={{ padding:"8px 10px", borderBottom:i<findings.length-1?`1px solid ${C.border}`:"none" }}>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4 }}>
-                    <span style={{fontSize:11,fontWeight:600,color:C.text }}>{f.item}</span>
-                    {f.value && f.value.trim().length > 5 ? <span style={{fontSize:9,color:C.green }}>Completed</span> : <span style={{fontSize:9,color:C.amber }}>Required</span>}
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
+                    <span style={{ fontSize:11, fontWeight:600, color:C.text }}>{f.item}</span>
+                    {f.value && f.value.trim().length > 5 ? <span style={{ fontSize:9, color:C.green }}>Completed</span> : <span style={{ fontSize:9, color:C.amber }}>Required</span>}
                   </div>
                   {isUW && !w.siteVisitComplete ? (
                     <textarea value={f.value||""} onChange={e=>saveSiteVisitField(a.id,i,e.target.value)} placeholder={f.placeholder||""} rows={2} style={{ width:"100%", padding:"4px 6px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:11, fontFamily:"inherit", outline:"none", resize:"vertical", boxSizing:"border-box", lineHeight:1.5 }} />
                   ) : (
-                    <div style={{fontSize:11,color:f.value ? C.textDim :C.textMuted,lineHeight:1.5,fontStyle:f.value?"normal":"italic" }}>{f.value || "Not completed"}</div>
+                    <div style={{ fontSize:11, color:f.value ? C.textDim : C.textMuted, lineHeight:1.5, fontStyle:f.value?"normal":"italic" }}>{f.value || "Not completed"}</div>
                   )}
                   {f.item === "Overall Assessment" && isUW && !w.siteVisitComplete && (
-                    <div style={{display:"flex",gap:6,marginTop:4 }}>
+                    <div style={{ display:"flex", gap:6, marginTop:4 }}>
                       {["Satisfactory","Concerns Noted","Unsatisfactory"].map(r => (
                         <button key={r} onClick={()=>saveSiteVisitRating(a.id,i,r)} style={{ padding:"2px 8px", fontSize:10, border:`1px solid ${f.rating===r?C.text:C.border}`, background:f.rating===r?C.text:"transparent", color:f.rating===r?"#fff":C.textDim, cursor:"pointer", fontFamily:"inherit" }}>{r}</button>
                       ))}
                     </div>
                   )}
                   {f.item === "Overall Assessment" && f.rating && (
-                    <div style={{fontSize:10,marginTop:3,fontWeight:500,color:f.rating==="Satisfactory"?C.green:f.rating==="Unsatisfactory"?C.red:C.amber }}>Rating: {f.rating}</div>
+                    <div style={{ fontSize:10, marginTop:3, fontWeight:500, color:f.rating==="Satisfactory"?C.green:f.rating==="Unsatisfactory"?C.red:C.amber }}>Rating: {f.rating}</div>
                   )}
                 </div>
               ))}
             </div>
           </div>}
-          {isUW && <div style={{marginTop:8 }}>
-            <div style={{fontSize:10,fontWeight:600,color:C.text,marginBottom:3 }}>Additional Notes</div>
+          {isUW && <div style={{ marginTop:8 }}>
+            <div style={{ fontSize:10, fontWeight:600, color:C.text, marginBottom:3 }}>Additional Notes</div>
             <textarea value={w.siteVisitNotes||""} onChange={e=>saveSiteVisitNotes(a.id,e.target.value)} placeholder="Any additional observations not covered above..." rows={2} style={{ width:"100%", padding:"5px 6px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:11, fontFamily:"inherit", outline:"none", resize:"vertical", boxSizing:"border-box", lineHeight:1.5 }} />
           </div>}
           {isUW && w.siteVisitDate && !w.siteVisitComplete && !isOldFormat && (
-            <div style={{marginTop:6,display:"flex",justifyContent:"space-between",alignItems:"center" }}>
-              <span style={{fontSize:10,color:allFilled?C.green:C.amber }}>{allFilled ? "All sections completed. Ready for sign-off." : `${filledCount}/${findings.length} completed. Complete all sections to sign off.`}</span>
+            <div style={{ marginTop:6, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+              <span style={{ fontSize:10, color:allFilled?C.green:C.amber }}>{allFilled ? "All sections completed. Ready for sign-off." : `${filledCount}/${findings.length} completed. Complete all sections to sign off.`}</span>
               <Btn size="sm" onClick={()=>signOffStep(a.id,"sitevisit")} disabled={!allFilled}>Sign Off</Btn>
             </div>
           )}
           {/* Old format fallback — show read-only for reference */}
           {isOldFormat && findings.length > 0 && renderReadOnly(findings)}
-          {w.siteVisitComplete && <div style={{marginTop:4,fontSize:10,color:C.green }}>Signed off by {w.siteVisitOfficer}</div>}
+          {w.siteVisitComplete && <div style={{ marginTop:4, fontSize:10, color:C.green }}>Signed off by {w.siteVisitOfficer}</div>}
         </div>);
         }
         if (s.key==="credit") {
@@ -2520,29 +2720,29 @@ export default function App() {
           const riskFinding = findings.find(f => f.item === "Risk Score & Recommendation");
           const canSignOff = hasNewFormat && riskFinding?.analystNote && riskFinding.analystNote.trim().length > 10;
           return (<div>
-          {!w.creditDate && <div style={{fontSize:11,color:C.textMuted,marginBottom:6 }}>Pull credit bureau report and run automated financial analysis. System computes key ratios from submitted financials. Review each finding, add your professional assessment, flag concerns, then confirm.</div>}
+          {!w.creditDate && <div style={{ fontSize:11, color:C.textMuted, marginBottom:6 }}>Pull credit bureau report and run automated financial analysis. System computes key ratios from submitted financials. Review each finding, add your professional assessment, flag concerns, then confirm.</div>}
           {isOldCreditFormat && <div style={{ padding:10, background:"#fff8e1", border:`1px solid ${C.amber}`, marginBottom:8, fontSize:11 }}>
-            <div style={{fontWeight:600,marginBottom:4 }}>Credit analysis data is in a legacy format (static/read-only).</div>
-            <div style={{color:C.textDim }}>Click "Re-analyse" above to generate the interactive analyst review form.</div>
+            <div style={{ fontWeight:600, marginBottom:4 }}>Credit analysis data is in a legacy format (static/read-only).</div>
+            <div style={{ color:C.textDim }}>Click "Re-analyse" above to generate the interactive analyst review form.</div>
           </div>}
           {isOldCreditFormat && renderReadOnly(findings)}
           {hasNewFormat && findings.length > 0 && <div>
-            <div style={{fontSize:10,color:C.textMuted,marginBottom:6 }}>{notedCount}/{findings.length} findings reviewed by analyst{canSignOff ? " — ready for confirmation" : ""}</div>
+            <div style={{ fontSize:10, color:C.textMuted, marginBottom:6 }}>{notedCount}/{findings.length} findings reviewed by analyst{canSignOff ? " — ready for confirmation" : ""}</div>
             <div style={{ border:`1px solid ${C.border}` }}>
               {findings.map((f, i) => (
                 <div key={i} style={{ padding:"8px 10px", borderBottom:i<findings.length-1?`1px solid ${C.border}`:"none" }}>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:3 }}>
-                    <span style={{fontSize:11,fontWeight:600,color:C.text }}>{f.item}</span>
-                    {f.flag && <span style={{fontSize:9,padding:"1px 6px",background:f.flag==="Accept"?C.green:f.flag==="Override"?C.purple:C.red,color:"#fff" }}>{f.flag}</span>}
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:3 }}>
+                    <span style={{ fontSize:11, fontWeight:600, color:C.text }}>{f.item}</span>
+                    {f.flag && <span style={{ fontSize:9, padding:"1px 6px", background:f.flag==="Accept"?C.green:f.flag==="Override"?C.purple:C.red, color:"#fff" }}>{f.flag}</span>}
                   </div>
                   {/* System-computed value — always visible as reference */}
-                  <div style={{fontSize:11,color:C.accent,fontWeight:500,marginBottom:2 }}>{f.systemValue}</div>
-                  {f.systemDetail && <div style={{fontSize:10,color:C.textDim,marginBottom:4,lineHeight:1.5 }}>{f.systemDetail}</div>}
+                  <div style={{ fontSize:11, color:C.accent, fontWeight:500, marginBottom:2 }}>{f.systemValue}</div>
+                  {f.systemDetail && <div style={{ fontSize:10, color:C.textDim, marginBottom:4, lineHeight:1.5 }}>{f.systemDetail}</div>}
                   {/* Analyst commentary */}
                   {isUW && !w.financialAnalysisComplete ? (
                     <div>
                       <textarea value={f.analystNote||""} onChange={e=>saveCreditFinding(a.id,i,"analystNote",e.target.value)} placeholder={f.placeholder || "Analyst assessment — confirm, qualify, or override the system finding..."} rows={2} style={{ width:"100%", padding:"4px 6px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:11, fontFamily:"inherit", outline:"none", resize:"vertical", boxSizing:"border-box", lineHeight:1.5, marginBottom:4 }} />
-                      <div style={{display:"flex",gap:4 }}>
+                      <div style={{ display:"flex", gap:4 }}>
                         {["Accept","Override","Concern"].map(fl => (
                           <button key={fl} onClick={()=>saveCreditFinding(a.id,i,"flag",f.flag===fl?"":fl)} style={{ padding:"1px 7px", fontSize:9, border:`1px solid ${f.flag===fl?(fl==="Accept"?C.green:fl==="Override"?C.purple:C.red):C.border}`, background:f.flag===fl?(fl==="Accept"?C.green:fl==="Override"?C.purple:C.red):"transparent", color:f.flag===fl?"#fff":(fl==="Accept"?C.green:fl==="Override"?C.purple:C.red), cursor:"pointer", fontFamily:"inherit" }}>{fl}</button>
                         ))}
@@ -2556,40 +2756,40 @@ export default function App() {
             </div>
           </div>}
           {isUW && w.creditDate && !w.financialAnalysisComplete && (
-            <div style={{marginTop:6,display:"flex",justifyContent:"space-between",alignItems:"center" }}>
-              <span style={{fontSize:10,color:canSignOff?C.green:C.amber }}>{canSignOff ? "Risk assessment complete. Ready for confirmation." : "Provide analyst assessment on 'Risk Score & Recommendation' to confirm."}</span>
+            <div style={{ marginTop:6, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+              <span style={{ fontSize:10, color:canSignOff?C.green:C.amber }}>{canSignOff ? "Risk assessment complete. Ready for confirmation." : "Provide analyst assessment on 'Risk Score & Recommendation' to confirm."}</span>
               <Btn size="sm" onClick={()=>signOffStep(a.id,"credit")} disabled={!canSignOff}>Confirm Analysis</Btn>
             </div>
           )}
-          {w.financialAnalysisComplete && <div style={{marginTop:4,fontSize:10,color:C.green }}>Confirmed by Credit Analyst</div>}
+          {w.financialAnalysisComplete && <div style={{ marginTop:4, fontSize:10, color:C.green }}>Confirmed by Credit Analyst</div>}
         </div>);
         }
         if (s.key==="collateral") return (<div>
-          {!w.collateralDate && <div style={{fontSize:11,color:C.textMuted,marginBottom:6 }}>Assess collateral and security linked to the customer. Computes LTV.</div>}
+          {!w.collateralDate && <div style={{ fontSize:11, color:C.textMuted, marginBottom:6 }}>Assess collateral and security linked to the customer. Computes LTV.</div>}
           {w.collateralFindings && renderReadOnly(w.collateralFindings)}
-          {isUW && w.collateralDate && !w.collateralAssessed && <div style={{marginTop:4,display:"flex",justifyContent:"flex-end" }}><Btn size="sm" onClick={()=>signOffStep(a.id,"collateral")}>Confirm</Btn></div>}
-          {w.collateralAssessed && <div style={{marginTop:4,fontSize:10,color:C.green }}>Assessment confirmed</div>}
+          {isUW && w.collateralDate && !w.collateralAssessed && <div style={{ marginTop:4, display:"flex", justifyContent:"flex-end" }}><Btn size="sm" onClick={()=>signOffStep(a.id,"collateral")}>Confirm</Btn></div>}
+          {w.collateralAssessed && <div style={{ marginTop:4, fontSize:10, color:C.green }}>Assessment confirmed</div>}
         </div>);
         if (s.key==="social") return (<div>
-          {!w.socialDate && <div style={{fontSize:11,color:C.textMuted,marginBottom:6 }}>Verify BEE status, employment impact, and development alignment.</div>}
+          {!w.socialDate && <div style={{ fontSize:11, color:C.textMuted, marginBottom:6 }}>Verify BEE status, employment impact, and development alignment.</div>}
           {w.socialFindings && renderReadOnly(w.socialFindings)}
-          {isUW && w.socialDate && !w.socialVerified && <div style={{marginTop:4,display:"flex",justifyContent:"flex-end" }}><Btn size="sm" onClick={()=>signOffStep(a.id,"social")}>Confirm</Btn></div>}
-          {w.socialVerified && <div style={{marginTop:4,fontSize:10,color:C.green }}>Verified by {w.socialOfficer}</div>}
+          {isUW && w.socialDate && !w.socialVerified && <div style={{ marginTop:4, display:"flex", justifyContent:"flex-end" }}><Btn size="sm" onClick={()=>signOffStep(a.id,"social")}>Confirm</Btn></div>}
+          {w.socialVerified && <div style={{ marginTop:4, fontSize:10, color:C.green }}>Verified by {w.socialOfficer}</div>}
         </div>);
         if (s.key==="decision" && isDecided) return <InfoGrid items={[["Decision",a.status],["Date",fmt.date(a.decided)],["Approver",a.approver],["Risk",a.riskScore],["DSCR",`${a.dscr}x`],["Social",a.socialScore]]} />;
         return null;
       };
 
       return (<div><BackBtn />
-        <div style={{display:"flex",justifyContent:"space-between",marginBottom:10 }}>
-          <div><h2 style={{margin:0,fontSize:20,fontWeight:700,color:C.text }}>{a.id}</h2><p style={{margin:"2px 0 0",fontSize:12,color:C.textMuted }}>{c?.name} \u00b7 {p?.name} \u00b7 {fmt.cur(a.amount)} over {a.term}m</p></div>
-          <div style={{display:"flex",gap:8,alignItems:"center" }}>{statusBadge(a.status)}<span style={{fontSize:11,color:C.textMuted }}>{doneCount}/7</span></div>
+        <div style={{ display:"flex", justifyContent:"space-between", marginBottom:10 }}>
+          <div><h2 style={{ margin:0, fontSize:20, fontWeight:700, color:C.text }}>{a.id}</h2><p style={{ margin:"2px 0 0", fontSize:12, color:C.textMuted }}>{c?.name} \u00b7 {p?.name} \u00b7 {fmt.cur(a.amount)} over {a.term}m</p></div>
+          <div style={{ display:"flex", gap:8, alignItems:"center" }}>{statusBadge(a.status)}<span style={{ fontSize:11, color:C.textMuted }}>{doneCount}/7</span></div>
         </div>
-        <div style={{display:"flex",gap:10,flexWrap:"wrap",marginBottom:10 }}>
+        <div style={{ display:"flex", gap:10, flexWrap:"wrap", marginBottom:10 }}>
           <KPI label="Amount" value={fmt.cur(a.amount)} /><KPI label="Term" value={`${a.term}m`} /><KPI label="Bureau" value={w.creditBureauScore??"-"} /><KPI label="Risk" value={a.riskScore??"-"} /><KPI label="DSCR" value={a.dscr?`${a.dscr}x`:"-"} /><KPI label="Social" value={a.socialScore??"-"} /><KPI label="LTV" value={w.collateralTotal?`${(a.amount/w.collateralTotal*100).toFixed(0)}%`:"-"} />
         </div>
         {isSub && <div style={{ border:`1px solid ${C.border}`, padding:"10px 14px", marginBottom:8, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-          <div><div style={{fontSize:12,fontWeight:600,color:C.text }}>Application awaiting due diligence</div><div style={{fontSize:11,color:C.textMuted }}>Initiate underwriting to begin step-by-step verification.</div></div>
+          <div><div style={{ fontSize:12, fontWeight:600, color:C.text }}>Application awaiting due diligence</div><div style={{ fontSize:11, color:C.textMuted }}>Initiate underwriting to begin step-by-step verification.</div></div>
           <Btn onClick={()=>moveToUnderwriting(a.id)}>Start Due Diligence</Btn>
         </div>}
 
@@ -2605,48 +2805,48 @@ export default function App() {
               ["Rate", a.rate ? `${a.rate}%` : "—"],
             ]} />
           </SectionCard>
-          {a.creditMemo && <SectionCard title="Credit Memorandum"><div style={{fontSize:12,color:C.textDim,lineHeight:1.7,whiteSpace:"pre-line" }}>{a.creditMemo}</div></SectionCard>}
-          {a.conditions?.length>0 && <SectionCard title={`Conditions (${a.conditions.length})`}>{a.conditions.map((cond,i)=><div key={i} style={{display:"flex",alignItems:"flex-start",gap:5,padding:"3px 0",fontSize:12 }}><span style={{color:C.green,flexShrink:0,marginTop:1 }}>{I.check}</span><span>{cond}</span></div>)}</SectionCard>}
+          {a.creditMemo && <SectionCard title="Credit Memorandum"><div style={{ fontSize:12, color:C.textDim, lineHeight:1.7, whiteSpace:"pre-line" }}>{a.creditMemo}</div></SectionCard>}
+          {a.conditions?.length>0 && <SectionCard title={`Conditions (${a.conditions.length})`}>{a.conditions.map((cond,i)=><div key={i} style={{ display:"flex", alignItems:"flex-start", gap:5, padding:"3px 0", fontSize:12 }}><span style={{ color:C.green, flexShrink:0, marginTop:1 }}>{I.check}</span><span>{cond}</span></div>)}</SectionCard>}
           {a.status === "Approved" && canDo("loans","update") && !loanForApp(a.id) && (
             <div style={{ border:`1px solid ${C.border}`, padding:"10px 14px", marginTop:4 }}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                 <div>
-                  <div style={{fontSize:12,fontWeight:600,color:C.text }}>Loan Booking</div>
-                  <div style={{fontSize:11,color:C.textMuted }}>Verify conditions precedent and create loan record.</div>
+                  <div style={{ fontSize:12, fontWeight:600, color:C.text }}>Loan Booking</div>
+                  <div style={{ fontSize:11, color:C.textMuted }}>Verify conditions precedent and create loan record.</div>
                 </div>
                 <Btn onClick={()=>bookLoan(a.id)}>Book Loan</Btn>
               </div>
             </div>
           )}
           {/* Underwriting Record — read-only expandable for audit/review */}
-          {Object.keys(w).length > 0 && <div style={{marginTop:8 }}>
+          {Object.keys(w).length > 0 && <div style={{ marginTop:8 }}>
             <div style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 10px", border:`1px solid ${C.border}`, cursor:"pointer", background:C.surface2 }} onClick={()=>setExpandedStep(expandedStep==="uwRecord"?null:"uwRecord")}>
-              <span style={{fontSize:12,fontWeight:600,color:C.textDim }}>Underwriting Record</span>
-              <span style={{fontSize:10,color:C.textMuted }}>(click to {expandedStep==="uwRecord"?"collapse":"expand"})</span>
-              <span style={{marginLeft:"auto",color:C.textMuted,transform:expandedStep==="uwRecord"?"rotate(90deg)":"none",transition:"transform .15s" }}>{I.chev}</span>
+              <span style={{ fontSize:12, fontWeight:600, color:C.textDim }}>Underwriting Record</span>
+              <span style={{ fontSize:10, color:C.textMuted }}>(click to {expandedStep==="uwRecord"?"collapse":"expand"})</span>
+              <span style={{ marginLeft:"auto", color:C.textMuted, transform:expandedStep==="uwRecord"?"rotate(90deg)":"none", transition:"transform .15s" }}>{I.chev}</span>
             </div>
             {expandedStep==="uwRecord" && <div style={{ border:`1px solid ${C.border}`, borderTop:"none" }}>
               {steps.filter(s=>s.key!=="decision").map((s,i) => (
                 <div key={i} style={{ borderBottom:`1px solid ${C.border}` }}>
-                  <div style={{display:"flex",alignItems:"center",gap:8,padding:"6px 10px" }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:8, padding:"6px 10px" }}>
                     <div style={{ width:14, height:14, borderRadius:7, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, background:s.done?C.green:"transparent", color:s.done?"#fff":C.textMuted, fontSize:7, fontWeight:600, border:`1px solid ${s.done?C.green:C.border}` }}>{s.done?I.check:""}</div>
-                    <span style={{fontSize:11,fontWeight:s.done?500:400,color:s.done?C.text:C.textMuted }}>{s.label}</span>
-                    {s.done && <span style={{fontSize:9,color:C.green,marginLeft:4 }}>Complete</span>}
-                    {!s.done && s.hasData && <span style={{fontSize:9,color:C.amber,marginLeft:4 }}>Incomplete</span>}
-                    {!s.done && !s.hasData && <span style={{fontSize:9,color:C.textMuted,marginLeft:4 }}>Not performed</span>}
+                    <span style={{ fontSize:11, fontWeight:s.done?500:400, color:s.done?C.text:C.textMuted }}>{s.label}</span>
+                    {s.done && <span style={{ fontSize:9, color:C.green, marginLeft:4 }}>Complete</span>}
+                    {!s.done && s.hasData && <span style={{ fontSize:9, color:C.amber, marginLeft:4 }}>Incomplete</span>}
+                    {!s.done && !s.hasData && <span style={{ fontSize:9, color:C.textMuted, marginLeft:4 }}>Not performed</span>}
                   </div>
-                  {s.hasData && <div style={{padding:"4px 10px 8px 32px",fontSize:11,color:C.textDim }}>
+                  {s.hasData && <div style={{ padding:"4px 10px 8px 32px", fontSize:11, color:C.textDim }}>
                     {s.key==="submitted" && s.detail && <div>{s.detail}</div>}
-                    {s.key==="kyc" && w.kycFindings && <div>{w.kycFindings.filter(f=>f.officerAction).map((f,j)=><div key={j} style={{padding:"2px 0" }}><span style={{color:f.status==="Pass"?C.green:C.amber,fontWeight:500 }}>{f.status}</span> {f.item}{f.officerNote?` — ${f.officerNote}`:""}</div>)}{w.kycOfficer && <div style={{fontSize:10,color:C.textMuted,marginTop:2 }}>Signed off by {w.kycOfficer}</div>}</div>}
-                    {s.key==="docs" && w.docsFindings && <div>{w.docsFindings.filter(f=>!f.inherited&&f.officerAction).map((f,j)=><div key={j} style={{padding:"2px 0" }}><span style={{color:C.green,fontWeight:500 }}>{f.status}</span> {f.item}{f.officerNote?` — ${f.officerNote}`:""}</div>)}{w.docsOfficer && <div style={{fontSize:10,color:C.textMuted,marginTop:2 }}>Signed off by {w.docsOfficer}</div>}</div>}
-                    {s.key==="sitevisit" && w.siteVisitFindings && <div>{w.siteVisitFindings.filter(f=>f.value).map((f,j)=><div key={j} style={{padding:"2px 0" }}><span style={{fontWeight:500 }}>{f.item}:</span> {f.value?.substring(0,120)}{f.value?.length>120?"...":""}{f.rating?` [${f.rating}]`:""}</div>)}{w.siteVisitOfficer && <div style={{fontSize:10,color:C.textMuted,marginTop:2 }}>Signed off by {w.siteVisitOfficer}</div>}</div>}
-                    {s.key==="credit" && w.creditFindings && <div>{w.creditFindings.map((f,j)=><div key={j} style={{padding:"2px 0" }}><span style={{fontWeight:500 }}>{f.item}:</span> {f.systemValue||""}{f.flag?<span style={{fontSize:9,marginLeft:4,padding:"0 4px",background:f.flag==="Accept"?C.green:f.flag==="Concern"?C.red:C.purple,color:"#fff" }}>{f.flag}</span>:""}{f.analystNote?<div style={{paddingLeft:8,color:C.textDim,fontSize:10,marginTop:1 }}>{f.analystNote.substring(0,150)}{f.analystNote.length>150?"...":""}</div>:""}</div>)}</div>}
-                    {s.key==="collateral" && w.collateralFindings && <div>{w.collateralFindings.map((f,j)=><div key={j} style={{padding:"2px 0" }}><span style={{fontWeight:500 }}>{f.item}:</span> {fmt.cur(f.value)} — {f.detail?.substring(0,100)}</div>)}<div style={{fontWeight:500,marginTop:2 }}>Total: {fmt.cur(w.collateralTotal)}</div></div>}
+                    {s.key==="kyc" && w.kycFindings && <div>{w.kycFindings.filter(f=>f.officerAction).map((f,j)=><div key={j} style={{ padding:"2px 0" }}><span style={{ color:f.status==="Pass"?C.green:C.amber, fontWeight:500 }}>{f.status}</span> {f.item}{f.officerNote?` — ${f.officerNote}`:""}</div>)}{w.kycOfficer && <div style={{ fontSize:10, color:C.textMuted, marginTop:2 }}>Signed off by {w.kycOfficer}</div>}</div>}
+                    {s.key==="docs" && w.docsFindings && <div>{w.docsFindings.filter(f=>!f.inherited&&f.officerAction).map((f,j)=><div key={j} style={{ padding:"2px 0" }}><span style={{ color:C.green, fontWeight:500 }}>{f.status}</span> {f.item}{f.officerNote?` — ${f.officerNote}`:""}</div>)}{w.docsOfficer && <div style={{ fontSize:10, color:C.textMuted, marginTop:2 }}>Signed off by {w.docsOfficer}</div>}</div>}
+                    {s.key==="sitevisit" && w.siteVisitFindings && <div>{w.siteVisitFindings.filter(f=>f.value).map((f,j)=><div key={j} style={{ padding:"2px 0" }}><span style={{ fontWeight:500 }}>{f.item}:</span> {f.value?.substring(0,120)}{f.value?.length>120?"...":""}{f.rating?` [${f.rating}]`:""}</div>)}{w.siteVisitOfficer && <div style={{ fontSize:10, color:C.textMuted, marginTop:2 }}>Signed off by {w.siteVisitOfficer}</div>}</div>}
+                    {s.key==="credit" && w.creditFindings && <div>{w.creditFindings.map((f,j)=><div key={j} style={{ padding:"2px 0" }}><span style={{ fontWeight:500 }}>{f.item}:</span> {f.systemValue||""}{f.flag?<span style={{ fontSize:9, marginLeft:4, padding:"0 4px", background:f.flag==="Accept"?C.green:f.flag==="Concern"?C.red:C.purple, color:"#fff" }}>{f.flag}</span>:""}{f.analystNote?<div style={{ paddingLeft:8, color:C.textDim, fontSize:10, marginTop:1 }}>{f.analystNote.substring(0,150)}{f.analystNote.length>150?"...":""}</div>:""}</div>)}</div>}
+                    {s.key==="collateral" && w.collateralFindings && <div>{w.collateralFindings.map((f,j)=><div key={j} style={{ padding:"2px 0" }}><span style={{ fontWeight:500 }}>{f.item}:</span> {fmt.cur(f.value)} — {f.detail?.substring(0,100)}</div>)}<div style={{ fontWeight:500, marginTop:2 }}>Total: {fmt.cur(w.collateralTotal)}</div></div>}
                     {s.key==="social" && w.socialFindings && renderReadOnly(w.socialFindings)}
                   </div>}
                 </div>
               ))}
-              {w.analystNotes && <div style={{ padding:"6px 10px", borderTop:`1px solid ${C.border}` }}><span style={{fontSize:10,fontWeight:600,color:C.textDim }}>Analyst Notes:</span><div style={{fontSize:11,color:C.textDim,marginTop:2 }}>{w.analystNotes}</div></div>}
+              {w.analystNotes && <div style={{ padding:"6px 10px", borderTop:`1px solid ${C.border}` }}><span style={{ fontSize:10, fontWeight:600, color:C.textDim }}>Analyst Notes:</span><div style={{ fontSize:11, color:C.textDim, marginTop:2 }}>{w.analystNotes}</div></div>}
             </div>}
           </div>}
         </div>}
@@ -2655,46 +2855,46 @@ export default function App() {
         {(isUW || a.status === "Draft") && steps.map((s,i) => {
           const isOpen = expandedStep===s.key;
           return (<div key={i} style={{ border:`1px solid ${C.border}`, marginBottom:1, background:C.surface }}>
-            <div style={{display:"flex",alignItems:"center",gap:8,padding:"7px 10px",cursor:"pointer",background:isOpen?C.surface2:"transparent" }} onClick={()=>setExpandedStep(isOpen?null:s.key)}>
+            <div style={{ display:"flex", alignItems:"center", gap:8, padding:"7px 10px", cursor:"pointer", background:isOpen?C.surface2:"transparent" }} onClick={()=>setExpandedStep(isOpen?null:s.key)}>
               <div style={{ width:16, height:16, borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, background:s.done?C.text:"transparent", color:s.done?"#fff":C.textMuted, fontSize:8, fontWeight:600, border:`1px solid ${s.done?C.text:s.hasData&&!s.done?C.amber:C.border}` }}>{s.done?I.check:i}</div>
-              <div style={{flex:1 }}>
-                <span style={{fontSize:12,fontWeight:s.done?600:400,color:s.done?C.text:C.textDim }}>{s.label}</span>
-                {s.done && <span style={{fontSize:10,color:C.textMuted,marginLeft:6 }}>Complete</span>}
-                {s.hasData && !s.done && <span style={{fontSize:10,color:C.amber,marginLeft:6 }}>Awaiting sign-off</span>}
+              <div style={{ flex:1 }}>
+                <span style={{ fontSize:12, fontWeight:s.done?600:400, color:s.done?C.text:C.textDim }}>{s.label}</span>
+                {s.done && <span style={{ fontSize:10, color:C.textMuted, marginLeft:6 }}>Complete</span>}
+                {s.hasData && !s.done && <span style={{ fontSize:10, color:C.amber, marginLeft:6 }}>Awaiting sign-off</span>}
               </div>
-              {s.canRun && isOpen && (s.gateOk ? <Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();runDDStep(a.id,s.key)}}>{s.runLabel}</Btn> : <span style={{fontSize:10,color:C.textMuted }}>{s.gateMsg}</span>)}
-              <span style={{color:C.textMuted,transform:isOpen?"rotate(90deg)":"none",transition:"transform .15s" }}>{I.chev}</span>
+              {s.canRun && isOpen && (s.gateOk ? <Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();runDDStep(a.id,s.key)}}>{s.runLabel}</Btn> : <span style={{ fontSize:10, color:C.textMuted }}>{s.gateMsg}</span>)}
+              <span style={{ color:C.textMuted, transform:isOpen?"rotate(90deg)":"none", transition:"transform .15s" }}>{I.chev}</span>
             </div>
             {isOpen && <div style={{ padding:"8px 10px 10px 34px", borderTop:`1px solid ${C.border}` }}>{renderStepBody(s)}</div>}
           </div>);
         })}
         {/* Analyst Notes */}
         {isUW && <div style={{ border:`1px solid ${C.border}`, marginTop:6, padding:"8px 10px" }}>
-          <div style={{fontSize:10,fontWeight:600,color:C.text,marginBottom:3 }}>Analyst Notes</div>
+          <div style={{ fontSize:10, fontWeight:600, color:C.text, marginBottom:3 }}>Analyst Notes</div>
           <textarea value={w.analystNotes||""} onChange={e=>saveAnalystNotes(a.id,e.target.value)} placeholder="Observations, concerns, conditions to propose..." rows={2} style={{ width:"100%", padding:"5px 6px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:11, fontFamily:"inherit", outline:"none", resize:"vertical", boxSizing:"border-box", lineHeight:1.5 }} />
         </div>}
         {/* Notify applicant */}
         {isUW && <div style={{ border:`1px solid ${C.border}`, marginTop:1, padding:"8px 10px" }}>
-          <div style={{fontSize:10,fontWeight:600,color:C.text,marginBottom:3 }}>Notify Applicant</div>
+          <div style={{ fontSize:10, fontWeight:600, color:C.text, marginBottom:3 }}>Notify Applicant</div>
           <input value={notifForm.subject} onChange={e=>setNotifForm({...notifForm,subject:e.target.value})} placeholder="Subject" style={{ width:"100%", padding:"3px 5px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:10, fontFamily:"inherit", outline:"none", boxSizing:"border-box", marginBottom:3 }} />
           <textarea value={notifForm.body} onChange={e=>setNotifForm({...notifForm,body:e.target.value})} placeholder="Message..." rows={2} style={{ width:"100%", padding:"3px 5px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:10, fontFamily:"inherit", outline:"none", resize:"vertical", boxSizing:"border-box", lineHeight:1.4 }} />
-          <div style={{display:"flex",justifyContent:"flex-end",marginTop:3 }}>
+          <div style={{ display:"flex", justifyContent:"flex-end", marginTop:3 }}>
             <Btn size="sm" variant="secondary" onClick={()=>{if(notifForm.subject&&notifForm.body){sendNotification(a.id,notifForm.subject,notifForm.body);setNotifForm({subject:"",body:""})}}}>Send</Btn>
           </div>
         </div>}
-        {a.creditMemo && isUW && <SectionCard title="Credit Memorandum"><div style={{fontSize:12,color:C.textDim,lineHeight:1.7,whiteSpace:"pre-line" }}>{a.creditMemo}</div></SectionCard>}
+        {a.creditMemo && isUW && <SectionCard title="Credit Memorandum"><div style={{ fontSize:12, color:C.textDim, lineHeight:1.7, whiteSpace:"pre-line" }}>{a.creditMemo}</div></SectionCard>}
         {isUW && <div style={{ border:`1px solid ${C.border}`, padding:"10px 14px", marginTop:4 }}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center" }}>
-            <div><div style={{fontSize:12,fontWeight:600,color:C.text }}>Credit Decision</div><div style={{fontSize:11,color:C.textMuted }}>{allDDComplete?"All steps signed off. Ready for decision.":`${doneCount}/7 steps completed.`}</div></div>
-            <div style={{display:"flex",gap:6 }}><Btn onClick={()=>decideLoan(a.id,"Approved")} disabled={!allDDComplete}>Approve</Btn><Btn variant="danger" onClick={()=>decideLoan(a.id,"Declined")} disabled={!allDDComplete}>Decline</Btn></div>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+            <div><div style={{ fontSize:12, fontWeight:600, color:C.text }}>Credit Decision</div><div style={{ fontSize:11, color:C.textMuted }}>{allDDComplete?"All steps signed off. Ready for decision.":`${doneCount}/7 steps completed.`}</div></div>
+            <div style={{ display:"flex", gap:6 }}><Btn onClick={()=>decideLoan(a.id,"Approved")} disabled={!allDDComplete}>Approve</Btn><Btn variant="danger" onClick={()=>decideLoan(a.id,"Declined")} disabled={!allDDComplete}>Decline</Btn></div>
           </div>
         </div>}
         {a.status === "Booked" && (
           <div style={{ border:`1px solid ${C.border}`, padding:"10px 14px", marginTop:4, background:C.surface2 }}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center" }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
               <div>
-                <div style={{fontSize:12,fontWeight:600,color:C.text }}>Loan Booked — Awaiting Disbursement</div>
-                <div style={{fontSize:11,color:C.textMuted }}>Loan {loanForApp(a.id)?.id} created. Finance to initiate disbursement (requires dual authorization).</div>
+                <div style={{ fontSize:12, fontWeight:600, color:C.text }}>Loan Booked — Awaiting Disbursement</div>
+                <div style={{ fontSize:11, color:C.textMuted }}>Loan {loanForApp(a.id)?.id} created. Finance to initiate disbursement (requires dual authorization).</div>
               </div>
               <Btn size="sm" variant="ghost" onClick={()=>{const l=loanForApp(a.id); if(l) setDetail({type:"loan",id:l.id})}}>View Loan</Btn>
             </div>
@@ -2710,9 +2910,9 @@ export default function App() {
       const repaidPct = l.status === "Active" ? Math.round((1-l.balance/l.amount)*100) : 0;
       const isBooked = l.status === "Booked";
       return (<div><BackBtn />
-        <div style={{display:"flex",justifyContent:"space-between",marginBottom:24 }}>
-          <div><h2 style={{margin:0,fontSize:22,fontWeight:700,color:C.text }}>{l.id}</h2><p style={{margin:"4px 0 0",fontSize:13,color:C.textMuted }}>{c?.name}</p></div>
-          <div style={{display:"flex",gap:8 }}>
+        <div style={{ display:"flex", justifyContent:"space-between", marginBottom:24 }}>
+          <div><h2 style={{ margin:0, fontSize:22, fontWeight:700, color:C.text }}>{l.id}</h2><p style={{ margin:"4px 0 0", fontSize:13, color:C.textMuted }}>{c?.name}</p></div>
+          <div style={{ display:"flex", gap:8 }}>
             {statusBadge(l.status)}
             {l.status==="Active"&&<Badge color={l.dpd===0?"green":l.dpd<=30?"amber":"red"}>{l.dpd} DPD</Badge>}
             {l.status==="Active"&&<Badge color={l.stage===1?"green":l.stage===2?"amber":"red"}>Stage {l.stage}</Badge>}
@@ -2722,10 +2922,10 @@ export default function App() {
         {/* Disbursement panel for Booked loans */}
         {isBooked && (
           <div style={{ border:`1px solid ${C.border}`, padding:"12px 16px", marginBottom:20, background:C.surface2 }}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center" }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
               <div>
-                <div style={{fontSize:14,fontWeight:600,color:C.text }}>Loan Booked — Awaiting Disbursement</div>
-                <div style={{fontSize:12,color:C.textMuted,marginTop:2 }}>
+                <div style={{ fontSize:14, fontWeight:600, color:C.text }}>Loan Booked — Awaiting Disbursement</div>
+                <div style={{ fontSize:12, color:C.textMuted, marginTop:2 }}>
                   Booked by: {SYSTEM_USERS.find(u=>u.id===l.bookedBy)?.name || "—"} on {fmt.date(l.bookedAt)}<br/>
                   Pre-disbursement AML check will run automatically. Dual authorization required (disbursing officer must differ from booking officer).
                   {l.arrangementFee > 0 && <span> · Arrangement fee: {fmt.cur(l.arrangementFee)}</span>}
@@ -2738,7 +2938,7 @@ export default function App() {
           </div>
         )}
 
-        <div style={{display:"flex",gap:12,flexWrap:"wrap",marginBottom:20 }}>
+        <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:20 }}>
           <KPI label={isBooked?"Amount":"Disbursed"} value={fmt.cur(l.amount)} accent={C.blue} />
           <KPI label="Balance" value={fmt.cur(l.balance)} accent={C.red} />
           <KPI label="Rate" value={`${l.rate}%`} accent={C.amber} />
@@ -2748,15 +2948,15 @@ export default function App() {
         </div>
         <SectionCard title={`Repayment Progress — ${repaidPct}%`}>
           <ProgressBar value={repaidPct} color={C.accent} height={10} />
-          <div style={{display:"flex",justifyContent:"space-between",marginTop:8,fontSize:11,color:C.textMuted }}>
+          <div style={{ display:"flex", justifyContent:"space-between", marginTop:8, fontSize:11, color:C.textMuted }}>
             <span>Disbursed: {fmt.date(l.disbursed)}</span><span>Next Due: {fmt.date(l.nextDue)}</span><span>Last Payment: {l.lastPmt ? `${fmt.cur(l.lastPmtAmt)} on ${fmt.date(l.lastPmt)}` : "—"}</span>
           </div>
         </SectionCard>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16 }}>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
           <SectionCard title="Covenant Monitoring">
             {l.covenants.map((cov,i) => (
               <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 0", borderBottom:`1px solid ${C.border}` }}>
-                <div><div style={{fontSize:13,color:C.text }}>{cov.name}</div><div style={{fontSize:10,color:C.textMuted }}>Checked: {fmt.date(cov.checked)} · Value: {cov.value}</div></div>
+                <div><div style={{ fontSize:13, color:C.text }}>{cov.name}</div><div style={{ fontSize:10, color:C.textMuted }}>Checked: {fmt.date(cov.checked)} · Value: {cov.value}</div></div>
                 {statusBadge(cov.status)}
               </div>
             ))}
@@ -2764,40 +2964,40 @@ export default function App() {
           <SectionCard title="Collateral & Security">
             {l.collateral.length>0 ? l.collateral.map((col,i) => (
               <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"8px 0", borderBottom:`1px solid ${C.border}` }}>
-                <div><div style={{fontSize:13,fontWeight:600,color:C.text }}>{col.type}</div><div style={{fontSize:11,color:C.textMuted }}>{col.description}</div></div>
-                <span style={{fontSize:13,fontWeight:700,color:C.accent }}>{fmt.cur(col.value)}</span>
+                <div><div style={{ fontSize:13, fontWeight:600, color:C.text }}>{col.type}</div><div style={{ fontSize:11, color:C.textMuted }}>{col.description}</div></div>
+                <span style={{ fontSize:13, fontWeight:700, color:C.accent }}>{fmt.cur(col.value)}</span>
               </div>
-            )) : <div style={{color:C.textMuted,fontSize:13 }}>No collateral recorded</div>}
-            {l.collateral.length>0 && <div style={{textAlign:"right",marginTop:10,fontSize:13,fontWeight:700,color:C.text }}>Total Security: {fmt.cur(l.collateral.reduce((s,c)=>s+c.value,0))}</div>}
+            )) : <div style={{ color:C.textMuted, fontSize:13 }}>No collateral recorded</div>}
+            {l.collateral.length>0 && <div style={{ textAlign:"right", marginTop:10, fontSize:13, fontWeight:700, color:C.text }}>Total Security: {fmt.cur(l.collateral.reduce((s,c)=>s+c.value,0))}</div>}
           </SectionCard>
         </div>
         {prov && <SectionCard title="IFRS 9 Provisioning">
-          <div style={{display:"flex",gap:24 }}>
+          <div style={{ display:"flex", gap:24 }}>
             {[["Stage",`Stage ${prov.stage}`],["PD",fmt.pct(prov.pd)],["LGD",fmt.pct(prov.lgd,0)],["EAD",fmt.cur(prov.ead)],["ECL",fmt.cur(prov.ecl)],["Method",prov.method]].map(([l,v],i)=>(
-              <div key={i}><div style={{fontSize:10,color:C.textMuted,textTransform:"uppercase" }}>{l}</div><div style={{fontSize:15,fontWeight:700,color:l==="ECL"?C.purple:C.text }}>{v}</div></div>
+              <div key={i}><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase" }}>{l}</div><div style={{ fontSize:15, fontWeight:700, color:l==="ECL"?C.purple:C.text }}>{v}</div></div>
             ))}
           </div>
         </SectionCard>}
         <SectionCard title={`Payment History (${l.payments.length})`}>
           <Table columns={[
             { label:"Date", render:r=>fmt.date(r.date) },
-            { label:"Total", render:r=><span style={{fontWeight:700 }}>{fmt.cur(r.amount)}</span> },
-            { label:"Interest", render:r=><span style={{color:C.amber }}>{fmt.cur(r.interest||0)}</span> },
-            { label:"Principal", render:r=><span style={{color:C.green }}>{fmt.cur(r.principal||0)}</span> },
+            { label:"Total", render:r=><span style={{ fontWeight:700 }}>{fmt.cur(r.amount)}</span> },
+            { label:"Interest", render:r=><span style={{ color:C.amber }}>{fmt.cur(r.interest||0)}</span> },
+            { label:"Principal", render:r=><span style={{ color:C.green }}>{fmt.cur(r.principal||0)}</span> },
             { label:"Type", key:"type" },
             { label:"Status", render:r=>statusBadge(r.status) },
           ]} rows={[...l.payments].sort((a,b)=>b.date-a.date)} />
-          {canDo("servicing","create") && <div style={{marginTop:12 }}><Btn size="sm" variant="secondary" onClick={()=>recordPayment(l.id, l.monthlyPmt)} icon={I.plus}>Record Payment</Btn></div>}
+          {canDo("servicing","create") && <div style={{ marginTop:12 }}><Btn size="sm" variant="secondary" onClick={()=>recordPayment(l.id, l.monthlyPmt)} icon={I.plus}>Record Payment</Btn></div>}
         </SectionCard>
         {lc.length>0 && <SectionCard title="Collection Activity">
           {lc.sort((a,b)=>b.created-a.created).map((col,i) => (
             <div key={i} style={{ padding:"10px 0", borderBottom:`1px solid ${C.border}` }}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4 }}>
-                <div style={{display:"flex",alignItems:"center",gap:8 }}><span style={{fontWeight:700,color:C.text,fontSize:13 }}>{col.action}</span><Badge color="slate">{col.channel}</Badge></div>
-                <span style={{fontSize:10,color:C.textMuted }}>{fmt.date(col.created)}</span>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:8 }}><span style={{ fontWeight:700, color:C.text, fontSize:13 }}>{col.action}</span><Badge color="slate">{col.channel}</Badge></div>
+                <span style={{ fontSize:10, color:C.textMuted }}>{fmt.date(col.created)}</span>
               </div>
-              <div style={{fontSize:12,color:C.textDim }}>{col.notes}</div>
-              {col.ptpDate && <div style={{fontSize:11,color:C.accent,marginTop:3 }}>PTP: {fmt.cur(col.ptpAmount)} by {fmt.date(col.ptpDate)}</div>}
+              <div style={{ fontSize:12, color:C.textDim }}>{col.notes}</div>
+              {col.ptpDate && <div style={{ fontSize:11, color:C.accent, marginTop:3 }}>PTP: {fmt.cur(col.ptpAmount)} by {fmt.date(col.ptpDate)}</div>}
             </div>
           ))}
         </SectionCard>}
@@ -2833,38 +3033,38 @@ export default function App() {
     };
 
     return (<div>
-      <div style={{display:"flex",justifyContent:"space-between",marginBottom:20 }}>
-        <div><h2 style={{margin:0,fontSize:22,fontWeight:700,color:C.text }}>Loan Products</h2><p style={{margin:"4px 0 0",fontSize:13,color:C.textMuted }}>Product catalog configuration — rates, terms, fees, eligibility</p></div>
+      <div style={{ display:"flex", justifyContent:"space-between", marginBottom:20 }}>
+        <div><h2 style={{ margin:0, fontSize:22, fontWeight:700, color:C.text }}>Loan Products</h2><p style={{ margin:"4px 0 0", fontSize:13, color:C.textMuted }}>Product catalog configuration — rates, terms, fees, eligibility</p></div>
         {canDo("products","create") && <Btn onClick={startNew} icon={I.plus}>New Product</Btn>}
       </div>
 
       {/* Edit/Create form */}
       {prodForm && (
         <SectionCard title={prodEditing === "new" ? "Create New Product" : `Edit: ${prodForm.name}`}>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:10 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:10 }}>
             <Field label="Product Name"><Input value={prodForm.name} onChange={e=>setProdForm({...prodForm,name:e.target.value})} /></Field>
             <Field label="Repayment Type"><Select value={prodForm.repaymentType} onChange={e=>setProdForm({...prodForm,repaymentType:e.target.value})} options={["Amortising","Bullet","Balloon","Seasonal"].map(v=>({value:v,label:v}))} /></Field>
             <Field label="Status"><Select value={prodForm.status} onChange={e=>setProdForm({...prodForm,status:e.target.value})} options={["Active","Suspended","Retired"].map(v=>({value:v,label:v}))} /></Field>
           </div>
           <Field label="Description"><Textarea value={prodForm.description} onChange={e=>setProdForm({...prodForm,description:e.target.value})} rows={2} /></Field>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:10,marginBottom:10 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:10, marginBottom:10 }}>
             <Field label="Min Amount (R)"><Input type="number" value={prodForm.minAmount} onChange={e=>setProdForm({...prodForm,minAmount:+e.target.value})} /></Field>
             <Field label="Max Amount (R)"><Input type="number" value={prodForm.maxAmount} onChange={e=>setProdForm({...prodForm,maxAmount:+e.target.value})} /></Field>
             <Field label="Min Term (m)"><Input type="number" value={prodForm.minTerm} onChange={e=>setProdForm({...prodForm,minTerm:+e.target.value})} /></Field>
             <Field label="Max Term (m)"><Input type="number" value={prodForm.maxTerm} onChange={e=>setProdForm({...prodForm,maxTerm:+e.target.value})} /></Field>
           </div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr 1fr",gap:10,marginBottom:10 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr 1fr", gap:10, marginBottom:10 }}>
             <Field label="Base Rate %"><Input type="number" value={prodForm.baseRate} onChange={e=>setProdForm({...prodForm,baseRate:+e.target.value})} /></Field>
             <Field label="Arrangement Fee %"><Input type="number" value={prodForm.arrangementFee} onChange={e=>setProdForm({...prodForm,arrangementFee:+e.target.value})} /></Field>
             <Field label="Commitment Fee %"><Input type="number" value={prodForm.commitmentFee} onChange={e=>setProdForm({...prodForm,commitmentFee:+e.target.value})} /></Field>
             <Field label="Grace Period (m)"><Input type="number" value={prodForm.gracePeriod} onChange={e=>setProdForm({...prodForm,gracePeriod:+e.target.value})} /></Field>
             <Field label="Max LTV %"><Input type="number" value={prodForm.maxLTV} onChange={e=>setProdForm({...prodForm,maxLTV:+e.target.value})} /></Field>
           </div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
             <Field label="Min DSCR"><Input type="number" value={prodForm.minDSCR} onChange={e=>setProdForm({...prodForm,minDSCR:+e.target.value})} step="0.05" /></Field>
             <Field label="Eligible BEE Levels (comma-sep)"><Input value={(prodForm.eligibleBEE||[]).join(",")} onChange={e=>setProdForm({...prodForm,eligibleBEE:e.target.value.split(",").map(Number).filter(Boolean)})} /></Field>
           </div>
-          <div style={{display:"flex",gap:8,marginTop:12 }}>
+          <div style={{ display:"flex", gap:8, marginTop:12 }}>
             <Btn onClick={handleSave}>Save Product</Btn>
             <Btn variant="ghost" onClick={cancelEdit}>Cancel</Btn>
           </div>
@@ -2873,16 +3073,16 @@ export default function App() {
 
       {/* Product catalog table */}
       <Table columns={[
-        { label:"Product", render:r=><div><div style={{fontWeight:600,fontSize:12 }}>{r.name}</div><div style={{fontSize:10,color:C.textMuted }}>{r.description}</div></div> },
-        { label:"Type", render:r=><span style={{fontSize:11 }}>{r.repaymentType||"Amortising"}</span> },
-        { label:"Rate", render:r=><span style={{fontSize:12,fontWeight:600 }}>{r.baseRate}%</span> },
-        { label:"Amount Range", render:r=><span style={{fontSize:11 }}>{fmt.cur(r.minAmount)} – {fmt.cur(r.maxAmount)}</span> },
-        { label:"Term", render:r=><span style={{fontSize:11 }}>{r.minTerm}–{r.maxTerm}m</span> },
-        { label:"Fees", render:r=><span style={{fontSize:10,color:C.textDim }}>Arr: {r.arrangementFee||0}% · Com: {r.commitmentFee||0}%</span> },
-        { label:"LTV/DSCR", render:r=><span style={{fontSize:10,color:C.textDim }}>LTV≤{r.maxLTV||80}% · DSCR≥{r.minDSCR||1.2}x</span> },
-        { label:"BEE", render:r=><span style={{fontSize:10 }}>{(r.eligibleBEE||[]).join(",")}</span> },
+        { label:"Product", render:r=><div><div style={{ fontWeight:600, fontSize:12 }}>{r.name}</div><div style={{ fontSize:10, color:C.textMuted }}>{r.description}</div></div> },
+        { label:"Type", render:r=><span style={{ fontSize:11 }}>{r.repaymentType||"Amortising"}</span> },
+        { label:"Rate", render:r=><span style={{ fontSize:12, fontWeight:600 }}>{r.baseRate}%</span> },
+        { label:"Amount Range", render:r=><span style={{ fontSize:11 }}>{fmt.cur(r.minAmount)} – {fmt.cur(r.maxAmount)}</span> },
+        { label:"Term", render:r=><span style={{ fontSize:11 }}>{r.minTerm}–{r.maxTerm}m</span> },
+        { label:"Fees", render:r=><span style={{ fontSize:10, color:C.textDim }}>Arr: {r.arrangementFee||0}% · Com: {r.commitmentFee||0}%</span> },
+        { label:"LTV/DSCR", render:r=><span style={{ fontSize:10, color:C.textDim }}>LTV≤{r.maxLTV||80}% · DSCR≥{r.minDSCR||1.2}x</span> },
+        { label:"BEE", render:r=><span style={{ fontSize:10 }}>{(r.eligibleBEE||[]).join(",")}</span> },
         { label:"Status", render:r=>statusBadge(r.status||"Active") },
-        { label:"Actions", render:r=><div style={{display:"flex",gap:4 }}>
+        { label:"Actions", render:r=><div style={{ display:"flex", gap:4 }}>
           {canDo("products","update") && <Btn size="sm" variant="ghost" onClick={e=>{e.stopPropagation();startEdit(r)}}>Edit</Btn>}
           {canDo("products","update") && <Btn size="sm" variant={r.status==="Active"?"ghost":"secondary"} onClick={e=>{e.stopPropagation();toggleProductStatus(r.id)}}>{r.status==="Active"?"Suspend":"Activate"}</Btn>}
         </div> },
@@ -2898,8 +3098,8 @@ export default function App() {
     };
 
     return (<div>
-      <h2 style={{margin:"0 0 4px",fontSize:22,fontWeight:700,color:C.text }}>System Administration</h2>
-      <p style={{margin:"0 0 20px",fontSize:13,color:C.textMuted }}>Company details, user management, approval matrix & system configuration</p>
+      <h2 style={{ margin:"0 0 4px", fontSize:22, fontWeight:700, color:C.text }}>System Administration</h2>
+      <p style={{ margin:"0 0 20px", fontSize:13, color:C.textMuted }}>Company details, user management, approval matrix & system configuration</p>
 
       {/* Company Details */}
       <SectionCard title="Company Details" actions={canDo("settings","update") && !settingsEditing ? <Btn size="sm" variant="ghost" onClick={()=>{setSettingsForm({...(settings||{})});setSettingsEditing(true)}}>Edit</Btn> : null}>
@@ -2914,7 +3114,7 @@ export default function App() {
           ]} />
         ) : (
           <div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10 }}>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
               <Field label="Company Name"><Input value={settingsForm.companyName||""} onChange={e=>setSettingsForm({...settingsForm,companyName:e.target.value})} /></Field>
               <Field label="NCR Registration"><Input value={settingsForm.ncrReg||""} onChange={e=>setSettingsForm({...settingsForm,ncrReg:e.target.value})} /></Field>
               <Field label="NCR Expiry"><Input value={settingsForm.ncrExpiry||""} onChange={e=>setSettingsForm({...settingsForm,ncrExpiry:e.target.value})} /></Field>
@@ -2922,7 +3122,7 @@ export default function App() {
               <Field label="Year-End"><Input value={settingsForm.yearEnd||""} onChange={e=>setSettingsForm({...settingsForm,yearEnd:e.target.value})} /></Field>
               <Field label="Address"><Input value={settingsForm.address||""} onChange={e=>setSettingsForm({...settingsForm,address:e.target.value})} /></Field>
             </div>
-            <div style={{display:"flex",gap:8 }}><Btn onClick={handleSaveSettings}>Save</Btn><Btn variant="ghost" onClick={()=>setSettingsEditing(false)}>Cancel</Btn></div>
+            <div style={{ display:"flex", gap:8 }}><Btn onClick={handleSaveSettings}>Save</Btn><Btn variant="ghost" onClick={()=>setSettingsEditing(false)}>Cancel</Btn></div>
           </div>
         )}
       </SectionCard>
@@ -2930,20 +3130,20 @@ export default function App() {
       {/* System Users */}
       <SectionCard title={`System Users (${SYSTEM_USERS.length})`}>
         <Table columns={[
-          { label:"ID", render:r=><span style={{fontFamily:"monospace",fontSize:11 }}>{r.id}</span> },
-          { label:"Name", render:r=><div style={{display:"flex",alignItems:"center",gap:6 }}><div style={{ width:22, height:22, borderRadius:2, background:C.surface2, border:`1px solid ${C.border}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:9, fontWeight:600, color:C.textDim }}>{r.initials}</div><span style={{fontWeight:500 }}>{r.name}</span></div> },
-          { label:"Email", render:r=><span style={{fontSize:11,color:C.textDim }}>{r.email}</span> },
+          { label:"ID", render:r=><span style={{ fontFamily:"monospace", fontSize:11 }}>{r.id}</span> },
+          { label:"Name", render:r=><div style={{ display:"flex", alignItems:"center", gap:6 }}><div style={{ width:22, height:22, borderRadius:2, background:C.surface2, border:`1px solid ${C.border}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:9, fontWeight:600, color:C.textDim }}>{r.initials}</div><span style={{ fontWeight:500 }}>{r.name}</span></div> },
+          { label:"Email", render:r=><span style={{ fontSize:11, color:C.textDim }}>{r.email}</span> },
           { label:"Role", render:r=><Badge>{ROLES[r.role]?.label || r.role}</Badge> },
-          { label:"Tier", render:r=><span style={{fontSize:11 }}>{ROLES[r.role]?.tier}</span> },
-          { label:"Approval Limit", render:r=>APPROVAL_LIMITS[r.role] ? (APPROVAL_LIMITS[r.role] === Infinity ? "Unlimited" : fmt.cur(APPROVAL_LIMITS[r.role])) : <span style={{color:C.textMuted }}>—</span> },
+          { label:"Tier", render:r=><span style={{ fontSize:11 }}>{ROLES[r.role]?.tier}</span> },
+          { label:"Approval Limit", render:r=>APPROVAL_LIMITS[r.role] ? (APPROVAL_LIMITS[r.role] === Infinity ? "Unlimited" : fmt.cur(APPROVAL_LIMITS[r.role])) : <span style={{ color:C.textMuted }}>—</span> },
         ]} rows={SYSTEM_USERS} />
       </SectionCard>
 
       {/* Approval Authority Matrix */}
       <SectionCard title="Approval Authority Matrix">
         <Table columns={[
-          { label:"Role", render:r=><span style={{fontWeight:500 }}>{ROLES[r.role]?.label}</span> },
-          { label:"Max Amount", render:r=>r.limit === Infinity ? "Unlimited" : r.limit > 0 ? fmt.cur(r.limit) : <span style={{color:C.textMuted }}>No approval authority</span> },
+          { label:"Role", render:r=><span style={{ fontWeight:500 }}>{ROLES[r.role]?.label}</span> },
+          { label:"Max Amount", render:r=>r.limit === Infinity ? "Unlimited" : r.limit > 0 ? fmt.cur(r.limit) : <span style={{ color:C.textMuted }}>No approval authority</span> },
           { label:"Tier", render:r=>String(ROLES[r.role]?.tier) },
         ]} rows={Object.keys(ROLES).map(k => ({ role:k, limit: APPROVAL_LIMITS[k] || 0 }))} />
       </SectionCard>
@@ -2951,7 +3151,7 @@ export default function App() {
       {/* Product Summary */}
       <SectionCard title={`Product Catalog Summary (${products.length})`} actions={<Btn size="sm" variant="ghost" onClick={()=>setPage("products")}>Manage Products {I.chev}</Btn>}>
         <Table columns={[
-          { label:"Product", render:r=><span style={{fontWeight:500 }}>{r.name}</span> },
+          { label:"Product", render:r=><span style={{ fontWeight:500 }}>{r.name}</span> },
           { label:"Rate", render:r=>`${r.baseRate}%` },
           { label:"Range", render:r=>`${fmt.cur(r.minAmount)} – ${fmt.cur(r.maxAmount)}` },
           { label:"Status", render:r=>statusBadge(r.status||"Active") },
@@ -2961,16 +3161,16 @@ export default function App() {
       {/* RBAC Permission Matrix */}
       {canDo("settings","view") && (
         <SectionCard title="RBAC Permission Matrix">
-          <div style={{overflowX:"auto" }}>
-            <table style={{width:"100%",borderCollapse:"collapse",fontSize:10 }}>
+          <div style={{ overflowX:"auto" }}>
+            <table style={{ width:"100%", borderCollapse:"collapse", fontSize:10 }}>
               <thead><tr style={{ borderBottom:`2px solid ${C.border}` }}>
-                <th style={{textAlign:"left",padding:"4px 6px",fontWeight:600,color:C.text }}>Module</th>
-                {Object.keys(ROLES).map(r=><th key={r} style={{textAlign:"center",padding:"4px 3px",fontWeight:500,color:C.textDim,fontSize:9 }}>{r.replace("_"," ")}</th>)}
+                <th style={{ textAlign:"left", padding:"4px 6px", fontWeight:600, color:C.text }}>Module</th>
+                {Object.keys(ROLES).map(r=><th key={r} style={{ textAlign:"center", padding:"4px 3px", fontWeight:500, color:C.textDim, fontSize:9 }}>{r.replace("_"," ")}</th>)}
               </tr></thead>
               <tbody>{Object.keys(PERMS).map(mod=>(
                 <tr key={mod} style={{ borderBottom:`1px solid ${C.border}` }}>
-                  <td style={{padding:"3px 6px",fontWeight:500,color:C.text }}>{mod}</td>
-                  {Object.keys(ROLES).map(r=><td key={r} style={{textAlign:"center",padding:"3px 2px",color:PERMS[mod]?.[r]?C.textDim:C.border,fontSize:9 }}>{PERMS[mod]?.[r]||"—"}</td>)}
+                  <td style={{ padding:"3px 6px", fontWeight:500, color:C.text }}>{mod}</td>
+                  {Object.keys(ROLES).map(r=><td key={r} style={{ textAlign:"center", padding:"3px 2px", color:PERMS[mod]?.[r]?C.textDim:C.border, fontSize:9 }}>{PERMS[mod]?.[r]||"—"}</td>)}
                 </tr>
               ))}</tbody>
             </table>
@@ -3017,14 +3217,14 @@ export default function App() {
           Fees: Arrangement {p.arrangementFee||0}% · Commitment {p.commitmentFee||0}% · Max LTV: {p.maxLTV||80}% · Min DSCR: {p.minDSCR||1.2}x<br/>
           BEE Eligibility: Level {(p.eligibleBEE||[]).join(", ")}
         </div>}
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12 }}>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
           <Field label="Amount (R)"><Input type="number" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} placeholder={p?`${fmt.cur(p.minAmount)} – ${fmt.cur(p.maxAmount)}`:"e.g. 500000"} /></Field>
           <Field label="Term (months)"><Input type="number" value={form.term} onChange={e=>setForm({...form,term:e.target.value})} placeholder={p?`${p.minTerm} – ${p.maxTerm}`:"e.g. 36"} /></Field>
         </div>
         {errors.length > 0 && <div style={{ background:"#fff5f5", border:`1px solid ${C.red}`, padding:"6px 10px", marginBottom:12, fontSize:11, color:C.red }}>{errors.map((e,i)=><div key={i}>{e}</div>)}</div>}
         <Field label="Purpose of Loan"><Textarea value={form.purpose} onChange={e=>setForm({...form,purpose:e.target.value})} placeholder="Describe the purpose..." rows={3} /></Field>
-        <div style={{display:"flex",gap:12,marginTop:16 }}>
-          <Btn variant="ghost" onClick={()=>setModal(null)} style={{flex:1 }}>Cancel</Btn>
+        <div style={{ display:"flex", gap:12, marginTop:16 }}>
+          <Btn variant="ghost" onClick={()=>setModal(null)} style={{ flex:1 }}>Cancel</Btn>
           <Btn onClick={()=>{if(canSubmit){submitApp(form);setModal(null)}}} disabled={!canSubmit}>Submit Application</Btn>
         </div>
       </Modal>
@@ -3032,7 +3232,7 @@ export default function App() {
   }
 
   return (
-    <div style={{fontFamily:"'Outfit','Segoe UI',system-ui,sans-serif",background:C.bg,minHeight:"100vh",display:"flex",color:C.text }}>
+    <div style={{ fontFamily:"'Outfit','Segoe UI',system-ui,sans-serif", background:C.bg, minHeight:"100vh", display:"flex", color:C.text }}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
       <style>{`
         ::-webkit-scrollbar{width:5px;height:5px}
@@ -3044,60 +3244,60 @@ export default function App() {
       {/* Sidebar */}
       <aside style={{ width:sideCollapsed?52:210, background:C.surface, borderRight:`1px solid ${C.border}`, transition:"width .15s", flexShrink:0, display:"flex", flexDirection:"column", overflow:"hidden" }}>
         <div style={{ padding:sideCollapsed?"12px 8px":"14px 14px 10px", borderBottom:`1px solid ${C.border}`, display:"flex", alignItems:"center", gap:8, cursor:"pointer" }} onClick={()=>setSideCollapsed(!sideCollapsed)}>
-          {!sideCollapsed && <div><div style={{fontSize:13,fontWeight:600,color:C.text,letterSpacing:-0.2 }}>KwikBridge</div><div style={{fontSize:9,color:C.textMuted,letterSpacing:0.5 }}>LOAN MANAGEMENT</div></div>}
+          {!sideCollapsed && <div><div style={{ fontSize:13, fontWeight:600, color:C.text, letterSpacing:-0.2 }}>KwikBridge</div><div style={{ fontSize:9, color:C.textMuted, letterSpacing:0.5 }}>LOAN MANAGEMENT</div></div>}
         </div>
-        <nav style={{flex:1,padding:"6px 4px",overflowY:"auto" }}>
+        <nav style={{ flex:1, padding:"6px 4px", overflowY:"auto" }}>
           {navItems.map(n => {
             const active = page === n.key && !detail;
             return (<button key={n.key} onClick={()=>{setPage(n.key);setDetail(null)}} style={{ display:"flex", alignItems:"center", gap:8, width:"100%", padding:sideCollapsed?"7px 0":"6px 10px", justifyContent:sideCollapsed?"center":"flex-start", background:active?C.surface2:"transparent", color:active?C.text:C.textDim, border:"none", borderLeft:active?`2px solid ${C.text}`:"2px solid transparent", fontSize:12, fontWeight:active?600:400, cursor:"pointer", marginBottom:0, fontFamily:"inherit" }}>
               {n.icon}
-              {!sideCollapsed && <span style={{flex:1,textAlign:"left" }}>{n.label}</span>}
-              {!sideCollapsed && n.count != null && n.count > 0 && <span style={{fontSize:10,color:C.textMuted }}>{n.count}</span>}
+              {!sideCollapsed && <span style={{ flex:1, textAlign:"left" }}>{n.label}</span>}
+              {!sideCollapsed && n.count != null && n.count > 0 && <span style={{ fontSize:10, color:C.textMuted }}>{n.count}</span>}
             </button>);
           })}
         </nav>
         {!sideCollapsed && <div style={{ padding:"8px 12px 12px", borderTop:`1px solid ${C.border}` }}>
-          <div style={{fontSize:10,fontWeight:500,color:C.text,marginBottom:2 }}>{currentUser.name}</div>
-          <div style={{fontSize:9,color:C.textMuted,marginBottom:4 }}>{ROLES[role]?.label}</div>
-          <div style={{fontSize:9,color:C.textMuted,lineHeight:1.5,letterSpacing:0.2 }}>ThandoQ & Associates<br/>NCR: {settings?.ncrReg||"—"}<br/>Valid: {settings?.ncrExpiry||"—"}</div>
+          <div style={{ fontSize:10, fontWeight:500, color:C.text, marginBottom:2 }}>{currentUser.name}</div>
+          <div style={{ fontSize:9, color:C.textMuted, marginBottom:4 }}>{ROLES[role]?.label}</div>
+          <div style={{ fontSize:9, color:C.textMuted, lineHeight:1.5, letterSpacing:0.2 }}>ThandoQ & Associates<br/>NCR: {settings?.ncrReg||"—"}<br/>Valid: {settings?.ncrExpiry||"—"}</div>
           <button onClick={reset} style={{ marginTop:6, background:"none", border:`1px solid ${C.border}`, color:C.textMuted, borderRadius:2, padding:"2px 6px", fontSize:9, cursor:"pointer", fontFamily:"inherit" }}>Reset Demo</button>
         </div>}
       </aside>
 
       {/* Main */}
-      <div style={{flex:1,display:"flex",flexDirection:"column",minWidth:0 }}>
+      <div style={{ flex:1, display:"flex", flexDirection:"column", minWidth:0 }}>
         <header style={{ background:C.surface, borderBottom:`1px solid ${C.border}`, padding:"0 16px", height:48, display:"flex", alignItems:"center", justifyContent:"space-between", flexShrink:0 }}>
           <div style={{ display:"flex", alignItems:"center", gap:6, background:C.surface2, padding:"5px 10px", width:280, border:`1px solid ${C.border}` }}>
             {I.search}
-            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search…" style={{border:"none",background:"transparent",outline:"none",fontSize:12,color:C.text,width:"100%",fontFamily:"inherit" }} />
+            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search…" style={{ border:"none", background:"transparent", outline:"none", fontSize:12, color:C.text, width:"100%", fontFamily:"inherit" }} />
           </div>
-          <div style={{display:"flex",alignItems:"center",gap:12 }}>
-            <div style={{position:"relative" }}>
-              <button onClick={()=>setNotifOpen(!notifOpen)} style={{background:"none",border:"none",cursor:"pointer",color:C.textDim,position:"relative",padding:4 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+            <div style={{ position:"relative" }}>
+              <button onClick={()=>setNotifOpen(!notifOpen)} style={{ background:"none", border:"none", cursor:"pointer", color:C.textDim, position:"relative", padding:4 }}>
                 {I.bell}
-                {unread>0 && <span style={{position:"absolute",top:-2,right:-2,width:14,height:14,borderRadius:7,background:C.red,color:C.white,fontSize:8,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center" }}>{unread}</span>}
+                {unread>0 && <span style={{ position:"absolute", top:-2, right:-2, width:14, height:14, borderRadius:7, background:C.red, color:C.white, fontSize:8, fontWeight:600, display:"flex", alignItems:"center", justifyContent:"center" }}>{unread}</span>}
               </button>
               {notifOpen && <div style={{ position:"absolute", right:0, top:34, width:340, background:C.surface, border:`1px solid ${C.border}`, boxShadow:"0 4px 16px rgba(0,0,0,0.06)", zIndex:100, maxHeight:380, overflow:"auto" }}>
                 <div style={{ padding:"10px 14px", borderBottom:`1px solid ${C.border}`, fontSize:12, fontWeight:600, color:C.text }}>Notifications ({unread})</div>
                 {alerts.slice(0,8).map(a => (
                   <div key={a.id} style={{ padding:"8px 14px", borderBottom:`1px solid ${C.border}`, opacity:a.read?0.35:1, cursor:"pointer" }} onClick={()=>{markRead(a.id)}}>
-                    <div style={{fontSize:11,fontWeight:500,color:C.text }}>{a.title}</div>
-                    <div style={{fontSize:10,color:C.textMuted,marginTop:1 }}>{a.msg}</div>
+                    <div style={{ fontSize:11, fontWeight:500, color:C.text }}>{a.title}</div>
+                    <div style={{ fontSize:10, color:C.textMuted, marginTop:1 }}>{a.msg}</div>
                   </div>
                 ))}
               </div>}
             </div>
-            <div style={{width:1,height:20,background:C.border }} />
-            <div style={{display:"flex",alignItems:"center",gap:6 }}>
+            <div style={{ width:1, height:20, background:C.border }} />
+            <div style={{ display:"flex", alignItems:"center", gap:6 }}>
               <div style={{ width:26, height:26, borderRadius:2, background:C.surface2, border:`1px solid ${C.border}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, fontWeight:600, color:C.textDim }}>{currentUser.initials}</div>
-              <select value={currentUser.id} onChange={e=>{const u=SYSTEM_USERS.find(u=>u.id===e.target.value);if(u){setCurrentUser(u);setDetail(null)}}} style={{border:"none",background:"transparent",fontSize:11,fontWeight:500,color:C.text,fontFamily:"inherit",outline:"none",cursor:"pointer",maxWidth:160 }}>
+              <select value={currentUser.id} onChange={e=>{const u=SYSTEM_USERS.find(u=>u.id===e.target.value);if(u){setCurrentUser(u);setDetail(null)}}} style={{ border:"none", background:"transparent", fontSize:11, fontWeight:500, color:C.text, fontFamily:"inherit", outline:"none", cursor:"pointer", maxWidth:160 }}>
                 {SYSTEM_USERS.map(u=><option key={u.id} value={u.id}>{u.name} ({ROLES[u.role]?.label})</option>)}
               </select>
             </div>
           </div>
         </header>
 
-        <main style={{flex:1,overflow:"auto",padding:16 }} onClick={()=>notifOpen&&setNotifOpen(false)}>
+        <main style={{ flex:1, overflow:"auto", padding:16 }} onClick={()=>notifOpen&&setNotifOpen(false)}>
           {renderPage()}
         </main>
       </div>
