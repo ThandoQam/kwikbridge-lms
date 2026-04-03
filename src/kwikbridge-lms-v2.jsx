@@ -101,36 +101,38 @@ const C = {
 };
 
 const ROLES = {
-  ADMIN:       { id:"ADMIN",       label:"System Admin",       tier:0 },
-  EXEC:        { id:"EXEC",        label:"Executive",          tier:1 },
-  CREDIT_HEAD: { id:"CREDIT_HEAD", label:"Head of Credit",     tier:2 },
-  COMPLIANCE:  { id:"COMPLIANCE",  label:"Compliance Officer",  tier:2 },
-  CREDIT_SNR:  { id:"CREDIT_SNR",  label:"Senior Credit Analyst", tier:3 },
-  CREDIT:      { id:"CREDIT",      label:"Credit Analyst",     tier:3 },
-  LOAN_OFFICER:{ id:"LOAN_OFFICER",label:"Loan Officer",       tier:4 },
-  COLLECTIONS: { id:"COLLECTIONS", label:"Collections Specialist", tier:4 },
-  FINANCE:     { id:"FINANCE",     label:"Finance Officer",    tier:3 },
-  AUDITOR:     { id:"AUDITOR",     label:"Internal Auditor",   tier:3 },
-  VIEWER:      { id:"VIEWER",      label:"Report Viewer",      tier:5 },
+  ADMIN:       { id:"ADMIN",       label:"System Admin",       tier:0, zone:"staff" },
+  EXEC:        { id:"EXEC",        label:"Executive",          tier:1, zone:"staff" },
+  CREDIT_HEAD: { id:"CREDIT_HEAD", label:"Head of Credit",     tier:2, zone:"staff" },
+  COMPLIANCE:  { id:"COMPLIANCE",  label:"Compliance Officer",  tier:2, zone:"staff" },
+  CREDIT_SNR:  { id:"CREDIT_SNR",  label:"Senior Credit Analyst", tier:3, zone:"staff" },
+  CREDIT:      { id:"CREDIT",      label:"Credit Analyst",     tier:3, zone:"staff" },
+  LOAN_OFFICER:{ id:"LOAN_OFFICER",label:"Loan Officer",       tier:4, zone:"staff" },
+  COLLECTIONS: { id:"COLLECTIONS", label:"Collections Specialist", tier:4, zone:"staff" },
+  FINANCE:     { id:"FINANCE",     label:"Finance Officer",    tier:3, zone:"staff" },
+  AUDITOR:     { id:"AUDITOR",     label:"Internal Auditor",   tier:3, zone:"staff" },
+  VIEWER:      { id:"VIEWER",      label:"Report Viewer",      tier:5, zone:"staff" },
+  BORROWER:    { id:"BORROWER",    label:"Borrower",           tier:6, zone:"portal" },
 };
 
 const PERMS = {
-  dashboard:     { ADMIN:"view,export", EXEC:"view,export", CREDIT_HEAD:"view,export", COMPLIANCE:"view", CREDIT_SNR:"view", CREDIT:"view", LOAN_OFFICER:"view", COLLECTIONS:"view", FINANCE:"view", AUDITOR:"view", VIEWER:"view" },
-  customers:     { ADMIN:"view,create,update,delete", EXEC:"view", CREDIT_HEAD:"view,update", COMPLIANCE:"view,update", CREDIT_SNR:"view", CREDIT:"view", LOAN_OFFICER:"view,create,update", COLLECTIONS:"view", FINANCE:"view", AUDITOR:"view", VIEWER:"" },
-  origination:   { ADMIN:"view,create,update,delete,assign", EXEC:"view", CREDIT_HEAD:"view,assign", COMPLIANCE:"view", CREDIT_SNR:"view,create,update", CREDIT:"view,create,update", LOAN_OFFICER:"view,create,update,assign", COLLECTIONS:"", FINANCE:"", AUDITOR:"view", VIEWER:"" },
-  underwriting:  { ADMIN:"view,update,approve,signoff", EXEC:"view,approve", CREDIT_HEAD:"view,update,approve,signoff,assign", COMPLIANCE:"view,signoff", CREDIT_SNR:"view,update,approve,signoff", CREDIT:"view,update,signoff", LOAN_OFFICER:"view,update,signoff", COLLECTIONS:"", FINANCE:"", AUDITOR:"view", VIEWER:"" },
-  loans:         { ADMIN:"view,update", EXEC:"view", CREDIT_HEAD:"view,update", COMPLIANCE:"view", CREDIT_SNR:"view", CREDIT:"view", LOAN_OFFICER:"view,update", COLLECTIONS:"view", FINANCE:"view,update", AUDITOR:"view", VIEWER:"view" },
-  servicing:     { ADMIN:"view,create,update", EXEC:"view", CREDIT_HEAD:"view", COMPLIANCE:"view", CREDIT_SNR:"view", CREDIT:"view", LOAN_OFFICER:"view,update", COLLECTIONS:"view", FINANCE:"view,create,update", AUDITOR:"view", VIEWER:"" },
-  collections:   { ADMIN:"view,create,update,assign,approve", EXEC:"view,approve", CREDIT_HEAD:"view,approve", COMPLIANCE:"view", CREDIT_SNR:"view", CREDIT:"view", LOAN_OFFICER:"view,create,update", COLLECTIONS:"view,create,update,assign", FINANCE:"view", AUDITOR:"view", VIEWER:"" },
-  provisioning:  { ADMIN:"view,update,approve", EXEC:"view,approve", CREDIT_HEAD:"view,approve", COMPLIANCE:"view", CREDIT_SNR:"view", CREDIT:"view", LOAN_OFFICER:"", COLLECTIONS:"", FINANCE:"view,update,approve", AUDITOR:"view", VIEWER:"" },
-  governance:    { ADMIN:"view,update", EXEC:"view", CREDIT_HEAD:"view", COMPLIANCE:"view,update", CREDIT_SNR:"view", CREDIT:"view", LOAN_OFFICER:"view", COLLECTIONS:"view", FINANCE:"view", AUDITOR:"view,export", VIEWER:"" },
-  statutory:     { ADMIN:"view,update", EXEC:"view", CREDIT_HEAD:"view", COMPLIANCE:"view,create,update", CREDIT_SNR:"", CREDIT:"", LOAN_OFFICER:"", COLLECTIONS:"", FINANCE:"view,update", AUDITOR:"view", VIEWER:"" },
-  documents:     { ADMIN:"view,create,update,delete,approve", EXEC:"view", CREDIT_HEAD:"view,approve", COMPLIANCE:"view,update,approve", CREDIT_SNR:"view,update", CREDIT:"view,update", LOAN_OFFICER:"view,create,update,approve", COLLECTIONS:"view", FINANCE:"view", AUDITOR:"view", VIEWER:"" },
-  reports:       { ADMIN:"view,export", EXEC:"view,export", CREDIT_HEAD:"view,export", COMPLIANCE:"view,export", CREDIT_SNR:"view", CREDIT:"view", LOAN_OFFICER:"view", COLLECTIONS:"view", FINANCE:"view,export", AUDITOR:"view,export", VIEWER:"view,export" },
-  comms:         { ADMIN:"view,create", EXEC:"view", CREDIT_HEAD:"view,create", COMPLIANCE:"view", CREDIT_SNR:"view,create", CREDIT:"view,create", LOAN_OFFICER:"view,create", COLLECTIONS:"view,create", FINANCE:"view", AUDITOR:"view", VIEWER:"" },
-  products:      { ADMIN:"view,create,update,delete", EXEC:"view", CREDIT_HEAD:"view,create,update", COMPLIANCE:"view", CREDIT_SNR:"view", CREDIT:"view", LOAN_OFFICER:"view", COLLECTIONS:"", FINANCE:"view", AUDITOR:"view", VIEWER:"" },
-  settings:      { ADMIN:"view,create,update,delete", EXEC:"view", CREDIT_HEAD:"", COMPLIANCE:"view", CREDIT_SNR:"", CREDIT:"", LOAN_OFFICER:"", COLLECTIONS:"", FINANCE:"view", AUDITOR:"view", VIEWER:"" },
-  admin:         { ADMIN:"view,create,update,delete", EXEC:"view", CREDIT_HEAD:"view,create,update", COMPLIANCE:"view", CREDIT_SNR:"view", CREDIT:"view", LOAN_OFFICER:"view", COLLECTIONS:"view", FINANCE:"view", AUDITOR:"view", VIEWER:"view" },
+  dashboard:     { ADMIN:"view,export", EXEC:"view,export", CREDIT_HEAD:"view,export", COMPLIANCE:"view", CREDIT_SNR:"view", CREDIT:"view", LOAN_OFFICER:"view", COLLECTIONS:"view", FINANCE:"view", AUDITOR:"view", VIEWER:"view", BORROWER:"view" },
+  customers:     { ADMIN:"view,create,update,delete", EXEC:"view", CREDIT_HEAD:"view,update", COMPLIANCE:"view,update", CREDIT_SNR:"view", CREDIT:"view", LOAN_OFFICER:"view,create,update", COLLECTIONS:"view", FINANCE:"view", AUDITOR:"view", VIEWER:"", BORROWER:"" },
+  origination:   { ADMIN:"view,create,update,delete,assign", EXEC:"view", CREDIT_HEAD:"view,assign", COMPLIANCE:"view", CREDIT_SNR:"view,create,update", CREDIT:"view,create,update", LOAN_OFFICER:"view,create,update,assign", COLLECTIONS:"", FINANCE:"", AUDITOR:"view", VIEWER:"", BORROWER:"view,create" },
+  underwriting:  { ADMIN:"view,update,approve,signoff", EXEC:"view,approve", CREDIT_HEAD:"view,update,approve,signoff,assign", COMPLIANCE:"view,signoff", CREDIT_SNR:"view,update,approve,signoff", CREDIT:"view,update,signoff", LOAN_OFFICER:"view,update,signoff", COLLECTIONS:"", FINANCE:"", AUDITOR:"view", VIEWER:"", BORROWER:"" },
+  loans:         { ADMIN:"view,update", EXEC:"view", CREDIT_HEAD:"view,update", COMPLIANCE:"view", CREDIT_SNR:"view", CREDIT:"view", LOAN_OFFICER:"view,update", COLLECTIONS:"view", FINANCE:"view,update", AUDITOR:"view", VIEWER:"view", BORROWER:"view" },
+  servicing:     { ADMIN:"view,create,update", EXEC:"view", CREDIT_HEAD:"view", COMPLIANCE:"view", CREDIT_SNR:"view", CREDIT:"view", LOAN_OFFICER:"view,update", COLLECTIONS:"view", FINANCE:"view,create,update", AUDITOR:"view", VIEWER:"", BORROWER:"view" },
+  collections:   { ADMIN:"view,create,update,assign,approve", EXEC:"view,approve", CREDIT_HEAD:"view,approve", COMPLIANCE:"view", CREDIT_SNR:"view", CREDIT:"view", LOAN_OFFICER:"view,create,update", COLLECTIONS:"view,create,update,assign", FINANCE:"view", AUDITOR:"view", VIEWER:"", BORROWER:"" },
+  provisioning:  { ADMIN:"view,update,approve", EXEC:"view,approve", CREDIT_HEAD:"view,approve", COMPLIANCE:"view", CREDIT_SNR:"view", CREDIT:"view", LOAN_OFFICER:"", COLLECTIONS:"", FINANCE:"view,update,approve", AUDITOR:"view", VIEWER:"", BORROWER:"" },
+  governance:    { ADMIN:"view,update", EXEC:"view", CREDIT_HEAD:"view", COMPLIANCE:"view,update", CREDIT_SNR:"view", CREDIT:"view", LOAN_OFFICER:"view", COLLECTIONS:"view", FINANCE:"view", AUDITOR:"view,export", VIEWER:"", BORROWER:"" },
+  statutory:     { ADMIN:"view,update", EXEC:"view", CREDIT_HEAD:"view", COMPLIANCE:"view,create,update", CREDIT_SNR:"", CREDIT:"", LOAN_OFFICER:"", COLLECTIONS:"", FINANCE:"view,update", AUDITOR:"view", VIEWER:"", BORROWER:"" },
+  documents:     { ADMIN:"view,create,update,delete,approve", EXEC:"view", CREDIT_HEAD:"view,approve", COMPLIANCE:"view,update,approve", CREDIT_SNR:"view,update", CREDIT:"view,update", LOAN_OFFICER:"view,create,update,approve", COLLECTIONS:"view", FINANCE:"view", AUDITOR:"view", VIEWER:"", BORROWER:"view,create" },
+  reports:       { ADMIN:"view,export", EXEC:"view,export", CREDIT_HEAD:"view,export", COMPLIANCE:"view,export", CREDIT_SNR:"view", CREDIT:"view", LOAN_OFFICER:"view", COLLECTIONS:"view", FINANCE:"view,export", AUDITOR:"view,export", VIEWER:"view,export", BORROWER:"" },
+  comms:         { ADMIN:"view,create", EXEC:"view", CREDIT_HEAD:"view,create", COMPLIANCE:"view", CREDIT_SNR:"view,create", CREDIT:"view,create", LOAN_OFFICER:"view,create", COLLECTIONS:"view,create", FINANCE:"view", AUDITOR:"view", VIEWER:"", BORROWER:"view" },
+  products:      { ADMIN:"view,create,update,delete", EXEC:"view", CREDIT_HEAD:"view,create,update", COMPLIANCE:"view", CREDIT_SNR:"view", CREDIT:"view", LOAN_OFFICER:"view", COLLECTIONS:"", FINANCE:"view", AUDITOR:"view", VIEWER:"", BORROWER:"view" },
+  settings:      { ADMIN:"view,create,update,delete", EXEC:"view", CREDIT_HEAD:"", COMPLIANCE:"view", CREDIT_SNR:"", CREDIT:"", LOAN_OFFICER:"", COLLECTIONS:"", FINANCE:"view", AUDITOR:"view", VIEWER:"", BORROWER:"" },
+  admin:         { ADMIN:"view,create,update,delete", EXEC:"view", CREDIT_HEAD:"view,create,update", COMPLIANCE:"view", CREDIT_SNR:"view", CREDIT:"view", LOAN_OFFICER:"view", COLLECTIONS:"view", FINANCE:"view", AUDITOR:"view", VIEWER:"view", BORROWER:"" },
+  portal:        { ADMIN:"", EXEC:"", CREDIT_HEAD:"", COMPLIANCE:"", CREDIT_SNR:"", CREDIT:"", LOAN_OFFICER:"", COLLECTIONS:"", FINANCE:"", AUDITOR:"", VIEWER:"", BORROWER:"view,create,update" },
 };
 
 const APPROVAL_LIMITS = {
@@ -393,6 +395,7 @@ function StepTracker({ steps, current }) {
 export default function App() {
   const [data, setData] = useState(null);
   const [page, setPage] = useState("dashboard");
+  const [zone, setZone] = useState("public"); // public | portal | staff
   const [detail, setDetail] = useState(null);
   const [search, setSearch] = useState("");
   const [notifOpen, setNotifOpen] = useState(false);
@@ -600,7 +603,107 @@ export default function App() {
     try { await store.set(SK, JSON.stringify(next)); } catch {}
   }, [data]);
 
-  // ═══ AUTH GATE — Login/Signup Page ═══
+  // ═══ ZONE DERIVATION ═══
+  const userZone = authSession ? (ROLES[role]?.zone || "staff") : "public";
+  // Sync zone state when auth or role changes
+  if (zone !== userZone && authSession) { if (zone === "public") { setZone(userZone); if (userZone === "portal") setPage("portal_dashboard"); else setPage("dashboard"); } }
+
+  // Zone enforcement: prevent cross-zone access
+  const ZONE_PAGES = {
+    public: ["public_home", "public_apply", "public_products", "public_track"],
+    portal: ["portal_dashboard", "portal_applications", "portal_loans", "portal_documents", "portal_comms", "portal_profile"],
+    staff: ["dashboard","customers","origination","underwriting","loans","servicing","collections","provisioning","governance","statutory","documents","reports","comms","admin","products","settings"],
+  };
+  const isPageInZone = (pg, z) => ZONE_PAGES[z]?.includes(pg);
+  const navigateTo = (pg) => { const targetZone = Object.keys(ZONE_PAGES).find(z => ZONE_PAGES[z].includes(pg)); if (targetZone && (targetZone === userZone || targetZone === "public")) { setPage(pg); setZone(targetZone); } };
+
+  // ═══ PUBLIC ZONE — No Login Required ═══
+  if (!authSession && zone === "public") return (
+    <div style={{ fontFamily:"'Outfit','Segoe UI',system-ui,sans-serif", background:C.bg, minHeight:"100vh", color:C.text }}>
+      <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+      <style>{`*{box-sizing:border-box} input:focus,select:focus,textarea:focus{outline:none;border-color:#1a1a2e !important}`}</style>
+      {/* Public Header */}
+      <header style={{ background:C.surface, borderBottom:`1px solid ${C.border}`, padding:"0 24px", height:56, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+          <div style={{ fontSize:18, fontWeight:700, color:C.text, letterSpacing:-0.5 }}>KwikBridge</div>
+          <div style={{ fontSize:9, color:C.textMuted, letterSpacing:1, textTransform:"uppercase" }}>Loan Management</div>
+        </div>
+        <nav style={{ display:"flex", gap:16, alignItems:"center" }}>
+          {[["public_home","Home"],["public_products","Products"],["public_apply","Apply Now"],["public_track","Track Application"]].map(([k,label])=>(
+            <button key={k} onClick={()=>setPage(k)} style={{ background:"none", border:"none", fontSize:13, fontWeight:page===k?600:400, color:page===k?C.text:C.textDim, cursor:"pointer", fontFamily:"inherit", padding:"4px 0", borderBottom:page===k?`2px solid ${C.text}`:"2px solid transparent" }}>{label}</button>
+          ))}
+          <div style={{ width:1, height:20, background:C.border, margin:"0 4px" }} />
+          <button onClick={()=>{setZone("public");setPage("public_home");setAuthForm({...authForm,error:""});setAuthSession(null)}} style={{ background:"none", border:`1px solid ${C.border}`, padding:"6px 14px", fontSize:12, fontWeight:500, color:C.text, cursor:"pointer", fontFamily:"inherit" }}>Staff Login</button>
+        </nav>
+      </header>
+      {/* Public Content */}
+      <main style={{ maxWidth:960, margin:"0 auto", padding:"32px 24px" }}>
+        {page === "public_home" && <div>
+          <div style={{ textAlign:"center", padding:"48px 0 32px" }}>
+            <h1 style={{ fontSize:36, fontWeight:700, color:C.text, margin:"0 0 12px", letterSpacing:-1 }}>Business Finance for Growth</h1>
+            <p style={{ fontSize:16, color:C.textDim, maxWidth:560, margin:"0 auto 28px", lineHeight:1.6 }}>ThandoQ & Associates provides development finance to South African SMEs and empowerment businesses. NCR-registered credit provider (NCRCP22396).</p>
+            <div style={{ display:"flex", gap:12, justifyContent:"center" }}>
+              <button onClick={()=>setPage("public_apply")} style={{ background:C.text, color:"#fff", border:"none", padding:"12px 28px", fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Apply for Finance</button>
+              <button onClick={()=>setPage("public_products")} style={{ background:"none", border:`1px solid ${C.border}`, padding:"12px 28px", fontSize:14, fontWeight:500, color:C.text, cursor:"pointer", fontFamily:"inherit" }}>View Products</button>
+            </div>
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:16, marginTop:24 }}>
+            {[["R100K – R10M","Loan amounts tailored to your business needs"],["12 – 84 months","Flexible terms with seasonal payment options"],["From 12%","Competitive rates for BEE-qualifying enterprises"]].map(([title,desc],i)=>(
+              <div key={i} style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"24px" }}>
+                <div style={{ fontSize:22, fontWeight:700, color:C.text }}>{title}</div>
+                <div style={{ fontSize:13, color:C.textDim, marginTop:8, lineHeight:1.5 }}>{desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>}
+        {page === "public_products" && <div>
+          <h2 style={{ fontSize:24, fontWeight:700, margin:"0 0 16px" }}>Loan Products</h2>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+            {(data?.products||[]).filter(p=>p.status==="Active").map(p=>(
+              <div key={p.id} style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"20px" }}>
+                <div style={{ fontSize:16, fontWeight:700, color:C.text }}>{p.name}</div>
+                <div style={{ fontSize:12, color:C.textDim, marginTop:6, lineHeight:1.5 }}>{p.description}</div>
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginTop:12, fontSize:12 }}>
+                  <div><span style={{ color:C.textMuted }}>Amount:</span> {fmt.cur(p.minAmount)} – {fmt.cur(p.maxAmount)}</div>
+                  <div><span style={{ color:C.textMuted }}>Term:</span> {p.minTerm}–{p.maxTerm} months</div>
+                  <div><span style={{ color:C.textMuted }}>Rate from:</span> {p.baseRate}%</div>
+                  <div><span style={{ color:C.textMuted }}>Type:</span> {p.repaymentType}</div>
+                </div>
+                <button onClick={()=>setPage("public_apply")} style={{ marginTop:14, background:C.text, color:"#fff", border:"none", padding:"8px 20px", fontSize:12, fontWeight:500, cursor:"pointer", fontFamily:"inherit" }}>Apply Now</button>
+              </div>
+            ))}
+          </div>
+        </div>}
+        {page === "public_apply" && <div>
+          <h2 style={{ fontSize:24, fontWeight:700, margin:"0 0 8px" }}>Apply for Finance</h2>
+          <p style={{ fontSize:13, color:C.textDim, margin:"0 0 20px" }}>Create an account or sign in to submit your loan application.</p>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:24 }}>
+            <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"28px" }}>
+              <div style={{ fontSize:16, fontWeight:700, color:C.text, marginBottom:12 }}>New Applicant</div>
+              <p style={{ fontSize:12, color:C.textDim, lineHeight:1.6, marginBottom:16 }}>Register for a KwikBridge account to submit your application, upload documents, and track your progress online.</p>
+              <button onClick={()=>{setAuthMode("signup");setZone("public")}} style={{ background:C.text, color:"#fff", border:"none", padding:"10px 24px", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit", width:"100%" }}>Create Account</button>
+            </div>
+            <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"28px" }}>
+              <div style={{ fontSize:16, fontWeight:700, color:C.text, marginBottom:12 }}>Existing Customer</div>
+              <p style={{ fontSize:12, color:C.textDim, lineHeight:1.6, marginBottom:16 }}>Sign in to view your existing applications, make payments, upload documents, or apply for additional finance.</p>
+              <button onClick={()=>{setAuthMode("login");setZone("public")}} style={{ background:"none", border:`1px solid ${C.text}`, color:C.text, padding:"10px 24px", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit", width:"100%" }}>Sign In</button>
+            </div>
+          </div>
+        </div>}
+        {page === "public_track" && <div>
+          <h2 style={{ fontSize:24, fontWeight:700, margin:"0 0 8px" }}>Track Your Application</h2>
+          <p style={{ fontSize:13, color:C.textDim, margin:"0 0 20px" }}>Sign in to your borrower portal to check the status of your application.</p>
+          <button onClick={()=>{setAuthMode("login");setZone("public")}} style={{ background:C.text, color:"#fff", border:"none", padding:"10px 24px", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Sign In to Portal</button>
+        </div>}
+      </main>
+      <footer style={{ borderTop:`1px solid ${C.border}`, padding:"20px 24px", textAlign:"center", fontSize:10, color:C.textMuted, lineHeight:1.8 }}>
+        ThandoQ and Associates (Pty) Ltd · NCR Registration: NCRCP22396 · East London, Nahoon Valley<br/>
+        Registered Credit Provider in terms of the National Credit Act 34 of 2005
+      </footer>
+    </div>
+  );
+
+  // ═══ AUTH GATE — Login/Signup (shown when Staff Login clicked or Apply redirects) ═══
   if (authLoading) return <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100vh", background:C.bg, fontFamily:"'Outfit',sans-serif" }}><div style={{ textAlign:"center", color:C.textMuted }}><div style={{ fontSize:14 }}>KwikBridge LMS</div><div style={{ fontSize:12, marginTop:4 }}>Checking authentication...</div></div></div>;
 
   if (!authSession) return (
@@ -670,12 +773,21 @@ export default function App() {
         {/* Dev bypass */}
         <div style={{ marginTop:24, paddingTop:16, borderTop:`1px solid ${C.border}`, textAlign:"center" }}>
           <div style={{ fontSize:10, color:C.textMuted, marginBottom:6 }}>Development Access</div>
-          <button onClick={()=>{setAuthSession({token:"dev",user:{email:"admin@thandoq.co.za"}});setCurrentUser(SYSTEM_USERS[0])}} style={{ background:"none", border:`1px solid ${C.border}`, padding:"6px 16px", fontSize:11, color:C.textDim, cursor:"pointer", fontFamily:"inherit" }}>
-            Skip Login (Admin)
-          </button>
+          <div style={{ display:"flex", gap:6, justifyContent:"center" }}>
+            <button onClick={()=>{setAuthSession({token:"dev",user:{email:"admin@thandoq.co.za"}});setCurrentUser(SYSTEM_USERS[0]);setZone("staff");setPage("dashboard")}} style={{ background:"none", border:`1px solid ${C.border}`, padding:"6px 12px", fontSize:10, color:C.textDim, cursor:"pointer", fontFamily:"inherit" }}>
+              Staff (Admin)
+            </button>
+            <button onClick={()=>{setAuthSession({token:"dev-borrower",user:{email:"borrower@test.co.za"}});setCurrentUser({id:"B001",name:"Test Borrower",initials:"TB",email:"borrower@test.co.za",role:"BORROWER"});setZone("portal");setPage("portal_dashboard")}} style={{ background:"none", border:`1px solid ${C.border}`, padding:"6px 12px", fontSize:10, color:C.textDim, cursor:"pointer", fontFamily:"inherit" }}>
+              Borrower Portal
+            </button>
+          </div>
         </div>
 
-        <div style={{ textAlign:"center", marginTop:20, fontSize:9, color:C.textMuted, lineHeight:1.6 }}>
+        <div style={{ textAlign:"center", marginTop:16 }}>
+          <button onClick={()=>{setZone("public");setPage("public_home");setAuthSession(null)}} style={{ background:"none", border:"none", fontSize:11, color:C.accent, cursor:"pointer", fontFamily:"inherit", textDecoration:"underline" }}>← Back to Public Site</button>
+        </div>
+
+        <div style={{ textAlign:"center", marginTop:12, fontSize:9, color:C.textMuted, lineHeight:1.6 }}>
           ThandoQ & Associates (Pty) Ltd<br/>NCR: NCRCP22396 · East London, Nahoon Valley
         </div>
       </div>
@@ -703,7 +815,135 @@ export default function App() {
   const { customers, products, applications, loans, collections, alerts, audit, provisions, comms, documents, statutoryReports, settings } = data;
   const unread = alerts.filter(a => !a.read).length;
 
-  const navItems = [
+  // ═══ BORROWER PORTAL LAYOUT ═══
+  if (userZone === "portal") {
+    const myEmail = authSession?.user?.email?.toLowerCase();
+    const myCustomer = customers.find(c => c.email?.toLowerCase() === myEmail);
+    const myApps = applications.filter(a => myCustomer && a.custId === myCustomer.id);
+    const myLoans = loans.filter(l => myCustomer && l.custId === myCustomer.id);
+    const myDocs = documents.filter(d => myCustomer && d.custId === myCustomer.id);
+    const myComms = comms.filter(c => myCustomer && c.custId === myCustomer.id);
+
+    const portalNav = [
+      { key:"portal_dashboard", label:"Dashboard", icon:I.dashboard },
+      { key:"portal_applications", label:"My Applications", icon:I.origination, count:myApps.length },
+      { key:"portal_loans", label:"My Loans", icon:I.loans, count:myLoans.length },
+      { key:"portal_documents", label:"Documents", icon:I.documents, count:myDocs.length },
+      { key:"portal_comms", label:"Messages", icon:I.comms, count:myComms.length },
+      { key:"portal_profile", label:"My Profile", icon:I.customers },
+    ];
+
+    const renderPortalPage = () => {
+      switch(page) {
+        case "portal_dashboard": return (<div>
+          <h2 style={{ margin:"0 0 16px", fontSize:22, fontWeight:700 }}>Welcome{myCustomer ? `, ${myCustomer.contact}` : ""}</h2>
+          {!myCustomer && <div style={{ background:C.amberBg, border:`1px solid ${C.amber}`, padding:"14px 18px", marginBottom:16 }}>
+            <div style={{ fontSize:13, fontWeight:600, color:C.amber }}>Complete Your Profile</div>
+            <div style={{ fontSize:12, color:C.textDim, marginTop:4 }}>Your email ({myEmail}) is not linked to a customer record. Please contact ThandoQ to complete your onboarding.</div>
+          </div>}
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12 }}>
+            <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:20 }}><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase" }}>Applications</div><div style={{ fontSize:28, fontWeight:700, color:C.accent, marginTop:4 }}>{myApps.length}</div></div>
+            <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:20 }}><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase" }}>Active Loans</div><div style={{ fontSize:28, fontWeight:700, color:C.green, marginTop:4 }}>{myLoans.filter(l=>l.status==="Active").length}</div></div>
+            <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:20 }}><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase" }}>Total Balance</div><div style={{ fontSize:28, fontWeight:700, color:C.blue, marginTop:4 }}>{fmt.cur(myLoans.reduce((s,l)=>s+l.balance,0))}</div></div>
+          </div>
+          {myApps.length > 0 && <div style={{ marginTop:16 }}><h3 style={{ fontSize:14, fontWeight:600, margin:"0 0 8px" }}>Recent Applications</h3>
+            {myApps.slice(0,3).map(a=><div key={a.id} style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"12px 16px", marginBottom:6, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+              <div><div style={{ fontSize:13, fontWeight:600 }}>{a.id} — {a.purpose?.substring(0,50)}</div><div style={{ fontSize:11, color:C.textMuted }}>{fmt.cur(a.amount)} · {a.term}m · {fmt.date(a.submitted||a.createdAt)}</div></div>
+              <Badge color={a.status==="Approved"?"green":a.status==="Declined"?"red":a.status==="Draft"?"gray":"blue"}>{a.status}</Badge>
+            </div>)}
+          </div>}
+        </div>);
+        case "portal_applications": return (<div>
+          <h2 style={{ margin:"0 0 16px", fontSize:22, fontWeight:700 }}>My Applications</h2>
+          <Table columns={[
+            {label:"ID",render:r=><span style={{fontWeight:600}}>{r.id}</span>},
+            {label:"Product",render:r=>prod(r.product)?.name||r.product},
+            {label:"Amount",render:r=>fmt.cur(r.amount)},
+            {label:"Term",render:r=>`${r.term}m`},
+            {label:"Status",render:r=><Badge color={r.status==="Approved"?"green":r.status==="Declined"?"red":"blue"}>{r.status}</Badge>},
+            {label:"Submitted",render:r=>fmt.date(r.submitted||r.createdAt)},
+          ]} rows={myApps} emptyMsg="No applications found." />
+        </div>);
+        case "portal_loans": return (<div>
+          <h2 style={{ margin:"0 0 16px", fontSize:22, fontWeight:700 }}>My Loans</h2>
+          <Table columns={[
+            {label:"Loan ID",render:r=><span style={{fontWeight:600}}>{r.id}</span>},
+            {label:"Amount",render:r=>fmt.cur(r.amount)},
+            {label:"Balance",render:r=>fmt.cur(r.balance)},
+            {label:"Rate",render:r=>`${r.rate}%`},
+            {label:"Next Due",render:r=>fmt.date(r.nextDue)},
+            {label:"Status",render:r=><Badge color={r.dpd>0?"red":"green"}>{r.dpd>0?`${r.dpd} DPD`:"Current"}</Badge>},
+          ]} rows={myLoans} emptyMsg="No active loans." />
+        </div>);
+        case "portal_documents": return (<div>
+          <h2 style={{ margin:"0 0 16px", fontSize:22, fontWeight:700 }}>My Documents</h2>
+          <Table columns={[
+            {label:"Document",render:r=><span style={{fontWeight:500}}>{r.name}</span>},
+            {label:"Category",render:r=><Badge>{r.category}</Badge>},
+            {label:"Status",render:r=>statusBadge(r.status)},
+            {label:"Uploaded",render:r=>fmt.date(r.uploadedAt)},
+          ]} rows={myDocs} emptyMsg="No documents on file." />
+        </div>);
+        case "portal_comms": return (<div>
+          <h2 style={{ margin:"0 0 16px", fontSize:22, fontWeight:700 }}>Messages</h2>
+          {myComms.length === 0 ? <div style={{ textAlign:"center", padding:40, color:C.textMuted }}>No messages.</div> :
+          myComms.sort((a,b)=>b.ts-a.ts).map(c=><div key={c.id} style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"12px 16px", marginBottom:6 }}>
+            <div style={{ display:"flex", justifyContent:"space-between", fontSize:11, color:C.textMuted }}><span>{c.channel} · {c.direction}</span><span>{fmt.date(c.ts)}</span></div>
+            <div style={{ fontSize:13, fontWeight:600, marginTop:4 }}>{c.subject}</div>
+            <div style={{ fontSize:12, color:C.textDim, marginTop:4, lineHeight:1.5 }}>{c.body}</div>
+          </div>)}
+        </div>);
+        case "portal_profile": return (<div>
+          <h2 style={{ margin:"0 0 16px", fontSize:22, fontWeight:700 }}>My Profile</h2>
+          {myCustomer ? <SectionCard title="Business Details">
+            <InfoGrid items={[["Business Name",myCustomer.name],["Contact",myCustomer.contact],["Email",myCustomer.email],["Phone",myCustomer.phone],["Industry",myCustomer.industry],["BEE Level",`Level ${myCustomer.beeLevel}`],["FICA Status",myCustomer.ficaStatus],["Province",myCustomer.province]]} />
+          </SectionCard> : <div style={{ padding:32, textAlign:"center", color:C.textMuted }}>Profile not linked. Contact ThandoQ support.</div>}
+        </div>);
+        default: return <div>Page not found.</div>;
+      }
+    };
+
+    return (
+      <div style={{ fontFamily:"'Outfit','Segoe UI',system-ui,sans-serif", background:C.bg, minHeight:"100vh", display:"flex", color:C.text }}>
+        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+        <style>{`::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:#d4d4d4}*{box-sizing:border-box}`}</style>
+        {/* Portal Sidebar */}
+        <aside style={{ width:200, background:C.surface, borderRight:`1px solid ${C.border}`, display:"flex", flexDirection:"column" }}>
+          <div style={{ padding:"14px", borderBottom:`1px solid ${C.border}` }}>
+            <div style={{ fontSize:14, fontWeight:700, color:C.text }}>KwikBridge</div>
+            <div style={{ fontSize:9, color:C.textMuted, letterSpacing:0.8, textTransform:"uppercase" }}>Borrower Portal</div>
+          </div>
+          <nav style={{ flex:1, padding:"6px 4px" }}>
+            {portalNav.map(n=>(
+              <button key={n.key} onClick={()=>setPage(n.key)} style={{ width:"100%", display:"flex", alignItems:"center", gap:8, padding:"8px 10px", marginBottom:1, background:page===n.key?C.surface2:"transparent", border:"none", cursor:"pointer", fontFamily:"inherit", fontSize:12, fontWeight:page===n.key?600:400, color:page===n.key?C.text:C.textDim, textAlign:"left" }}>
+                {n.icon}<span style={{ flex:1 }}>{n.label}</span>
+                {n.count>0&&<span style={{ fontSize:10, color:C.textMuted }}>{n.count}</span>}
+              </button>
+            ))}
+          </nav>
+          <div style={{ padding:"8px 12px 12px", borderTop:`1px solid ${C.border}` }}>
+            <div style={{ fontSize:10, fontWeight:500, color:C.text }}>{authSession?.user?.email}</div>
+            <div style={{ fontSize:9, color:C.textMuted, marginBottom:4 }}>Borrower Account</div>
+            <button onClick={handleSignOut} style={{ background:"none", border:`1px solid ${C.border}`, color:C.red, padding:"2px 6px", fontSize:9, cursor:"pointer", fontFamily:"inherit" }}>Sign Out</button>
+          </div>
+        </aside>
+        {/* Portal Main */}
+        <div style={{ flex:1, display:"flex", flexDirection:"column" }}>
+          <header style={{ background:C.surface, borderBottom:`1px solid ${C.border}`, padding:"0 16px", height:48, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+            <div style={{ fontSize:14, fontWeight:600, color:C.text }}>{portalNav.find(n=>n.key===page)?.label || "Portal"}</div>
+            <div style={{ fontSize:11, color:C.textMuted }}>{myCustomer?.name || authSession?.user?.email}</div>
+          </header>
+          <main style={{ flex:1, overflow:"auto", padding:16 }}>{renderPortalPage()}</main>
+        </div>
+      </div>
+    );
+  }
+
+  // ═══ STAFF BACK-OFFICE LAYOUT ═══
+  // Zone enforcement: redirect borrowers trying to access staff pages
+  if (userZone !== "staff" && zone === "staff") { setZone(userZone); setPage(userZone === "portal" ? "portal_dashboard" : "public_home"); }
+
+  const staffNavItems = [
     { key: "dashboard", label: "Dashboard", icon: I.dashboard },
     { key: "customers", label: "Customers", icon: I.customers, count: customers.length },
     { key: "origination", label: "Origination", icon: I.origination, count: applications.filter(a => ["Submitted","Underwriting"].includes(a.status)).length },
@@ -3594,7 +3834,7 @@ export default function App() {
           {!sideCollapsed && <div><div style={{ fontSize:13, fontWeight:600, color:C.text, letterSpacing:-0.2 }}>KwikBridge</div><div style={{ fontSize:9, color:C.textMuted, letterSpacing:0.5 }}>LOAN MANAGEMENT</div></div>}
         </div>
         <nav style={{ flex:1, padding:"6px 4px", overflowY:"auto" }}>
-          {navItems.map(n => {
+          {staffNavItems.map(n => {
             const active = page === n.key && !detail;
             return (<button key={n.key} onClick={()=>{setPage(n.key);setDetail(null)}} style={{ display:"flex", alignItems:"center", gap:8, width:"100%", padding:sideCollapsed?"7px 0":"6px 10px", justifyContent:sideCollapsed?"center":"flex-start", background:active?C.surface2:"transparent", color:active?C.text:C.textDim, border:"none", borderLeft:active?`2px solid ${C.text}`:"2px solid transparent", fontSize:12, fontWeight:active?600:400, cursor:"pointer", marginBottom:0, fontFamily:"inherit" }}>
               {n.icon}
