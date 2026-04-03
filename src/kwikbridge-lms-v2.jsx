@@ -574,6 +574,32 @@ export default function App() {
       })();
     }, []);
 
+
+  // Save: update in-memory state + persist to Supabase (async, non-blocking)
+  const save = useCallback(async next => {
+    const prev = data;
+    setData(next);
+    // Persist to Supabase in background — upsert changed tables
+    try {
+      for (const [key, table] of Object.entries(TABLES)) {
+        if (key === "settings") {
+          if (next[key] && JSON.stringify(next[key]) !== JSON.stringify(prev?.[key])) {
+            await sbUpsert(table, [{ ...toDb(next[key]), id: 1 }]);
+          }
+        } else if (next[key] && next[key] !== prev?.[key]) {
+          // Find new/changed rows by comparing IDs
+          const prevIds = new Set((prev?.[key] || []).map(r => JSON.stringify(r)));
+          const changed = next[key].filter(r => !prevIds.has(JSON.stringify(r)));
+          if (changed.length > 0) {
+            await sbUpsert(table, changed.map(toDb));
+          }
+        }
+      }
+    } catch (e) { console.log("Supabase save error (non-fatal):", e); }
+    // Also save to localStorage as fallback
+    try { await store.set(SK, JSON.stringify(next)); } catch {}
+  }, [data]);
+
   // ═══ AUTH GATE — Login/Signup Page ═══
   if (authLoading) return <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100vh", background:C.bg, fontFamily:"'Outfit',sans-serif" }}><div style={{ textAlign:"center", color:C.textMuted }}><div style={{ fontSize:14 }}>KwikBridge LMS</div><div style={{ fontSize:12, marginTop:4 }}>Checking authentication...</div></div></div>;
 
@@ -657,30 +683,6 @@ export default function App() {
   );
 
 
-  // Save: update in-memory state + persist to Supabase (async, non-blocking)
-  const save = useCallback(async next => {
-    const prev = data;
-    setData(next);
-    // Persist to Supabase in background — upsert changed tables
-    try {
-      for (const [key, table] of Object.entries(TABLES)) {
-        if (key === "settings") {
-          if (next[key] && JSON.stringify(next[key]) !== JSON.stringify(prev?.[key])) {
-            await sbUpsert(table, [{ ...toDb(next[key]), id: 1 }]);
-          }
-        } else if (next[key] && next[key] !== prev?.[key]) {
-          // Find new/changed rows by comparing IDs
-          const prevIds = new Set((prev?.[key] || []).map(r => JSON.stringify(r)));
-          const changed = next[key].filter(r => !prevIds.has(JSON.stringify(r)));
-          if (changed.length > 0) {
-            await sbUpsert(table, changed.map(toDb));
-          }
-        }
-      }
-    } catch (e) { console.log("Supabase save error (non-fatal):", e); }
-    // Also save to localStorage as fallback
-    try { await store.set(SK, JSON.stringify(next)); } catch {}
-  }, [data]);
 
   // Reset: seed fresh data + push to Supabase
   const reset = () => {
