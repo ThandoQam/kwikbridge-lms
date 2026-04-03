@@ -428,7 +428,6 @@ export default function App() {
   const [authMode, setAuthMode] = useState("login"); // login | signup
   const [authForm, setAuthForm] = useState({ email:"", password:"", name:"", error:"" });
   const [publicAppForm, setPublicAppForm] = useState({ step:1, name:"", contact:"", email:"", phone:"", password:"", idNum:"", regNum:"", businessName:"", industry:"Retail", sector:"", revenue:"", employees:"", years:"", address:"", province:"Eastern Cape", beeLevel:3, womenOwned:0, youthOwned:0, disabilityOwned:0, product:"", amount:"", term:"", purpose:"", error:"", submitted:false, preApprovalResult:null, trackingRef:null });
-  const [portalDocUpload, setPortalDocUpload] = useState({ type:"", name:"", uploading:false });
   const [portalPtp, setPortalPtp] = useState({ loanId:null, date:"", amount:"", notes:"" });
   const [portalPayment, setPortalPayment] = useState({ loanId:null, amount:"", method:"EFT", ref:"" });
   const [portalVerify, setPortalVerify] = useState({ bankStatus:null, creditStatus:null, running:false });
@@ -652,8 +651,6 @@ export default function App() {
     portal: ["portal_dashboard", "portal_applications", "portal_loans", "portal_documents", "portal_comms", "portal_profile"],
     staff: ["dashboard","customers","origination","underwriting","loans","servicing","collections","provisioning","governance","statutory","documents","reports","comms","admin","products","settings"],
   };
-  const isPageInZone = (pg, z) => ZONE_PAGES[z]?.includes(pg);
-  const navigateTo = (pg) => { const targetZone = Object.keys(ZONE_PAGES).find(z => ZONE_PAGES[z].includes(pg)); if (targetZone && (targetZone === userZone || targetZone === "public")) { setPageHistory(h=>[...h.slice(-10),page]); setPage(pg); setZone(targetZone); } };
   const goBack = () => { if (pageHistory.length > 0) { const prev = pageHistory[pageHistory.length - 1]; setPageHistory(h=>h.slice(0,-1)); setPage(prev); } };
   const navTo = (pg) => { setPageHistory(h=>[...h.slice(-10),page]); setPage(pg); setDetail(null); };
 
