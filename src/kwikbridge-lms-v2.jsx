@@ -695,8 +695,7 @@ export default function App() {
               ["Invoice Discounting","Turn outstanding invoices into immediate cash. Get liquidity now without waiting for clients to pay."],
               ["Purchase Order Financing","Secure funding to execute confirmed purchase orders. We cover supplier costs so you can take on larger contracts."],
               ["Working Capital Financing","Fast micro-loans for informal traders and micro-enterprises. AI-scored, group guarantee, up to 12 cycles per year."],
-              ["Agri-Finance","Seasonal finance for smallholder farmers with crop lien and equipment collateral."],
-              ["Project Financing","Tailored financing for mid-sized projects and contracts, matched to your cash flow cycle."],
+              ["Agri & Project Financing","Seasonal finance for smallholder farmers and tailored project financing for mid-sized contracts, matched to your cash flow cycle."],
             ].map(([title,desc],i)=>(
               <div key={i} style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"24px" }}>
                 <div style={{ fontSize:16, fontWeight:700, color:C.text, letterSpacing:-0.2 }}>{title}</div>
