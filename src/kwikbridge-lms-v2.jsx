@@ -461,7 +461,16 @@ export default function App() {
             localStorage.setItem("kb-auth", JSON.stringify(session));
             // Match to system user by email
             const matched = sysUsers.find(u => u.email.toLowerCase() === user.email.toLowerCase());
-            if (matched) setCurrentUser(matched);
+            if (matched) {
+              setCurrentUser(matched);
+              const mz = ROLES[matched.role]?.zone || "staff";
+              setZone(mz);
+              setPage(mz === "portal" ? "portal_dashboard" : "dashboard");
+            } else {
+              setCurrentUser({ id:"B-"+Date.now(), name:user.user_metadata?.full_name || user.email.split("@")[0], initials:(user.user_metadata?.full_name||user.email)[0].toUpperCase(), email:user.email, role:"BORROWER" });
+              setZone("portal");
+              setPage("portal_dashboard");
+            }
             window.history.replaceState(null, "", window.location.pathname);
           }
         }
@@ -477,7 +486,16 @@ export default function App() {
           if (user?.email) {
             setAuthSession({ ...session, user });
             const matched = sysUsers.find(u => u.email.toLowerCase() === user.email.toLowerCase());
-            if (matched) setCurrentUser(matched);
+            if (matched) {
+              setCurrentUser(matched);
+              const sz = ROLES[matched.role]?.zone || "staff";
+              setZone(sz);
+              setPage(sz === "portal" ? "portal_dashboard" : "dashboard");
+            } else {
+              setCurrentUser({ id:"B-"+Date.now(), name:user.user_metadata?.full_name || user.email.split("@")[0], initials:(user.user_metadata?.full_name||user.email)[0].toUpperCase(), email:user.email, role:"BORROWER" });
+              setZone("portal");
+              setPage("portal_dashboard");
+            }
           } else {
             localStorage.removeItem("kb-auth");
           }
@@ -498,7 +516,17 @@ export default function App() {
         setAuthSession(session);
         localStorage.setItem("kb-auth", JSON.stringify(session));
         const matched = sysUsers.find(u => u.email.toLowerCase() === authForm.email.toLowerCase());
-        if (matched) setCurrentUser(matched);
+        if (matched) {
+          setCurrentUser(matched);
+          const z = ROLES[matched.role]?.zone || "staff";
+          setZone(z);
+          setPage(z === "portal" ? "portal_dashboard" : "dashboard");
+        } else {
+          // Unmatched email — default to borrower portal
+          setCurrentUser({ id:"B-"+Date.now(), name:authForm.email.split("@")[0], initials:authForm.email[0].toUpperCase(), email:authForm.email, role:"BORROWER" });
+          setZone("portal");
+          setPage("portal_dashboard");
+        }
       }
     } catch (e) { setAuthForm({ ...authForm, error:"Network error. Try again." }); }
   };
@@ -510,11 +538,14 @@ export default function App() {
     try {
       const res = await authSignUp(authForm.email, authForm.password, authForm.name);
       if (res.error) { setAuthForm({ ...authForm, error:res.error_description || res.msg || "Sign up failed" }); return; }
-      // Auto sign-in after signup (if email confirmation not required)
       if (res.access_token) {
-        const session = { token:res.access_token, user:res.user || { email:authForm.email } };
+        const session = { token:res.access_token, user:res.user || { email:authForm.email, user_metadata:{ full_name:authForm.name } } };
         setAuthSession(session);
         localStorage.setItem("kb-auth", JSON.stringify(session));
+        // New signups default to borrower portal
+        setCurrentUser({ id:"B-"+Date.now(), name:authForm.name, initials:authForm.name.split(" ").map(w=>w[0]).join("").toUpperCase().slice(0,2), email:authForm.email, role:"BORROWER" });
+        setZone("portal");
+        setPage("portal_dashboard");
       } else {
         setAuthForm({ ...authForm, error:"" });
         setAuthMode("login");
@@ -605,7 +636,7 @@ export default function App() {
   // ═══ ZONE DERIVATION ═══
   const userZone = authSession ? (ROLES[role]?.zone || "staff") : "public";
   // Sync zone state when auth or role changes
-  if (zone !== userZone && authSession) { if (zone === "public") { setZone(userZone); if (userZone === "portal") setPage("portal_dashboard"); else setPage("dashboard"); } }
+  if (authSession && (zone === "public" || zone === "auth")) { setZone(userZone); if (userZone === "portal") setPage("portal_dashboard"); else setPage("dashboard"); }
 
   // Zone enforcement: prevent cross-zone access
   const ZONE_PAGES = {
@@ -632,7 +663,7 @@ export default function App() {
             <button key={k} onClick={()=>setPage(k)} style={{ background:"none", border:"none", fontSize:13, fontWeight:page===k?600:400, color:page===k?C.text:C.textDim, cursor:"pointer", fontFamily:"inherit", padding:"4px 0", borderBottom:page===k?`2px solid ${C.text}`:"2px solid transparent" }}>{label}</button>
           ))}
           <div style={{ width:1, height:20, background:C.border, margin:"0 4px" }} />
-          <button onClick={()=>{setZone("public");setPage("public_home");setAuthForm({...authForm,error:""});setAuthSession(null)}} style={{ background:"none", border:`1px solid ${C.border}`, padding:"6px 14px", fontSize:12, fontWeight:500, color:C.text, cursor:"pointer", fontFamily:"inherit" }}>Staff Login</button>
+          <button onClick={()=>{setAuthMode("login");setZone("auth");setAuthForm({email:"",password:"",name:"",error:""})}} style={{ background:"none", border:`1px solid ${C.border}`, padding:"6px 14px", fontSize:12, fontWeight:500, color:C.text, cursor:"pointer", fontFamily:"inherit" }}>Staff Login</button>
         </nav>
       </header>
       {/* Public Content */}
@@ -662,24 +693,24 @@ export default function App() {
         </div>}
         {page === "public_apply" && <div>
           <h2 style={{ fontSize:24, fontWeight:700, margin:"0 0 8px" }}>Apply for Finance</h2>
-          <p style={{ fontSize:13, color:C.textDim, margin:"0 0 20px" }}>Create an account or sign in to submit your loan application.</p>
+          <p style={{ fontSize:13, color:C.textDim, margin:"0 0 24px" }}>Create an account or sign in to submit your loan application.</p>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:24 }}>
             <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"28px" }}>
-              <div style={{ fontSize:16, fontWeight:700, color:C.text, marginBottom:12 }}>New Applicant</div>
+              <div style={{ fontSize:16, fontWeight:700, color:C.text, marginBottom:8 }}>New Applicant</div>
               <p style={{ fontSize:12, color:C.textDim, lineHeight:1.6, marginBottom:16 }}>Register for a KwikBridge account to submit your application, upload documents, and track your progress online.</p>
-              <button onClick={()=>{setAuthMode("signup");setZone("public")}} style={{ background:C.text, color:"#fff", border:"none", padding:"10px 24px", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit", width:"100%" }}>Create Account</button>
+              <button onClick={()=>{setAuthMode("signup");setZone("auth")}} style={{ background:C.text, color:"#fff", border:"none", padding:"10px 24px", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit", width:"100%" }}>Create Account</button>
             </div>
             <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"28px" }}>
-              <div style={{ fontSize:16, fontWeight:700, color:C.text, marginBottom:12 }}>Existing Customer</div>
+              <div style={{ fontSize:16, fontWeight:700, color:C.text, marginBottom:8 }}>Existing Customer</div>
               <p style={{ fontSize:12, color:C.textDim, lineHeight:1.6, marginBottom:16 }}>Sign in to view your existing applications, make payments, upload documents, or apply for additional finance.</p>
-              <button onClick={()=>{setAuthMode("login");setZone("public")}} style={{ background:"none", border:`1px solid ${C.text}`, color:C.text, padding:"10px 24px", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit", width:"100%" }}>Sign In</button>
+              <button onClick={()=>{setAuthMode("login");setZone("auth")}} style={{ background:"none", border:`1px solid ${C.text}`, color:C.text, padding:"10px 24px", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit", width:"100%" }}>Sign In</button>
             </div>
           </div>
         </div>}
         {page === "public_track" && <div>
           <h2 style={{ fontSize:24, fontWeight:700, margin:"0 0 8px" }}>Track Your Application</h2>
           <p style={{ fontSize:13, color:C.textDim, margin:"0 0 20px" }}>Sign in to your borrower portal to check the status of your application.</p>
-          <button onClick={()=>{setAuthMode("login");setZone("public")}} style={{ background:C.text, color:"#fff", border:"none", padding:"10px 24px", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Sign In to Portal</button>
+          <button onClick={()=>{setAuthMode("login");setZone("auth")}} style={{ background:C.text, color:"#fff", border:"none", padding:"10px 24px", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Sign In to Portal</button>
         </div>}
       </main>
       <footer style={{ borderTop:`1px solid ${C.border}`, padding:"20px 24px", textAlign:"center", fontSize:10, color:C.textMuted, lineHeight:1.8 }}>
