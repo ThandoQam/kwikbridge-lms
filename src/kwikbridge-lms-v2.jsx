@@ -609,7 +609,7 @@ export default function App() {
 
   // Zone enforcement: prevent cross-zone access
   const ZONE_PAGES = {
-    public: ["public_home", "public_apply", "public_products", "public_track"],
+    public: ["public_home", "public_apply", "public_track"],
     portal: ["portal_dashboard", "portal_applications", "portal_loans", "portal_documents", "portal_comms", "portal_profile"],
     staff: ["dashboard","customers","origination","underwriting","loans","servicing","collections","provisioning","governance","statutory","documents","reports","comms","admin","products","settings"],
   };
@@ -628,7 +628,7 @@ export default function App() {
           <div style={{ fontSize:9, color:C.textMuted, letterSpacing:1, textTransform:"uppercase" }}>Loan Management</div>
         </div>
         <nav style={{ display:"flex", gap:16, alignItems:"center" }}>
-          {[["public_home","Home"],["public_products","Products"],["public_apply","Apply Now"],["public_track","Track Application"]].map(([k,label])=>(
+          {[["public_home","Home"],["public_apply","Apply Now"],["public_track","Track Application"]].map(([k,label])=>(
             <button key={k} onClick={()=>setPage(k)} style={{ background:"none", border:"none", fontSize:13, fontWeight:page===k?600:400, color:page===k?C.text:C.textDim, cursor:"pointer", fontFamily:"inherit", padding:"4px 0", borderBottom:page===k?`2px solid ${C.text}`:"2px solid transparent" }}>{label}</button>
           ))}
           <div style={{ width:1, height:20, background:C.border, margin:"0 4px" }} />
@@ -658,49 +658,6 @@ export default function App() {
                 <div style={{ fontSize:13, color:C.textDim, marginTop:8, lineHeight:1.6 }}>{desc}</div>
               </div>
             ))}
-          </div>
-        </div>}
-        {page === "public_products" && <div>
-          <h2 style={{ fontSize:28, fontWeight:700, margin:"0 0 4px", letterSpacing:-0.5 }}>Our Finance Products</h2>
-          <p style={{ fontSize:14, color:C.textDim, margin:"0 0 32px", lineHeight:1.5 }}>Tailored solutions for South African SMEs and empowerment businesses.</p>
-
-          {/* Micro-Business Boost — featured */}
-          {(()=>{const p=(data?.products||[]).find(x=>x.id==="P001"); if(!p||p.status!=="Active") return null; return (
-            <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"28px 32px", marginBottom:24 }}>
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
-                <div style={{ flex:1, marginRight:32 }}>
-                  <div style={{ fontSize:10, fontWeight:600, color:C.textMuted, textTransform:"uppercase", letterSpacing:1.2, marginBottom:6 }}>Quick Access</div>
-                  <div style={{ fontSize:22, fontWeight:700, color:C.text, letterSpacing:-0.3 }}>{p.name}</div>
-                  <div style={{ fontSize:13, color:C.textDim, lineHeight:1.65, marginTop:10 }}>{p.description}</div>
-                  {p.idealFor && <div style={{ fontSize:12, color:C.textDim, marginTop:12 }}><span style={{ fontWeight:600, color:C.text }}>Ideal for:</span> {p.idealFor}</div>}
-                </div>
-                <div style={{ textAlign:"right", flexShrink:0 }}>
-                  <div style={{ fontSize:11, color:C.textMuted }}>up to</div>
-                  <div style={{ fontSize:28, fontWeight:800, color:C.text, letterSpacing:-0.5 }}>{fmt.cur(p.maxAmount)}</div>
-                  <div style={{ fontSize:12, color:C.textDim, marginTop:4 }}>{p.minTerm < 1 ? `${Math.round(p.minTerm*30)}` : p.minTerm}–{p.maxTerm < 1 ? `${Math.round(p.maxTerm*30)} days` : `${p.maxTerm}m`} · {p.baseRate}% · {p.repaymentType}</div>
-                  <button onClick={()=>setPage("public_apply")} style={{ marginTop:14, background:C.text, color:"#fff", border:"none", padding:"10px 28px", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Apply Now</button>
-                </div>
-              </div>
-            </div>
-          );})()}
-
-          {/* Core products — 2x2 grid */}
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
-            {(data?.products||[]).filter(p=>p.status==="Active"&&p.id!=="P001").map(p=>{
-              const termMin = p.minTerm < 1 ? `${Math.round(p.minTerm*30)}d` : `${p.minTerm}m`;
-              const termMax = p.maxTerm < 1 ? `${Math.round(p.maxTerm*30)}d` : `${p.maxTerm}m`;
-              return (
-              <div key={p.id} style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"24px", display:"flex", flexDirection:"column" }}>
-                <div style={{ fontSize:17, fontWeight:700, color:C.text, letterSpacing:-0.2 }}>{p.name}</div>
-                <div style={{ fontSize:12, color:C.textMuted, marginTop:4 }}>{p.repaymentType} · From {p.baseRate}%</div>
-                <div style={{ fontSize:13, color:C.textDim, lineHeight:1.6, marginTop:10, flex:1 }}>{p.description}</div>
-                {p.idealFor && <div style={{ fontSize:11, color:C.textDim, marginTop:12, paddingTop:12, borderTop:`1px solid ${C.border}` }}><span style={{ fontWeight:600, color:C.text }}>Ideal for:</span> {p.idealFor}</div>}
-                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:14, paddingTop:14, borderTop:`1px solid ${C.border}` }}>
-                  <div style={{ fontSize:11, color:C.textMuted }}>{fmt.cur(p.minAmount)} – {fmt.cur(p.maxAmount)} · {termMin}–{termMax}</div>
-                  <button onClick={()=>setPage("public_apply")} style={{ background:C.text, color:"#fff", border:"none", padding:"8px 18px", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Apply</button>
-                </div>
-              </div>);
-            })}
           </div>
         </div>}
         {page === "public_apply" && <div>
