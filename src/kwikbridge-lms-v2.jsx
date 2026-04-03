@@ -398,6 +398,23 @@ export default function App() {
   const [auditFilter, setAuditFilter] = useState({category:"",user:"",entity:""});
   const [schedLoan, setSchedLoan] = useState(null);
   const [viewingDoc, setViewingDoc] = useState(null);
+  const [userEditing, setUserEditing] = useState(null);
+  const [userForm, setUserForm] = useState(null);
+  const [sysUsers, setSysUsers] = useState([...SYSTEM_USERS]);
+  const [backupSchedule, setBackupSchedule] = useState({frequency:"Daily",time:"02:00",retention:30,lastBackup:null,autoEnabled:true});
+  const [apiKeys, setApiKeys] = useState([{id:"ak1",name:"Supabase REST",key:"sb_pub...M",status:"Active",created:Date.now()-30*day,lastUsed:Date.now()},{id:"ak2",name:"Credit Bureau API",key:"cb_***...9f",status:"Active",created:Date.now()-90*day,lastUsed:Date.now()-2*day}]);
+  const [policyEditing, setPolicyEditing] = useState(null);
+  const [policyForm, setPolicyForm] = useState(null);
+  const [businessRules, setBusinessRules] = useState([
+    {id:"BR-001",name:"Max Single Exposure",category:"Credit",value:"R5,000,000",description:"Maximum loan amount to a single borrower",status:"Active",lastUpdated:Date.now()-60*day,updatedBy:"Chief Risk Officer"},
+    {id:"BR-002",name:"Portfolio Loss Tolerance",category:"Credit",value:"3-5% annual",description:"Maximum acceptable annual portfolio loss rate",status:"Active",lastUpdated:Date.now()-60*day,updatedBy:"Board of Directors"},
+    {id:"BR-003",name:"Min DSCR (Standard)",category:"Credit",value:"1.25x",description:"Minimum debt service coverage ratio for standard products",status:"Active",lastUpdated:Date.now()-60*day,updatedBy:"Credit Committee"},
+    {id:"BR-004",name:"Draft Application Expiry",category:"Operations",value:"30 days",description:"Draft applications auto-expire after this period",status:"Active",lastUpdated:Date.now()-30*day,updatedBy:"Head of Operations"},
+    {id:"BR-005",name:"Early Collections Trigger",category:"Collections",value:"1 DPD",description:"Automated SMS/email on first day past due",status:"Active",lastUpdated:Date.now()-45*day,updatedBy:"Head of Collections"},
+    {id:"BR-006",name:"Legal Action Threshold",category:"Collections",value:"91+ DPD",description:"Accounts eligible for legal recovery proceedings",status:"Active",lastUpdated:Date.now()-45*day,updatedBy:"Credit Committee"},
+    {id:"BR-007",name:"Dual Authorization Threshold",category:"Finance",value:"R500,000",description:"Disbursements above this amount require dual sign-off",status:"Active",lastUpdated:Date.now()-90*day,updatedBy:"CFO"},
+    {id:"BR-008",name:"KYC Document Validity",category:"Compliance",value:"3 months",description:"Proof of address must be within this period",status:"Active",lastUpdated:Date.now()-120*day,updatedBy:"Compliance Officer"},
+  ]);
   const role = currentUser.role;
   const canDo = (mod, action) => can(role, mod, action);
   const canDoAny = (mod, actions) => canAny(role, mod, actions);
@@ -3034,30 +3051,84 @@ export default function App() {
 
   function Administration() {
     const [adminTab, setAdminTab] = useState("products");
-
     // Product management
     const blank = { name:"", description:"", minAmount:100000, maxAmount:5000000, minTerm:12, maxTerm:60, baseRate:14.5, repaymentType:"Amortising", arrangementFee:1.0, commitmentFee:0.5, gracePeriod:0, maxLTV:80, minDSCR:1.25, eligibleBEE:[1,2,3,4], eligibleIndustries:["All"], status:"Active" };
     const startEdit = (p) => { setProdForm({...p}); setProdEditing(p.id); };
     const startNew = () => { setProdForm({...blank}); setProdEditing("new"); };
     const cancelEdit = () => { setProdForm(null); setProdEditing(null); };
     const handleSaveProd = () => { if (!prodForm.name) return; if (prodEditing === "new") saveProduct(prodForm); else saveProduct({ ...prodForm, id: prodEditing }); cancelEdit(); };
-
+    // User management
+    const blankUser = {name:"",email:"",role:"LOAN_OFFICER",initials:"",password:"",status:"Active"};
+    const startEditUser = u => { setUserForm({...u,password:""}); setUserEditing(u.id); };
+    const startNewUser = () => { setUserForm({...blankUser}); setUserEditing("new"); };
+    const cancelUserEdit = () => { setUserForm(null); setUserEditing(null); };
+    const handleSaveUser = () => {
+      if (!userForm.name||!userForm.email) return;
+      const initials = userForm.name.split(" ").map(w=>w[0]).join("").toUpperCase().slice(0,2);
+      if (userEditing === "new") {
+        const u = { ...userForm, id:`U${String(sysUsers.length+1).padStart(3,"0")}`, initials, createdAt:Date.now() };
+        setSysUsers([...sysUsers, u]);
+        save({...data, audit:[...audit, addAudit("User Created",u.id,currentUser.name,`${u.name} (${ROLES[u.role]?.label}) created.`,"Configuration")]});
+      } else {
+        setSysUsers(sysUsers.map(u => u.id===userEditing ? {...u,...userForm,initials} : u));
+        save({...data, audit:[...audit, addAudit("User Updated",userEditing,currentUser.name,`${userForm.name} profile updated.`,"Configuration")]});
+      }
+      cancelUserEdit();
+    };
+    const toggleUserStatus = id => {
+      setSysUsers(sysUsers.map(u => u.id===id ? {...u,status:u.status==="Active"?"Suspended":"Active"} : u));
+      const u = sysUsers.find(x=>x.id===id);
+      save({...data, audit:[...audit, addAudit(u?.status==="Active"?"User Suspended":"User Reactivated",id,currentUser.name,`${u?.name} status changed.`,"Configuration")]});
+    };
+    const resetPassword = id => {
+      const u = sysUsers.find(x=>x.id===id);
+      save({...data, audit:[...audit, addAudit("Password Reset",id,currentUser.name,`Password reset initiated for ${u?.name}.`,"Configuration")]});
+      alert(`Password reset link sent to ${u?.email}`);
+    };
+    const revokeAccess = id => {
+      setSysUsers(sysUsers.map(u => u.id===id ? {...u,status:"Revoked",role:"VIEWER"} : u));
+      const u = sysUsers.find(x=>x.id===id);
+      save({...data, audit:[...audit, addAudit("Access Revoked",id,currentUser.name,`All privileges revoked for ${u?.name}. Role set to Viewer.`,"Configuration")]});
+    };
     // Settings
     const handleSaveSettings = () => {
       if (!canDo("settings","update")) { alert("Permission denied."); return; }
       save({ ...data, settings: settingsForm, audit:[...audit, addAudit("Settings Updated", "System", currentUser.name, "Company settings modified.", "Configuration")] });
       setSettingsEditing(false);
     };
+    // Business rules
+    const startEditRule = r => { setPolicyForm({...r}); setPolicyEditing(r.id); };
+    const startNewRule = () => { setPolicyForm({id:"",name:"",category:"Credit",value:"",description:"",status:"Active"}); setPolicyEditing("new"); };
+    const handleSaveRule = () => {
+      if (!policyForm.name||!policyForm.value) return;
+      if (policyEditing==="new") {
+        setBusinessRules([...businessRules, {...policyForm, id:`BR-${String(businessRules.length+1).padStart(3,"0")}`, lastUpdated:Date.now(), updatedBy:currentUser.name}]);
+        save({...data, audit:[...audit, addAudit("Business Rule Created",policyForm.name,currentUser.name,`New rule: ${policyForm.name} = ${policyForm.value}`,"Configuration")]});
+      } else {
+        setBusinessRules(businessRules.map(r => r.id===policyEditing ? {...r,...policyForm, lastUpdated:Date.now(), updatedBy:currentUser.name} : r));
+        save({...data, audit:[...audit, addAudit("Business Rule Updated",policyEditing,currentUser.name,`${policyForm.name} updated to ${policyForm.value}`,"Configuration")]});
+      }
+      setPolicyForm(null); setPolicyEditing(null);
+    };
+    const toggleRule = id => {
+      setBusinessRules(businessRules.map(r => r.id===id ? {...r, status:r.status==="Active"?"Suspended":"Active", lastUpdated:Date.now(), updatedBy:currentUser.name} : r));
+    };
+    // Backup
+    const runBackup = () => { setBackupSchedule({...backupSchedule, lastBackup:Date.now()}); save({...data, audit:[...audit, addAudit("Manual Backup","System",currentUser.name,"Manual database backup initiated.","Configuration")]}); };
+    const addApiKey = () => { const k = {id:`ak${apiKeys.length+1}`,name:"New API Key",key:`key_${uid()}`,status:"Active",created:Date.now(),lastUsed:null}; setApiKeys([...apiKeys,k]); };
+    const revokeApiKey = id => { setApiKeys(apiKeys.map(k=>k.id===id?{...k,status:"Revoked"}:k)); };
+    // System health
+    const uptime = Math.floor((Date.now() - (now - 30*day)) / 3600000);
+    const dbSize = (customers.length*2 + applications.length*5 + loans.length*3 + documents.length + audit.length*0.5).toFixed(1);
 
     return (<div>
       <h2 style={{ margin:"0 0 4px", fontSize:22, fontWeight:700, color:C.text }}>Administration</h2>
       <p style={{ margin:"0 0 16px", fontSize:13, color:C.textMuted }}>Product catalog, user management, system configuration & business rules</p>
-
       <Tab tabs={[
         { key:"products", label:"Product Management", count:products.length },
-        { key:"users", label:"User Management", count:SYSTEM_USERS.length },
+        { key:"users", label:"User Management", count:sysUsers.length },
         { key:"system", label:"System Admin & Support" },
-        { key:"rules", label:"Business Rules & Policies" },
+        { key:"rules", label:"Business Rules & Policies", count:businessRules.length },
       ]} active={adminTab} onChange={setAdminTab} />
 
       {/* ── Product Management ── */}
@@ -3101,7 +3172,6 @@ export default function App() {
           { label:"Term", render:r=><span style={{ fontSize:11 }}>{r.minTerm}–{r.maxTerm}m</span> },
           { label:"Fees", render:r=><span style={{ fontSize:10, color:C.textDim }}>Arr: {r.arrangementFee||0}% · Com: {r.commitmentFee||0}%</span> },
           { label:"LTV/DSCR", render:r=><span style={{ fontSize:10, color:C.textDim }}>LTV≤{r.maxLTV||80}% · DSCR≥{r.minDSCR||1.2}x</span> },
-          { label:"BEE", render:r=><span style={{ fontSize:10 }}>{(r.eligibleBEE||[]).join(",")}</span> },
           { label:"Status", render:r=>statusBadge(r.status||"Active") },
           { label:"Actions", render:r=><div style={{ display:"flex", gap:4 }}>
             {canDo("products","update") && <Btn size="sm" variant="ghost" onClick={e=>{e.stopPropagation();startEdit(r)}}>Edit</Btn>}
@@ -3112,21 +3182,42 @@ export default function App() {
 
       {/* ── User Management ── */}
       {adminTab === "users" && <div>
-        <SectionCard title={`System Users (${SYSTEM_USERS.length})`}>
-          <Table columns={[
-            { label:"ID", render:r=><span style={{ fontFamily:"monospace", fontSize:11 }}>{r.id}</span> },
-            { label:"Name", render:r=><div style={{ display:"flex", alignItems:"center", gap:6 }}><div style={{ width:22, height:22, borderRadius:2, background:C.surface2, border:`1px solid ${C.border}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:9, fontWeight:600, color:C.textDim }}>{r.initials}</div><span style={{ fontWeight:500 }}>{r.name}</span></div> },
-            { label:"Email", render:r=><span style={{ fontSize:11, color:C.textDim }}>{r.email}</span> },
-            { label:"Role", render:r=><Badge>{ROLES[r.role]?.label || r.role}</Badge> },
-            { label:"Tier", render:r=><span style={{ fontSize:11 }}>{ROLES[r.role]?.tier}</span> },
-            { label:"Approval Limit", render:r=>APPROVAL_LIMITS[r.role] ? (APPROVAL_LIMITS[r.role] === Infinity ? "Unlimited" : fmt.cur(APPROVAL_LIMITS[r.role])) : <span style={{ color:C.textMuted }}>—</span> },
-          ]} rows={SYSTEM_USERS} />
-        </SectionCard>
+        <div style={{ display:"flex", justifyContent:"flex-end", marginBottom:12 }}>
+          {canDo("settings","create") && <Btn onClick={startNewUser} icon={I.plus}>Add User</Btn>}
+        </div>
+        {userForm && (
+          <SectionCard title={userEditing==="new"?"Create New User":`Edit: ${userForm.name}`}>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:10 }}>
+              <Field label="Full Name *"><Input value={userForm.name} onChange={e=>setUserForm({...userForm,name:e.target.value})} placeholder="e.g. Jane Doe" /></Field>
+              <Field label="Email *"><Input value={userForm.email} onChange={e=>setUserForm({...userForm,email:e.target.value})} placeholder="jane@thandoq.co.za" /></Field>
+              <Field label="Role"><Select value={userForm.role} onChange={e=>setUserForm({...userForm,role:e.target.value})} options={Object.entries(ROLES).map(([k,v])=>({value:k,label:v.label}))} /></Field>
+            </div>
+            {userEditing==="new" && <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
+              <Field label="Temporary Password"><Input type="password" value={userForm.password||""} onChange={e=>setUserForm({...userForm,password:e.target.value})} placeholder="Min 8 characters" /></Field>
+              <Field label="Status"><Select value={userForm.status||"Active"} onChange={e=>setUserForm({...userForm,status:e.target.value})} options={["Active","Suspended"].map(v=>({value:v,label:v}))} /></Field>
+            </div>}
+            <div style={{ display:"flex", gap:8 }}><Btn onClick={handleSaveUser}>Save User</Btn><Btn variant="ghost" onClick={cancelUserEdit}>Cancel</Btn></div>
+          </SectionCard>
+        )}
+        <Table columns={[
+          { label:"User", render:r=><div style={{ display:"flex", alignItems:"center", gap:6 }}><div style={{ width:24, height:24, borderRadius:3, background:r.status==="Active"?C.surface2:C.red+"20", border:`1px solid ${r.status==="Active"?C.border:C.red}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:9, fontWeight:600, color:r.status==="Active"?C.textDim:C.red }}>{r.initials}</div><div><div style={{ fontWeight:500, fontSize:12 }}>{r.name}</div><div style={{ fontSize:10, color:C.textMuted }}>{r.email}</div></div></div> },
+          { label:"Role", render:r=><Badge color={r.role==="ADMIN"?"purple":r.role==="EXEC"?"blue":"gray"}>{ROLES[r.role]?.label||r.role}</Badge> },
+          { label:"Tier", render:r=><span style={{ fontSize:11 }}>{ROLES[r.role]?.tier}</span> },
+          { label:"Approval Limit", render:r=>APPROVAL_LIMITS[r.role]?(APPROVAL_LIMITS[r.role]===Infinity?"Unlimited":fmt.cur(APPROVAL_LIMITS[r.role])):<span style={{ color:C.textMuted }}>—</span> },
+          { label:"Status", render:r=><Badge color={r.status==="Active"?"green":r.status==="Suspended"?"amber":"red"}>{r.status||"Active"}</Badge> },
+          { label:"Actions", render:r=>canDo("settings","update") && r.id!==currentUser.id ? <div style={{ display:"flex", gap:3, flexWrap:"wrap" }}>
+            <Btn size="sm" variant="ghost" onClick={()=>startEditUser(r)}>Edit</Btn>
+            <Btn size="sm" variant="ghost" onClick={()=>resetPassword(r.id)}>Reset Pwd</Btn>
+            <Btn size="sm" variant={r.status==="Active"?"ghost":"secondary"} onClick={()=>toggleUserStatus(r.id)}>{r.status==="Active"?"Suspend":"Activate"}</Btn>
+            {r.status!=="Revoked" && <Btn size="sm" variant="danger" onClick={()=>{if(confirm(`Revoke all access for ${r.name}?`))revokeAccess(r.id)}}>Revoke</Btn>}
+          </div> : <span style={{ fontSize:10, color:C.textMuted }}>{r.id===currentUser.id?"(You)":"View only"}</span> },
+        ]} rows={sysUsers} />
         <SectionCard title="Approval Authority Matrix">
           <Table columns={[
             { label:"Role", render:r=><span style={{ fontWeight:500 }}>{ROLES[r.role]?.label}</span> },
             { label:"Max Amount", render:r=>r.limit === Infinity ? "Unlimited" : r.limit > 0 ? fmt.cur(r.limit) : <span style={{ color:C.textMuted }}>No approval authority</span> },
             { label:"Tier", render:r=>String(ROLES[r.role]?.tier) },
+            { label:"Active Users", render:r=>sysUsers.filter(u=>u.role===r.role&&(u.status||"Active")==="Active").length },
           ]} rows={Object.keys(ROLES).map(k => ({ role:k, limit: APPROVAL_LIMITS[k] || 0 }))} />
         </SectionCard>
       </div>}
@@ -3135,14 +3226,7 @@ export default function App() {
       {adminTab === "system" && <div>
         <SectionCard title="Company Details" actions={canDo("settings","update") && !settingsEditing ? <Btn size="sm" variant="ghost" onClick={()=>{setSettingsForm({...(settings||{})});setSettingsEditing(true)}}>Edit</Btn> : null}>
           {!settingsEditing ? (
-            <InfoGrid items={[
-              ["Company Name", settings?.companyName],
-              ["NCR Registration", settings?.ncrReg],
-              ["NCR Expiry", settings?.ncrExpiry],
-              ["Branch", settings?.branch],
-              ["Financial Year-End", settings?.yearEnd],
-              ["Address", settings?.address || "East London, Nahoon Valley"],
-            ]} />
+            <InfoGrid items={[["Company Name", settings?.companyName],["NCR Registration", settings?.ncrReg],["NCR Expiry", settings?.ncrExpiry],["Branch", settings?.branch],["Financial Year-End", settings?.yearEnd],["Address", settings?.address || "East London, Nahoon Valley"]]} />
           ) : (
             <div>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
@@ -3157,24 +3241,72 @@ export default function App() {
             </div>
           )}
         </SectionCard>
-        <SectionCard title="Data Management">
-          <div style={{ fontSize:12, color:C.textDim, lineHeight:1.7, marginBottom:10 }}>
-            Storage: Supabase PostgreSQL (primary) with browser localStorage fallback.
-            All data is persisted across sessions. Use Reset to restore factory defaults.
+        <SectionCard title="System Health">
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:12, marginBottom:12 }}>
+            {[["Status","Operational",C.green],["Uptime",`${uptime}h`,C.accent],["DB Size",`~${dbSize} KB`,C.blue],["Active Sessions",sysUsers.filter(u=>(u.status||"Active")==="Active").length,C.purple]].map(([l,v,c],i)=>(
+              <div key={i} style={{ background:C.surface2, padding:"10px 12px", border:`1px solid ${C.border}` }}>
+                <div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase", letterSpacing:0.5 }}>{l}</div>
+                <div style={{ fontSize:18, fontWeight:700, color:c, marginTop:2 }}>{v}</div>
+              </div>
+            ))}
           </div>
+        </SectionCard>
+        <SectionCard title="Backup & Recovery" actions={canDo("settings","update") && <Btn size="sm" variant="secondary" onClick={runBackup}>Run Backup Now</Btn>}>
           <InfoGrid items={[
-            ["Customers", customers.length],
-            ["Applications", applications.length],
-            ["Active Loans", loans.length],
-            ["Documents", documents.length],
-            ["Audit Entries", audit.length],
-            ["Database", "Supabase (yioqaluxgqxsifclydmd)"],
+            ["Schedule", `${backupSchedule.frequency} at ${backupSchedule.time}`],
+            ["Retention", `${backupSchedule.retention} days`],
+            ["Last Backup", backupSchedule.lastBackup ? fmt.date(backupSchedule.lastBackup) + " " + new Date(backupSchedule.lastBackup).toLocaleTimeString() : "No backups yet"],
+            ["Auto-Backup", backupSchedule.autoEnabled ? "Enabled" : "Disabled"],
+            ["Storage", "Supabase PostgreSQL + localStorage fallback"],
           ]} />
+          {canDo("settings","update") && <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginTop:10 }}>
+            <Field label="Frequency"><Select value={backupSchedule.frequency} onChange={e=>setBackupSchedule({...backupSchedule,frequency:e.target.value})} options={["Hourly","Daily","Weekly"].map(v=>({value:v,label:v}))} /></Field>
+            <Field label="Time"><Input type="time" value={backupSchedule.time} onChange={e=>setBackupSchedule({...backupSchedule,time:e.target.value})} /></Field>
+            <Field label="Retention (days)"><Input type="number" value={backupSchedule.retention} onChange={e=>setBackupSchedule({...backupSchedule,retention:+e.target.value})} /></Field>
+          </div>}
+        </SectionCard>
+        <SectionCard title="API Key Management" actions={canDo("settings","create") && <Btn size="sm" variant="secondary" onClick={addApiKey} icon={I.plus}>Generate Key</Btn>}>
+          <Table columns={[
+            { label:"Name", render:r=><span style={{ fontWeight:500 }}>{r.name}</span> },
+            { label:"Key", render:r=><span style={{ fontFamily:"monospace", fontSize:10, color:C.textDim }}>{r.key}</span> },
+            { label:"Status", render:r=><Badge color={r.status==="Active"?"green":"red"}>{r.status}</Badge> },
+            { label:"Created", render:r=>fmt.date(r.created) },
+            { label:"Last Used", render:r=>r.lastUsed?fmt.date(r.lastUsed):"Never" },
+            { label:"Actions", render:r=>r.status==="Active" && canDo("settings","update") ? <Btn size="sm" variant="danger" onClick={()=>revokeApiKey(r.id)}>Revoke</Btn> : null },
+          ]} rows={apiKeys} />
+        </SectionCard>
+        <SectionCard title="Data Management">
+          <InfoGrid items={[["Customers",customers.length],["Applications",applications.length],["Active Loans",loans.length],["Documents",documents.length],["Audit Entries",audit.length],["Collections Records",collections.length],["Communications",comms.length],["Database","Supabase (yioqaluxgqxsifclydmd)"]]} />
         </SectionCard>
       </div>}
 
       {/* ── Business Rules & Policies ── */}
       {adminTab === "rules" && <div>
+        <div style={{ display:"flex", justifyContent:"flex-end", marginBottom:12 }}>
+          {canDo("settings","create") && <Btn onClick={startNewRule} icon={I.plus}>New Rule</Btn>}
+        </div>
+        {policyForm && (
+          <SectionCard title={policyEditing==="new"?"Create Business Rule":`Edit: ${policyForm.name}`}>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:10 }}>
+              <Field label="Rule Name *"><Input value={policyForm.name} onChange={e=>setPolicyForm({...policyForm,name:e.target.value})} /></Field>
+              <Field label="Category"><Select value={policyForm.category} onChange={e=>setPolicyForm({...policyForm,category:e.target.value})} options={["Credit","Collections","Finance","Compliance","Operations","Governance"].map(v=>({value:v,label:v}))} /></Field>
+              <Field label="Value *"><Input value={policyForm.value} onChange={e=>setPolicyForm({...policyForm,value:e.target.value})} placeholder="e.g. 1.25x, 30 days, R500,000" /></Field>
+            </div>
+            <Field label="Description"><Textarea value={policyForm.description||""} onChange={e=>setPolicyForm({...policyForm,description:e.target.value})} rows={2} /></Field>
+            <div style={{ display:"flex", gap:8, marginTop:10 }}><Btn onClick={handleSaveRule}>Save Rule</Btn><Btn variant="ghost" onClick={()=>{setPolicyForm(null);setPolicyEditing(null)}}>Cancel</Btn></div>
+          </SectionCard>
+        )}
+        <Table columns={[
+          { label:"Rule", render:r=><div><div style={{ fontWeight:600, fontSize:12 }}>{r.name}</div><div style={{ fontSize:10, color:C.textMuted }}>{r.description}</div></div> },
+          { label:"Category", render:r=><Badge color={r.category==="Credit"?"blue":r.category==="Collections"?"amber":r.category==="Compliance"?"purple":"gray"}>{r.category}</Badge> },
+          { label:"Value", render:r=><span style={{ fontSize:13, fontWeight:700, color:C.accent }}>{r.value}</span> },
+          { label:"Status", render:r=><Badge color={r.status==="Active"?"green":"red"}>{r.status}</Badge> },
+          { label:"Updated", render:r=><div><div style={{ fontSize:10 }}>{fmt.date(r.lastUpdated)}</div><div style={{ fontSize:9, color:C.textMuted }}>{r.updatedBy}</div></div> },
+          { label:"Actions", render:r=>canDo("settings","update") ? <div style={{ display:"flex", gap:3 }}>
+            <Btn size="sm" variant="ghost" onClick={()=>startEditRule(r)}>Edit</Btn>
+            <Btn size="sm" variant={r.status==="Active"?"ghost":"secondary"} onClick={()=>toggleRule(r.id)}>{r.status==="Active"?"Suspend":"Activate"}</Btn>
+          </div> : null },
+        ]} rows={businessRules} />
         <SectionCard title="RBAC Permission Matrix">
           <div style={{ overflowX:"auto" }}>
             <table style={{ width:"100%", borderCollapse:"collapse", fontSize:10 }}>
@@ -3189,24 +3321,6 @@ export default function App() {
                 </tr>
               ))}</tbody>
             </table>
-          </div>
-        </SectionCard>
-        <SectionCard title="Delinquency Classification">
-          <div style={{ fontSize:12, color:C.textDim, lineHeight:1.8 }}>
-            {[["Early (1-30 DPD)","IFRS 9 Stage 1 — automated reminders, Loan Officer engagement, PTP tracking"],
-              ["Mid (31-90 DPD)","IFRS 9 Stage 2 — handover to Collections, formal Letter of Demand, restructuring options"],
-              ["Late (91+ DPD)","IFRS 9 Stage 3 — legal review, Credit Committee approval for legal action or write-off"]
-            ].map(([title,desc],i)=><div key={i} style={{ padding:"6px 0", borderBottom:`1px solid ${C.border}` }}><span style={{ fontWeight:600, color:C.text }}>{title}:</span> {desc}</div>)}
-          </div>
-        </SectionCard>
-        <SectionCard title="Credit Approval Limits">
-          <div style={{ fontSize:12, color:C.textDim, lineHeight:1.8 }}>
-            {Object.entries(APPROVAL_LIMITS).map(([role,limit],i)=>(
-              <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"4px 0", borderBottom:`1px solid ${C.border}` }}>
-                <span style={{ fontWeight:500, color:C.text }}>{ROLES[role]?.label || role}</span>
-                <span style={{ fontWeight:600 }}>{limit === Infinity ? "Unlimited" : fmt.cur(limit)}</span>
-              </div>
-            ))}
           </div>
         </SectionCard>
         <SectionCard title="Regulatory Framework">
