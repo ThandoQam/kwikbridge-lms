@@ -164,12 +164,11 @@ function approvalLimit(userRole) {
 
 function seed() {
   const products = [
-    { id:"P001", name:"SME Term Loan", minAmount:100000, maxAmount:5000000, minTerm:12, maxTerm:60, baseRate:14.5, description:"General purpose business finance for SMEs", repaymentType:"Amortising", arrangementFee:1.5, commitmentFee:0.5, gracePeriod:0, maxLTV:80, minDSCR:1.25, eligibleBEE:[1,2,3,4], eligibleIndustries:["All"], status:"Active", createdBy:"U001", createdAt:now-365*day },
-    { id:"P002", name:"Agri Finance", minAmount:200000, maxAmount:10000000, minTerm:12, maxTerm:84, baseRate:13.0, description:"Agricultural and agro-processing finance", repaymentType:"Seasonal", arrangementFee:1.0, commitmentFee:0.5, gracePeriod:3, maxLTV:70, minDSCR:1.2, eligibleBEE:[1,2,3,4], eligibleIndustries:["Agriculture","Food Processing"], status:"Active", createdBy:"U001", createdAt:now-365*day },
-    { id:"P003", name:"Innovation Loan", minAmount:250000, maxAmount:3000000, minTerm:24, maxTerm:60, baseRate:15.0, description:"Technology and innovation business finance", repaymentType:"Amortising", arrangementFee:2.0, commitmentFee:0.5, gracePeriod:6, maxLTV:60, minDSCR:1.3, eligibleBEE:[1,2,3], eligibleIndustries:["Technology","Professional Services"], status:"Active", createdBy:"U001", createdAt:now-365*day },
-    { id:"P004", name:"Trade Finance", minAmount:100000, maxAmount:8000000, minTerm:3, maxTerm:12, baseRate:12.5, description:"Short-term trade and import/export finance", repaymentType:"Bullet", arrangementFee:1.5, commitmentFee:1.0, gracePeriod:0, maxLTV:90, minDSCR:1.15, eligibleBEE:[1,2,3,4], eligibleIndustries:["All"], status:"Active", createdBy:"U001", createdAt:now-365*day },
-    { id:"P005", name:"Asset Finance", minAmount:50000, maxAmount:5000000, minTerm:12, maxTerm:60, baseRate:13.5, description:"Equipment and asset acquisition finance", repaymentType:"Amortising", arrangementFee:1.0, commitmentFee:0, gracePeriod:0, maxLTV:80, minDSCR:1.2, eligibleBEE:[1,2,3,4], eligibleIndustries:["All"], status:"Active", createdBy:"U001", createdAt:now-365*day },
-    { id:"P006", name:"Empowerment Finance", minAmount:100000, maxAmount:3000000, minTerm:12, maxTerm:72, baseRate:12.0, description:"Preferential rates for qualifying BEE enterprises", repaymentType:"Amortising", arrangementFee:0.5, commitmentFee:0, gracePeriod:3, maxLTV:85, minDSCR:1.15, eligibleBEE:[1,2], eligibleIndustries:["All"], status:"Active", createdBy:"U001", createdAt:now-365*day },
+    { id:"P001", name:"Micro-Business Boost", minAmount:1000, maxAmount:50000, minTerm:0.17, maxTerm:1, baseRate:18.0, description:"Fast, flexible micro-loans designed for immediate working capital needs. Get the funds you need to keep your business moving, with repayment terms as short as 5-30 days.", repaymentType:"Bullet", arrangementFee:2.0, commitmentFee:0, gracePeriod:0, maxLTV:100, minDSCR:1.0, eligibleBEE:[1,2,3,4,5,6,7,8], eligibleIndustries:["All"], status:"Active", createdBy:"U001", createdAt:now-365*day, idealFor:"Street vendors, informal traders, small service providers." },
+    { id:"P002", name:"Invoice Discounting", minAmount:10000, maxAmount:500000, minTerm:1, maxTerm:3, baseRate:15.0, description:"Turn your outstanding invoices into immediate cash. Don't wait for clients to pay; get liquidity now to manage operations, seize new opportunities, or cover urgent expenses.", repaymentType:"Bullet", arrangementFee:1.5, commitmentFee:0, gracePeriod:0, maxLTV:80, minDSCR:1.0, eligibleBEE:[1,2,3,4,5,6,7,8], eligibleIndustries:["All"], status:"Active", createdBy:"U001", createdAt:now-365*day, idealFor:"Businesses with confirmed invoices from reputable clients." },
+    { id:"P003", name:"Purchase Order Financing", minAmount:50000, maxAmount:2000000, minTerm:1, maxTerm:6, baseRate:14.0, description:"Secure funding to execute confirmed purchase orders. We provide the capital to cover supplier costs, enabling you to take on larger contracts and expand your capacity, especially in the construction sector.", repaymentType:"Bullet", arrangementFee:1.5, commitmentFee:0.5, gracePeriod:0, maxLTV:85, minDSCR:1.1, eligibleBEE:[1,2,3,4,5,6,7,8], eligibleIndustries:["Construction","Manufacturing","All"], status:"Active", createdBy:"U001", createdAt:now-365*day, idealFor:"Contractors, suppliers, and manufacturers with confirmed orders." },
+    { id:"P004", name:"Project & Contract Finance", minAmount:1000000, maxAmount:2000000, minTerm:3, maxTerm:12, baseRate:13.5, description:"Tailored financing for specific projects and contracts. Our solutions are designed to match your project's cash flow cycle, with repayment terms up to 12 months.", repaymentType:"Amortising", arrangementFee:1.0, commitmentFee:0.5, gracePeriod:1, maxLTV:80, minDSCR:1.2, eligibleBEE:[1,2,3,4], eligibleIndustries:["Construction","Professional Services","All"], status:"Active", createdBy:"U001", createdAt:now-365*day, idealFor:"SMEs undertaking mid-sized projects, construction firms, service providers with secured contracts." },
+    { id:"P005", name:"Asset Financing", minAmount:50000, maxAmount:5000000, minTerm:12, maxTerm:60, baseRate:13.0, description:"Acquire the essential equipment and machinery your business needs to operate and expand. Our asset finance solutions help you invest in critical tools without tying up your working capital.", repaymentType:"Amortising", arrangementFee:1.0, commitmentFee:0, gracePeriod:0, maxLTV:80, minDSCR:1.15, eligibleBEE:[1,2,3,4,5,6,7,8], eligibleIndustries:["Transport","Manufacturing","Agriculture","All"], status:"Active", createdBy:"U001", createdAt:now-365*day, idealFor:"Transport operators, manufacturers, agricultural businesses, service companies requiring equipment." },
   ];
 
   const statutoryReports = [
@@ -648,7 +647,7 @@ export default function App() {
             </div>
           </div>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:16, marginTop:24 }}>
-            {[["R100K – R10M","Loan amounts tailored to your business needs"],["12 – 84 months","Flexible terms with seasonal payment options"],["From 12%","Competitive rates for BEE-qualifying enterprises"]].map(([title,desc],i)=>(
+            {[["R1K – R5M","From micro-loans to asset finance, tailored to your needs"],["5 days – 60 months","Flexible terms from short-term bridging to long-term asset finance"],["From 13%","Competitive rates for BEE-qualifying enterprises"]].map(([title,desc],i)=>(
               <div key={i} style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"24px" }}>
                 <div style={{ fontSize:22, fontWeight:700, color:C.text }}>{title}</div>
                 <div style={{ fontSize:13, color:C.textDim, marginTop:8, lineHeight:1.5 }}>{desc}</div>
@@ -657,19 +656,23 @@ export default function App() {
           </div>
         </div>}
         {page === "public_products" && <div>
-          <h2 style={{ fontSize:24, fontWeight:700, margin:"0 0 16px" }}>Loan Products</h2>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+          <h2 style={{ fontSize:24, fontWeight:700, margin:"0 0 4px" }}>Our Finance Products</h2>
+          <p style={{ fontSize:13, color:C.textDim, margin:"0 0 20px" }}>Tailored solutions for South African SMEs and empowerment businesses.</p>
+          <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
             {(data?.products||[]).filter(p=>p.status==="Active").map(p=>(
-              <div key={p.id} style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"20px" }}>
-                <div style={{ fontSize:16, fontWeight:700, color:C.text }}>{p.name}</div>
-                <div style={{ fontSize:12, color:C.textDim, marginTop:6, lineHeight:1.5 }}>{p.description}</div>
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginTop:12, fontSize:12 }}>
-                  <div><span style={{ color:C.textMuted }}>Amount:</span> {fmt.cur(p.minAmount)} – {fmt.cur(p.maxAmount)}</div>
-                  <div><span style={{ color:C.textMuted }}>Term:</span> {p.minTerm}–{p.maxTerm} months</div>
-                  <div><span style={{ color:C.textMuted }}>Rate from:</span> {p.baseRate}%</div>
-                  <div><span style={{ color:C.textMuted }}>Type:</span> {p.repaymentType}</div>
+              <div key={p.id} style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"24px", display:"flex", gap:24 }}>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontSize:18, fontWeight:700, color:C.text }}>{p.name}</div>
+                  <div style={{ fontSize:13, color:C.textDim, marginTop:8, lineHeight:1.6 }}>{p.description}</div>
+                  {p.idealFor && <div style={{ fontSize:12, color:C.accent, marginTop:10, fontWeight:500 }}>Ideal for: <span style={{ fontWeight:400, color:C.textDim }}>{p.idealFor}</span></div>}
                 </div>
-                <button onClick={()=>setPage("public_apply")} style={{ marginTop:14, background:C.text, color:"#fff", border:"none", padding:"8px 20px", fontSize:12, fontWeight:500, cursor:"pointer", fontFamily:"inherit" }}>Apply Now</button>
+                <div style={{ width:220, flexShrink:0, borderLeft:`1px solid ${C.border}`, paddingLeft:20, display:"flex", flexDirection:"column", gap:8, fontSize:12 }}>
+                  <div><span style={{ color:C.textMuted, display:"block", fontSize:10, textTransform:"uppercase", letterSpacing:0.5 }}>Amount</span><span style={{ fontWeight:600 }}>{fmt.cur(p.minAmount)} – {fmt.cur(p.maxAmount)}</span></div>
+                  <div><span style={{ color:C.textMuted, display:"block", fontSize:10, textTransform:"uppercase", letterSpacing:0.5 }}>Term</span><span style={{ fontWeight:600 }}>{p.minTerm < 1 ? `${Math.round(p.minTerm*30)} days` : `${p.minTerm}m`} – {p.maxTerm < 1 ? `${Math.round(p.maxTerm*30)} days` : `${p.maxTerm}m`}</span></div>
+                  <div><span style={{ color:C.textMuted, display:"block", fontSize:10, textTransform:"uppercase", letterSpacing:0.5 }}>Rate from</span><span style={{ fontWeight:600 }}>{p.baseRate}%</span></div>
+                  <div><span style={{ color:C.textMuted, display:"block", fontSize:10, textTransform:"uppercase", letterSpacing:0.5 }}>Repayment</span><span style={{ fontWeight:600 }}>{p.repaymentType}</span></div>
+                  <button onClick={()=>setPage("public_apply")} style={{ marginTop:8, background:C.text, color:"#fff", border:"none", padding:"9px 20px", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Apply Now</button>
+                </div>
               </div>
             ))}
           </div>
