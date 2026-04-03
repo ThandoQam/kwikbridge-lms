@@ -691,15 +691,10 @@ export default function App() {
             </div>
           </div>
           <div className="kb-pub-grid2" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginTop:24 }}>
-            {[
-              ["PO & Invoice Financing","Government-backed purchase order and invoice discounting for ECDoE, ECDoT, and Coega IDZ contractors."],
-              ["Working Capital — Micro","Fast micro-loans for informal traders. AI-scored, group guarantee, up to 12 cycles per year."],
-              ["Agri Finance","Seasonal finance for smallholder farmers with crop lien and equipment collateral."],
-              ["Project & Contract Finance","Tailored financing for mid-sized projects and contracts, matched to your cash flow cycle."],
-            ].map(([title,desc],i)=>(
-              <div key={i} style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"24px" }}>
-                <div style={{ fontSize:16, fontWeight:700, color:C.text, letterSpacing:-0.2 }}>{title}</div>
-                <div style={{ fontSize:13, color:C.textDim, marginTop:8, lineHeight:1.6 }}>{desc}</div>
+            {(data?.products||[]).filter(p=>p.status==="Active").slice(0,4).map(p=>(
+              <div key={p.id} style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"24px" }}>
+                <div style={{ fontSize:16, fontWeight:700, color:C.text, letterSpacing:-0.2 }}>{p.name}</div>
+                <div style={{ fontSize:13, color:C.textDim, marginTop:8, lineHeight:1.6 }}>{p.idealFor || p.description?.substring(0,120)}</div>
               </div>
             ))}
           </div>
@@ -3893,7 +3888,7 @@ export default function App() {
   function Administration() {
     const [adminTab, setAdminTab] = useState("products");
     // Product management
-    const blank = { name:"", description:"", minAmount:100000, maxAmount:5000000, minTerm:12, maxTerm:60, baseRate:14.5, repaymentType:"Amortising", arrangementFee:1.0, commitmentFee:0.5, gracePeriod:0, maxLTV:80, minDSCR:1.25, eligibleBEE:[1,2,3,4], eligibleIndustries:["All"], status:"Active" };
+    const blank = { name:"", description:"", idealFor:"", minAmount:100000, maxAmount:5000000, minTerm:3, maxTerm:12, baseRate:42.0, monthlyRate:3.5, repaymentType:"Bullet", arrangementFee:2.0, commitmentFee:0.5, gracePeriod:0, maxLTV:80, minDSCR:1.15, riskClass:"A", ecl:0.70, s1PD:0.006, lgd:0.22, eligibleBEE:[1,2,3,4], eligibleIndustries:["All"], status:"Active" };
     const startEdit = (p) => { setProdForm({...p}); setProdEditing(p.id); };
     const startNew = () => { setProdForm({...blank}); setProdEditing("new"); };
     const cancelEdit = () => { setProdForm(null); setProdEditing(null); };
@@ -3985,6 +3980,7 @@ export default function App() {
               <Field label="Status"><Select value={prodForm.status} onChange={e=>setProdForm({...prodForm,status:e.target.value})} options={["Active","Suspended","Retired"].map(v=>({value:v,label:v}))} /></Field>
             </div>
             <Field label="Description"><Textarea value={prodForm.description} onChange={e=>setProdForm({...prodForm,description:e.target.value})} rows={2} /></Field>
+            <Field label="Ideal For"><Input value={prodForm.idealFor||""} onChange={e=>setProdForm({...prodForm,idealFor:e.target.value})} placeholder="Target market description" /></Field>
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:10, marginBottom:10 }}>
               <Field label="Min Amount (R)"><Input type="number" value={prodForm.minAmount} onChange={e=>setProdForm({...prodForm,minAmount:+e.target.value})} /></Field>
               <Field label="Max Amount (R)"><Input type="number" value={prodForm.maxAmount} onChange={e=>setProdForm({...prodForm,maxAmount:+e.target.value})} /></Field>
@@ -3992,27 +3988,34 @@ export default function App() {
               <Field label="Max Term (m)"><Input type="number" value={prodForm.maxTerm} onChange={e=>setProdForm({...prodForm,maxTerm:+e.target.value})} /></Field>
             </div>
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr 1fr", gap:10, marginBottom:10 }}>
-              <Field label="Base Rate %"><Input type="number" value={prodForm.baseRate} onChange={e=>setProdForm({...prodForm,baseRate:+e.target.value})} /></Field>
+              <Field label="Base Rate % (ann.)"><Input type="number" value={prodForm.baseRate} onChange={e=>setProdForm({...prodForm,baseRate:+e.target.value})} /></Field>
+              <Field label="Monthly Rate %"><Input type="number" value={prodForm.monthlyRate||""} onChange={e=>setProdForm({...prodForm,monthlyRate:+e.target.value})} /></Field>
               <Field label="Arrangement Fee %"><Input type="number" value={prodForm.arrangementFee} onChange={e=>setProdForm({...prodForm,arrangementFee:+e.target.value})} /></Field>
               <Field label="Commitment Fee %"><Input type="number" value={prodForm.commitmentFee} onChange={e=>setProdForm({...prodForm,commitmentFee:+e.target.value})} /></Field>
               <Field label="Grace Period (m)"><Input type="number" value={prodForm.gracePeriod} onChange={e=>setProdForm({...prodForm,gracePeriod:+e.target.value})} /></Field>
+            </div>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr 1fr", gap:10, marginBottom:10 }}>
               <Field label="Max LTV %"><Input type="number" value={prodForm.maxLTV} onChange={e=>setProdForm({...prodForm,maxLTV:+e.target.value})} /></Field>
+              <Field label="Min DSCR"><Input type="number" value={prodForm.minDSCR} onChange={e=>setProdForm({...prodForm,minDSCR:+e.target.value})} step="0.05" /></Field>
+              <Field label="Risk Class"><Select value={prodForm.riskClass||"A"} onChange={e=>setProdForm({...prodForm,riskClass:e.target.value})} options={["A","B","C","D"].map(v=>({value:v,label:`Class ${v}`}))} /></Field>
+              <Field label="ECL Rate %"><Input type="number" value={prodForm.ecl||""} onChange={e=>setProdForm({...prodForm,ecl:+e.target.value})} step="0.01" /></Field>
+              <Field label="S1 PD"><Input type="number" value={prodForm.s1PD||""} onChange={e=>setProdForm({...prodForm,s1PD:+e.target.value})} step="0.001" /></Field>
             </div>
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
-              <Field label="Min DSCR"><Input type="number" value={prodForm.minDSCR} onChange={e=>setProdForm({...prodForm,minDSCR:+e.target.value})} step="0.05" /></Field>
+              <Field label="LGD"><Input type="number" value={prodForm.lgd||""} onChange={e=>setProdForm({...prodForm,lgd:+e.target.value})} step="0.01" /></Field>
               <Field label="Eligible BEE Levels (comma-sep)"><Input value={(prodForm.eligibleBEE||[]).join(",")} onChange={e=>setProdForm({...prodForm,eligibleBEE:e.target.value.split(",").map(Number).filter(Boolean)})} /></Field>
             </div>
             <div style={{ display:"flex", gap:8, marginTop:12 }}><Btn onClick={handleSaveProd}>Save Product</Btn><Btn variant="ghost" onClick={cancelEdit}>Cancel</Btn></div>
           </SectionCard>
         )}
         <Table columns={[
-          { label:"Product", render:r=><div><div style={{ fontWeight:600, fontSize:12 }}>{r.name}</div><div style={{ fontSize:10, color:C.textMuted }}>{r.description}</div></div> },
+          { label:"Product", render:r=><div><div style={{ fontWeight:600, fontSize:12 }}>{r.name}</div><div style={{ fontSize:10, color:C.textMuted }}>{r.idealFor||r.description?.substring(0,60)}</div></div> },
           { label:"Type", render:r=><span style={{ fontSize:11 }}>{r.repaymentType||"Amortising"}</span> },
-          { label:"Rate", render:r=><span style={{ fontSize:12, fontWeight:600 }}>{r.baseRate}%</span> },
+          { label:"Rate", render:r=><span style={{ fontSize:12, fontWeight:600 }}>{r.monthlyRate||r.baseRate}%{r.monthlyRate?"/mo":""}</span> },
           { label:"Amount Range", render:r=><span style={{ fontSize:11 }}>{fmt.cur(r.minAmount)} – {fmt.cur(r.maxAmount)}</span> },
-          { label:"Term", render:r=><span style={{ fontSize:11 }}>{r.minTerm}–{r.maxTerm}m</span> },
-          { label:"Fees", render:r=><span style={{ fontSize:10, color:C.textDim }}>Arr: {r.arrangementFee||0}% · Com: {r.commitmentFee||0}%</span> },
-          { label:"LTV/DSCR", render:r=><span style={{ fontSize:10, color:C.textDim }}>LTV≤{r.maxLTV||80}% · DSCR≥{r.minDSCR||1.2}x</span> },
+          { label:"Term", render:r=><span style={{ fontSize:11 }}>{r.minTerm<1?Math.round(r.minTerm*30)+"d":r.minTerm+"m"}–{r.maxTerm}m</span> },
+          { label:"Class", render:r=><Badge color={r.riskClass==="A"?"green":r.riskClass==="B"?"amber":r.riskClass==="C"?"red":"gray"}>{r.riskClass||"—"}</Badge> },
+          { label:"ECL", render:r=><span style={{ fontSize:11, fontFamily:"monospace" }}>{r.ecl!=null?`${r.ecl}%`:"—"}</span> },
           { label:"Status", render:r=>statusBadge(r.status||"Active") },
           { label:"Actions", render:r=><div style={{ display:"flex", gap:4 }}>
             {canDo("products","update") && <Btn size="sm" variant="ghost" onClick={e=>{e.stopPropagation();startEdit(r)}}>Edit</Btn>}
