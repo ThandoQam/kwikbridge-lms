@@ -1241,7 +1241,7 @@ export default function App() {
     { key: "customers", label: "Customers", icon: I.customers, count: customers.length },
     { key: "origination", label: "Origination", icon: I.origination, count: applications.filter(a => ["Submitted","Underwriting"].includes(a.status)).length },
     { key: "underwriting", label: "Underwriting", icon: I.underwriting },
-    { key: "loans", label: "Active Loans", icon: I.loans, count: loans.length },
+    { key: "loans", label: "Loan Book", icon: I.loans, count: loans.length },
     { key: "servicing", label: "Servicing", icon: I.servicing },
     { key: "collections", label: "Collections", icon: I.collections, count: loans.filter(l => l.dpd > 0).length },
     { key: "provisioning", label: "IFRS 9", icon: I.provisioning },
