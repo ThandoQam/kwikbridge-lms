@@ -1268,7 +1268,7 @@ export default function App() {
         )}
         {/* Impact — everyone */}
         <SectionCard title="Development Impact">
-          {[["Jobs Supported", fmt.num(jobs), C.green], ["BEE Level 1 Clients", customers.filter(c => c.beeLevel === 1).length, C.accent], ["Women-Owned", "2", C.purple], ["Avg Social Impact Score", Math.round(applications.filter(a => a.socialScore).reduce((s, a) => s + a.socialScore, 0) / (applications.filter(a => a.socialScore).length || 1)), C.amber]].map(([l, v, c], i) => (
+          {[["Jobs Supported", fmt.num(jobs), C.green], ["BEE Level 1 Clients", customers.filter(c => c.beeLevel === 1).length, C.accent], ["BEE Level 1-2 Clients", customers.filter(c => c.beeLevel <= 2).length, C.purple], ["Avg Social Impact Score", applications.filter(a => a.socialScore).length > 0 ? Math.round(applications.filter(a => a.socialScore).reduce((s, a) => s + a.socialScore, 0) / applications.filter(a => a.socialScore).length) : "—", C.amber]].map(([l, v, c], i) => (
             <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 0", borderBottom:`1px solid ${C.border}` }}>
               <span style={{ fontSize:12, color:C.textDim }}>{l}</span><span style={{ fontSize:18, fontWeight:700, color:c }}>{v}</span>
             </div>
