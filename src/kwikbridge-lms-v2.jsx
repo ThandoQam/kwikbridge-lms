@@ -2021,9 +2021,9 @@ export default function App() {
         )}
         {/* Impact — everyone */}
         <SectionCard title="Development Impact">
-          {[["Jobs Supported", fmt.num(jobs), C.green], ["BEE Level 1-2 Clients", customers.filter(c => c.beeLevel <= 2).length, C.accent], ["Women-Owned (>50%)", customers.filter(c => (c.womenOwned||0) > 50).length, C.purple], ["Youth-Owned (>50%)", customers.filter(c => (c.youthOwned||0) > 50).length, C.blue], ["Disability-Owned (>50%)", customers.filter(c => (c.disabilityOwned||0) > 50).length, C.amber], ["Avg Social Impact Score", applications.filter(a => a.socialScore).length > 0 ? Math.round(applications.filter(a => a.socialScore).reduce((s, a) => s + a.socialScore, 0) / applications.filter(a => a.socialScore).length) : "—", C.textDim]].map(([l, v, c], i) => (
+          {[["Jobs Supported", fmt.num(jobs)], ["BEE Level 1-2 Clients", customers.filter(c => c.beeLevel <= 2).length], ["Women-Owned (>50%)", customers.filter(c => (c.womenOwned||0) > 50).length], ["Youth-Owned (>50%)", customers.filter(c => (c.youthOwned||0) > 50).length], ["Disability-Owned (>50%)", customers.filter(c => (c.disabilityOwned||0) > 50).length], ["Avg Social Impact Score", applications.filter(a => a.socialScore).length > 0 ? Math.round(applications.filter(a => a.socialScore).reduce((s, a) => s + a.socialScore, 0) / applications.filter(a => a.socialScore).length) : "—"]].map(([l, v], i) => (
             <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 0", borderBottom:`1px solid ${C.border}` }}>
-              <span style={{ fontSize:12, color:C.textDim }}>{l}</span><span style={{ fontSize:18, fontWeight:700, color:c }}>{v}</span>
+              <span style={{ fontSize:12, color:C.textDim }}>{l}</span><span style={{ fontSize:18, fontWeight:700, color:C.text }}>{v}</span>
             </div>
           ))}
         </SectionCard>
