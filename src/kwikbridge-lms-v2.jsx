@@ -1941,8 +1941,8 @@ export default function App() {
       {tab==="regulatory" && <div>
         <SectionCard title="Regulatory Status">
           <InfoGrid items={[
-            ["NCR Registration", settings.ncrReg],
-            ["NCR Expiry", settings.ncrExpiry],
+            ["NCR Registration", settings?.ncrReg],
+            ["NCR Expiry", settings?.ncrExpiry],
             ["FICA Compliance", customers.every(c=>c.ficaStatus==="Verified") ? "Fully Compliant" : `${customers.filter(c=>c.ficaStatus!=="Verified").length} customers pending`],
             ["POPIA Compliance", "Active"],
             ["NCA Registration", "Active – Section 40"],
@@ -2032,7 +2032,7 @@ export default function App() {
         <KPI label="Pending Reports" value={upcoming.length} accent={C.amber} sub={`${upcoming.filter(r => daysUntil(r.dueDate) <= 60).length} due within 60 days`} />
         <KPI label="Submitted" value={submitted.length} accent={C.green} />
         <KPI label="Form 39 Frequency" value={form39Frequency} sub={`Disbursements: ${fmt.cur(totalDisbursedAmt)} ${totalDisbursedAmt > 15000000 ? "(> R15M)" : "(< R15M)"}`} accent={C.blue} />
-        <KPI label="Year-End" value={settings.yearEnd || "28 Feb 2026"} sub={`Annual reports due: ${settings.annualDueDate || "31 Aug 2026"}`} accent={C.purple} />
+        <KPI label="Year-End" value={settings?.yearEnd || "28 Feb 2026"} sub={`Annual reports due: ${settings?.annualDueDate || "31 Aug 2026"}`} accent={C.purple} />
       </div>
 
       <Tab tabs={[
@@ -2082,7 +2082,7 @@ export default function App() {
       {tab === "calendar" && (<div>
         <SectionCard title="Annual Statutory Reports (Due within 6 months of year-end)">
           <div style={{ fontSize: 12, color: C.textDim, marginBottom: 14, lineHeight: 1.6, padding: "10px 14px", background: C.surface2 }}>
-            Credit providers registered under the NCA must submit the following reports to the NCR within <span style={{ fontWeight: 600, color: C.text }}>6 months</span> of their financial year-end. Year-end: <span style={{ fontWeight: 600, color: C.text }}>{settings.yearEnd}</span> → Deadline: <span style={{ fontWeight: 600, color: C.red }}>{settings.annualDueDate}</span>
+            Credit providers registered under the NCA must submit the following reports to the NCR within <span style={{ fontWeight: 600, color: C.text }}>6 months</span> of their financial year-end. Year-end: <span style={{ fontWeight: 600, color: C.text }}>{settings?.yearEnd}</span> → Deadline: <span style={{ fontWeight: 600, color: C.red }}>{settings?.annualDueDate}</span>
           </div>
           <Table columns={[
             { label: "Report", render: r => <span style={{ fontWeight: 600 }}>{r.name}</span> },
@@ -2175,8 +2175,8 @@ export default function App() {
                 {[
                   ["Annual Statutory Reports", "submissions@ncr.org.za", C.purple],
                   ["Form 39 Statistical Returns", "returns@ncr.org.za", C.blue],
-                  ["Hand Delivery", settings.ncrAddress, C.amber],
-                  ["Courier / Post", settings.ncrPO, C.green],
+                  ["Hand Delivery", settings?.ncrAddress, C.amber],
+                  ["Courier / Post", settings?.ncrPO, C.green],
                 ].map(([label, value, color], i) => (
                   <div key={i} style={{ background: C.surface2, padding: "8px 12px", border: `1px solid ${C.border}` }}>
                     <div style={{ fontSize: 11, fontWeight: 600, color: C.textMuted, textTransform: "uppercase", letterSpacing: 0.5 }}>{label}</div>
@@ -2189,12 +2189,12 @@ export default function App() {
             <div>
               <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 6 }}>Company Details</div>
               <InfoGrid items={[
-                ["Registered Name", settings.companyName],
-                ["NCR Registration", settings.ncrReg],
-                ["Registration Expiry", settings.ncrExpiry],
-                ["Branch", settings.branch],
-                ["Financial Year-End", settings.yearEnd || "28 February"],
-                ["Annual Reports Deadline", settings.annualDueDate || "31 August"],
+                ["Registered Name", settings?.companyName],
+                ["NCR Registration", settings?.ncrReg],
+                ["Registration Expiry", settings?.ncrExpiry],
+                ["Branch", settings?.branch],
+                ["Financial Year-End", settings?.yearEnd || "28 February"],
+                ["Annual Reports Deadline", settings?.annualDueDate || "31 August"],
               ]} />
             </div>
           </div>
