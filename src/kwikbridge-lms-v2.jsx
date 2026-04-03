@@ -3012,6 +3012,9 @@ export default function App() {
         </SectionCard>}
       </div>);
     }
+    return null;
+  }
+
   const saveProduct = (prod) => {
     if (!canDo("products","create") && !canDo("products","update")) { alert("Permission denied."); return; }
     const isNew = !products.find(p => p.id === prod.id);
@@ -3218,9 +3221,6 @@ export default function App() {
         </SectionCard>
       </div>}
     </div>);
-  }
-
-    return null;
   }
 
   function NewAppModal() {
