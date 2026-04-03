@@ -40,6 +40,26 @@ const sbGet = async (table) => { const r = await fetch(sb(table) + "?order=id", 
 const sbUpsert = async (table, rows) => { if (!rows?.length) return; await fetch(sb(table), { method: "POST", headers: { ...sbHeaders, "Prefer": "resolution=merge-duplicates,return=minimal" }, body: JSON.stringify(rows) }); };
 const sbDelete = async (table, id) => { await fetch(sb(table) + `?id=eq.${encodeURIComponent(id)}`, { method: "DELETE", headers: sbHeaders }); };
 
+// ═══ SUPABASE AUTH ═══
+const sbAuth = (endpoint, body) => fetch(`${SUPABASE_URL}/auth/v1/${endpoint}`, { method:"POST", headers:{ "apikey":SUPABASE_KEY, "Content-Type":"application/json" }, body:JSON.stringify(body) });
+const sbAuthGet = (endpoint, token) => fetch(`${SUPABASE_URL}/auth/v1/${endpoint}`, { headers:{ "apikey":SUPABASE_KEY, "Authorization":`Bearer ${token}` } });
+const authSignUp = async (email, password, name) => {
+  const r = await sbAuth("signup", { email, password, data:{ full_name:name } });
+  return r.json();
+};
+const authSignIn = async (email, password) => {
+  const r = await sbAuth("token?grant_type=password", { email, password });
+  return r.json();
+};
+const authSignOut = async (token) => {
+  await fetch(`${SUPABASE_URL}/auth/v1/logout`, { method:"POST", headers:{ "apikey":SUPABASE_KEY, "Authorization":`Bearer ${token}` } });
+};
+const authGetUser = async (token) => {
+  const r = await sbAuthGet("user", token);
+  return r.ok ? r.json() : null;
+};
+const authOAuthUrl = (provider) => `${SUPABASE_URL}/auth/v1/authorize?provider=${provider}&redirect_to=${encodeURIComponent(window.location.origin)}`;
+
 // Field mapping: app camelCase <-> DB snake_case
 const toSnake = s => s.replace(/([A-Z])/g, '_$1').toLowerCase();
 const toCamel = s => s.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
@@ -398,6 +418,10 @@ export default function App() {
   const [auditFilter, setAuditFilter] = useState({category:"",user:"",entity:""});
   const [schedLoan, setSchedLoan] = useState(null);
   const [viewingDoc, setViewingDoc] = useState(null);
+  const [authSession, setAuthSession] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [authMode, setAuthMode] = useState("login"); // login | signup
+  const [authForm, setAuthForm] = useState({ email:"", password:"", name:"", error:"" });
   const [userEditing, setUserEditing] = useState(null);
   const [userForm, setUserForm] = useState(null);
   const [sysUsers, setSysUsers] = useState([...SYSTEM_USERS]);
@@ -419,7 +443,172 @@ export default function App() {
   const canDo = (mod, action) => can(role, mod, action);
   const canDoAny = (mod, actions) => canAny(role, mod, actions);
 
+  // ═══ AUTH CHECK ═══
   useEffect(() => {
+    (async () => {
+      // Check for OAuth redirect (hash contains access_token)
+      const hash = window.location.hash;
+      if (hash && hash.includes("access_token")) {
+        const params = new URLSearchParams(hash.substring(1));
+        const token = params.get("access_token");
+        if (token) {
+          const user = await authGetUser(token);
+          if (user?.email) {
+            const session = { token, user };
+            setAuthSession(session);
+            localStorage.setItem("kb-auth", JSON.stringify(session));
+            // Match to system user by email
+            const matched = sysUsers.find(u => u.email.toLowerCase() === user.email.toLowerCase());
+            if (matched) setCurrentUser(matched);
+            window.history.replaceState(null, "", window.location.pathname);
+          }
+        }
+        setAuthLoading(false);
+        return;
+      }
+      // Check stored session
+      try {
+        const stored = localStorage.getItem("kb-auth");
+        if (stored) {
+          const session = JSON.parse(stored);
+          const user = await authGetUser(session.token);
+          if (user?.email) {
+            setAuthSession({ ...session, user });
+            const matched = sysUsers.find(u => u.email.toLowerCase() === user.email.toLowerCase());
+            if (matched) setCurrentUser(matched);
+          } else {
+            localStorage.removeItem("kb-auth");
+          }
+        }
+      } catch {}
+      setAuthLoading(false);
+    })();
+  }, []);
+
+  const handleSignIn = async () => {
+    setAuthForm({ ...authForm, error:"" });
+    try {
+      const res = await authSignIn(authForm.email, authForm.password);
+      if (res.error) { setAuthForm({ ...authForm, error:res.error_description || res.error || "Sign in failed" }); return; }
+      if (res.access_token) {
+        const user = await authGetUser(res.access_token);
+        const session = { token:res.access_token, user:user || { email:authForm.email } };
+        setAuthSession(session);
+        localStorage.setItem("kb-auth", JSON.stringify(session));
+        const matched = sysUsers.find(u => u.email.toLowerCase() === authForm.email.toLowerCase());
+        if (matched) setCurrentUser(matched);
+      }
+    } catch (e) { setAuthForm({ ...authForm, error:"Network error. Try again." }); }
+  };
+
+  const handleSignUp = async () => {
+    setAuthForm({ ...authForm, error:"" });
+    if (!authForm.name || !authForm.email || !authForm.password) { setAuthForm({ ...authForm, error:"All fields required." }); return; }
+    if (authForm.password.length < 6) { setAuthForm({ ...authForm, error:"Password must be at least 6 characters." }); return; }
+    try {
+      const res = await authSignUp(authForm.email, authForm.password, authForm.name);
+      if (res.error) { setAuthForm({ ...authForm, error:res.error_description || res.msg || "Sign up failed" }); return; }
+      // Auto sign-in after signup (if email confirmation not required)
+      if (res.access_token) {
+        const session = { token:res.access_token, user:res.user || { email:authForm.email } };
+        setAuthSession(session);
+        localStorage.setItem("kb-auth", JSON.stringify(session));
+      } else {
+        setAuthForm({ ...authForm, error:"" });
+        setAuthMode("login");
+        alert("Account created. Check your email for confirmation, then sign in.");
+      }
+    } catch (e) { setAuthForm({ ...authForm, error:"Network error. Try again." }); }
+  };
+
+  const handleSignOut = async () => {
+    if (authSession?.token) { try { await authSignOut(authSession.token); } catch {} }
+    setAuthSession(null);
+    localStorage.removeItem("kb-auth");
+    setAuthForm({ email:"", password:"", name:"", error:"" });
+  };
+
+  // ═══ AUTH GATE — Login/Signup Page ═══
+  if (authLoading) return <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100vh", background:C.bg, fontFamily:"'Outfit',sans-serif" }}><div style={{ textAlign:"center", color:C.textMuted }}><div style={{ fontSize:14 }}>KwikBridge LMS</div><div style={{ fontSize:12, marginTop:4 }}>Checking authentication...</div></div></div>;
+
+  if (!authSession) return (
+    <div style={{ fontFamily:"'Outfit','Segoe UI',system-ui,sans-serif", background:C.bg, minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", color:C.text }}>
+      <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+      <style>{`*{box-sizing:border-box} input:focus{outline:none;border-color:#0f172a !important}`}</style>
+      <div style={{ width:400, background:C.surface, border:`1px solid ${C.border}`, padding:40 }}>
+        <div style={{ textAlign:"center", marginBottom:28 }}>
+          <div style={{ fontSize:22, fontWeight:700, color:C.text, letterSpacing:-0.5 }}>KwikBridge</div>
+          <div style={{ fontSize:10, color:C.textMuted, letterSpacing:1.5, textTransform:"uppercase", marginTop:2 }}>Loan Management System</div>
+          <div style={{ fontSize:11, color:C.textDim, marginTop:12 }}>ThandoQ & Associates (Pty) Ltd</div>
+        </div>
+
+        <div style={{ fontSize:16, fontWeight:600, color:C.text, marginBottom:16 }}>
+          {authMode === "login" ? "Sign In" : "Create Account"}
+        </div>
+
+        {authForm.error && <div style={{ background:"#fef2f2", border:"1px solid #fca5a5", color:"#dc2626", padding:"8px 12px", fontSize:12, marginBottom:12, lineHeight:1.4 }}>{authForm.error}</div>}
+
+        {authMode === "signup" && (
+          <div style={{ marginBottom:10 }}>
+            <label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Full Name</label>
+            <input value={authForm.name} onChange={e=>setAuthForm({...authForm,name:e.target.value})} placeholder="e.g. Thando Qamarana" style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:13, fontFamily:"inherit" }} />
+          </div>
+        )}
+
+        <div style={{ marginBottom:10 }}>
+          <label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Email</label>
+          <input type="email" value={authForm.email} onChange={e=>setAuthForm({...authForm,email:e.target.value})} placeholder="you@thandoq.co.za" onKeyDown={e=>e.key==="Enter"&&(authMode==="login"?handleSignIn():handleSignUp())} style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:13, fontFamily:"inherit" }} />
+        </div>
+
+        <div style={{ marginBottom:16 }}>
+          <label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Password</label>
+          <input type="password" value={authForm.password} onChange={e=>setAuthForm({...authForm,password:e.target.value})} placeholder={authMode==="signup"?"Min 6 characters":"Enter password"} onKeyDown={e=>e.key==="Enter"&&(authMode==="login"?handleSignIn():handleSignUp())} style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:13, fontFamily:"inherit" }} />
+        </div>
+
+        <button onClick={authMode==="login"?handleSignIn:handleSignUp} style={{ width:"100%", padding:"10px", background:C.text, color:"#fff", border:"none", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit", letterSpacing:0.3 }}>
+          {authMode === "login" ? "Sign In" : "Create Account"}
+        </button>
+
+        {/* OAuth providers */}
+        <div style={{ margin:"20px 0 16px", display:"flex", alignItems:"center", gap:10 }}>
+          <div style={{ flex:1, height:1, background:C.border }} />
+          <span style={{ fontSize:10, color:C.textMuted }}>or continue with</span>
+          <div style={{ flex:1, height:1, background:C.border }} />
+        </div>
+
+        <div style={{ display:"flex", gap:8 }}>
+          <a href={authOAuthUrl("google")} style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:6, padding:"9px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:12, fontWeight:500, textDecoration:"none", cursor:"pointer", fontFamily:"inherit" }}>
+            <svg width="16" height="16" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+            Google
+          </a>
+          <a href={authOAuthUrl("github")} style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:6, padding:"9px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:12, fontWeight:500, textDecoration:"none", cursor:"pointer", fontFamily:"inherit" }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+            GitHub
+          </a>
+        </div>
+
+        <div style={{ textAlign:"center", marginTop:20, fontSize:12, color:C.textDim }}>
+          {authMode === "login" ? (
+            <span>No account? <button onClick={()=>{setAuthMode("signup");setAuthForm({...authForm,error:""})}} style={{ background:"none", border:"none", color:C.accent, cursor:"pointer", fontFamily:"inherit", fontSize:12, fontWeight:600, textDecoration:"underline" }}>Create one</button></span>
+          ) : (
+            <span>Already have an account? <button onClick={()=>{setAuthMode("login");setAuthForm({...authForm,error:""})}} style={{ background:"none", border:"none", color:C.accent, cursor:"pointer", fontFamily:"inherit", fontSize:12, fontWeight:600, textDecoration:"underline" }}>Sign in</button></span>
+          )}
+        </div>
+
+        {/* Dev bypass */}
+        <div style={{ marginTop:24, paddingTop:16, borderTop:`1px solid ${C.border}`, textAlign:"center" }}>
+          <div style={{ fontSize:10, color:C.textMuted, marginBottom:6 }}>Development Access</div>
+          <button onClick={()=>{setAuthSession({token:"dev",user:{email:"admin@thandoq.co.za"}});setCurrentUser(SYSTEM_USERS[0])}} style={{ background:"none", border:`1px solid ${C.border}`, padding:"6px 16px", fontSize:11, color:C.textDim, cursor:"pointer", fontFamily:"inherit" }}>
+            Skip Login (Admin)
+          </button>
+        </div>
+
+        <div style={{ textAlign:"center", marginTop:20, fontSize:9, color:C.textMuted, lineHeight:1.6 }}>
+          ThandoQ & Associates (Pty) Ltd<br/>NCR: NCRCP22396 · East London, Nahoon Valley
+        </div>
+      </div>
+    </div>
+  );
     (async () => {
       // Try Supabase with a 3-second timeout
       try {
@@ -3414,7 +3603,10 @@ export default function App() {
           <div style={{ fontSize:10, fontWeight:500, color:C.text, marginBottom:2 }}>{currentUser.name}</div>
           <div style={{ fontSize:9, color:C.textMuted, marginBottom:4 }}>{ROLES[role]?.label}</div>
           <div style={{ fontSize:9, color:C.textMuted, lineHeight:1.5, letterSpacing:0.2 }}>ThandoQ & Associates<br/>NCR: {settings?.ncrReg||"—"}<br/>Valid: {settings?.ncrExpiry||"—"}</div>
-          <button onClick={reset} style={{ marginTop:6, background:"none", border:`1px solid ${C.border}`, color:C.textMuted, borderRadius:2, padding:"2px 6px", fontSize:9, cursor:"pointer", fontFamily:"inherit" }}>Reset Demo</button>
+          <div style={{ display:"flex", gap:4, marginTop:6 }}>
+            <button onClick={reset} style={{ background:"none", border:`1px solid ${C.border}`, color:C.textMuted, borderRadius:2, padding:"2px 6px", fontSize:9, cursor:"pointer", fontFamily:"inherit" }}>Reset Demo</button>
+            <button onClick={handleSignOut} style={{ background:"none", border:`1px solid ${C.border}`, color:C.red, borderRadius:2, padding:"2px 6px", fontSize:9, cursor:"pointer", fontFamily:"inherit" }}>Sign Out</button>
+          </div>
         </div>}
       </aside>
 
@@ -3444,9 +3636,12 @@ export default function App() {
             <div style={{ width:1, height:20, background:C.border }} />
             <div style={{ display:"flex", alignItems:"center", gap:6 }}>
               <div style={{ width:26, height:26, borderRadius:2, background:C.surface2, border:`1px solid ${C.border}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, fontWeight:600, color:C.textDim }}>{currentUser.initials}</div>
-              <select value={currentUser.id} onChange={e=>{const u=SYSTEM_USERS.find(u=>u.id===e.target.value);if(u){setCurrentUser(u);setDetail(null)}}} style={{ border:"none", background:"transparent", fontSize:11, fontWeight:500, color:C.text, fontFamily:"inherit", outline:"none", cursor:"pointer", maxWidth:160 }}>
-                {SYSTEM_USERS.map(u=><option key={u.id} value={u.id}>{u.name} ({ROLES[u.role]?.label})</option>)}
-              </select>
+              <div>
+                <select value={currentUser.id} onChange={e=>{const u=sysUsers.find(u=>u.id===e.target.value);if(u){setCurrentUser(u);setDetail(null)}}} style={{ border:"none", background:"transparent", fontSize:11, fontWeight:500, color:C.text, fontFamily:"inherit", outline:"none", cursor:"pointer", maxWidth:160 }}>
+                  {sysUsers.filter(u=>(u.status||"Active")==="Active").map(u=><option key={u.id} value={u.id}>{u.name} ({ROLES[u.role]?.label})</option>)}
+                </select>
+                {authSession?.user?.email && <div style={{ fontSize:9, color:C.textMuted }}>{authSession.user.email}</div>}
+              </div>
             </div>
           </div>
         </header>
