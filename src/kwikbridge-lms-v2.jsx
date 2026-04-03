@@ -643,7 +643,7 @@ export default function App() {
             <p style={{ fontSize:16, color:C.textDim, maxWidth:560, margin:"0 auto 28px", lineHeight:1.6 }}>ThandoQ & Associates provides development finance to South African SMEs and empowerment businesses. NCR-registered credit provider (NCRCP22396).</p>
             <div style={{ display:"flex", gap:12, justifyContent:"center" }}>
               <button onClick={()=>setPage("public_apply")} style={{ background:C.text, color:"#fff", border:"none", padding:"12px 28px", fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Apply for Finance</button>
-              <button onClick={()=>setPage("public_products")} style={{ background:"none", border:`1px solid ${C.border}`, padding:"12px 28px", fontSize:14, fontWeight:500, color:C.text, cursor:"pointer", fontFamily:"inherit" }}>View Products</button>
+              <button onClick={()=>setPage("public_track")} style={{ background:"none", border:`1px solid ${C.border}`, padding:"12px 28px", fontSize:14, fontWeight:500, color:C.text, cursor:"pointer", fontFamily:"inherit" }}>Track Application</button>
             </div>
           </div>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginTop:24 }}>
