@@ -531,7 +531,16 @@ export default function App() {
 
   useEffect(() => {
       (async () => {
-        // Try Supabase with a 3-second timeout
+        // Try local store FIRST (instant — no network wait)
+        try {
+          const r = await store.get(SK);
+          if (r?.value) {
+            const loaded = JSON.parse(r.value);
+            const hasCurrentSchema = loaded.applications?.some(a => a.qaSignedOff !== undefined) || (loaded.applications?.length === 0 && loaded.products?.length > 0);
+            if (hasCurrentSchema) { setData(loaded); return; }
+          }
+        } catch {}
+        // Then try Supabase with 3-second timeout
         try {
           const controller = new AbortController();
           const timeout = setTimeout(() => controller.abort(), 3000);
@@ -558,17 +567,6 @@ export default function App() {
             return;
           }
         } catch (e) { console.log("Supabase load skipped:", e.name); }
-        // Fallback: window.storage
-        try {
-          const r = await store.get(SK);
-          if (r?.value) {
-            const loaded = JSON.parse(r.value);
-            // Check if cached data has the current schema (qaSignedOff on apps)
-            const hasCurrentSchema = loaded.applications?.some(a => a.qaSignedOff !== undefined);
-            if (hasCurrentSchema) { setData(loaded); return; }
-            // Outdated cache — discard and re-seed
-          }
-        } catch {}
         // Last resort: seed
         const d = seed();
         try { await store.set(SK, JSON.stringify(d)); } catch {}
