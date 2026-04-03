@@ -2912,8 +2912,36 @@ export default function App() {
           <div><div style={{ fontSize:12, fontWeight:600, color:C.text }}>Application awaiting due diligence</div><div style={{ fontSize:11, color:C.textMuted }}>Initiate underwriting to begin step-by-step verification.</div></div>
           <Btn onClick={()=>moveToUnderwriting(a.id)}>Start Due Diligence</Btn>
         </div>}
-        {/* Expandable workflow steps */}
-        {steps.map((s,i) => {
+
+        {/* Decision summary for Approved/Declined/Booked — no workflow accordion */}
+        {isDecided && !isUW && <div>
+          <SectionCard title="Decision Summary">
+            <InfoGrid items={[
+              ["Decision", a.status],
+              ["Decided By", a.approver || "—"],
+              ["Decision Date", a.decided ? fmt.date(a.decided) : "—"],
+              ["Risk Score", a.riskScore || "—"],
+              ["DSCR", a.dscr ? `${a.dscr}x` : "—"],
+              ["Rate", a.rate ? `${a.rate}%` : "—"],
+            ]} />
+          </SectionCard>
+          {a.creditMemo && <SectionCard title="Credit Memorandum"><div style={{ fontSize:12, color:C.textDim, lineHeight:1.7, whiteSpace:"pre-line" }}>{a.creditMemo}</div></SectionCard>}
+          {a.conditions?.length>0 && <SectionCard title={`Conditions (${a.conditions.length})`}>{a.conditions.map((cond,i)=><div key={i} style={{ display:"flex", alignItems:"flex-start", gap:5, padding:"3px 0", fontSize:12 }}><span style={{ color:C.green, flexShrink:0, marginTop:1 }}>{I.check}</span><span>{cond}</span></div>)}</SectionCard>}
+          {a.status === "Approved" && canDo("loans","update") && !loanForApp(a.id) && (
+            <div style={{ border:`1px solid ${C.border}`, padding:"10px 14px", marginTop:4 }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                <div>
+                  <div style={{ fontSize:12, fontWeight:600, color:C.text }}>Loan Booking</div>
+                  <div style={{ fontSize:11, color:C.textMuted }}>Verify conditions precedent and create loan record.</div>
+                </div>
+                <Btn onClick={()=>bookLoan(a.id)}>Book Loan</Btn>
+              </div>
+            </div>
+          )}
+        </div>}
+
+        {/* Interactive workflow steps — only for Draft/Submitted/Underwriting */}
+        {(isUW || a.status === "Draft") && steps.map((s,i) => {
           const isOpen = expandedStep===s.key;
           return (<div key={i} style={{ border:`1px solid ${C.border}`, marginBottom:1, background:C.surface }}>
             <div style={{ display:"flex", alignItems:"center", gap:8, padding:"7px 10px", cursor:"pointer", background:isOpen?C.surface2:"transparent" }} onClick={()=>setExpandedStep(isOpen?null:s.key)}>
@@ -2943,25 +2971,13 @@ export default function App() {
             <Btn size="sm" variant="secondary" onClick={()=>{if(notifForm.subject&&notifForm.body){sendNotification(a.id,notifForm.subject,notifForm.body);setNotifForm({subject:"",body:""})}}}>Send</Btn>
           </div>
         </div>}
-        {a.creditMemo && <SectionCard title="Credit Memorandum"><div style={{ fontSize:12, color:C.textDim, lineHeight:1.7, whiteSpace:"pre-line" }}>{a.creditMemo}</div></SectionCard>}
-        {a.conditions.length>0 && <SectionCard title={`Conditions (${a.conditions.length})`}>{a.conditions.map((cond,i)=><div key={i} style={{ display:"flex", alignItems:"flex-start", gap:5, padding:"3px 0", fontSize:12 }}><span style={{ color:C.green, flexShrink:0, marginTop:1 }}>{I.check}</span><span>{cond}</span></div>)}</SectionCard>}
+        {a.creditMemo && isUW && <SectionCard title="Credit Memorandum"><div style={{ fontSize:12, color:C.textDim, lineHeight:1.7, whiteSpace:"pre-line" }}>{a.creditMemo}</div></SectionCard>}
         {isUW && <div style={{ border:`1px solid ${C.border}`, padding:"10px 14px", marginTop:4 }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
             <div><div style={{ fontSize:12, fontWeight:600, color:C.text }}>Credit Decision</div><div style={{ fontSize:11, color:C.textMuted }}>{allDDComplete?"All steps signed off. Ready for decision.":`${doneCount}/7 steps completed.`}</div></div>
             <div style={{ display:"flex", gap:6 }}><Btn onClick={()=>decideLoan(a.id,"Approved")} disabled={!allDDComplete}>Approve</Btn><Btn variant="danger" onClick={()=>decideLoan(a.id,"Declined")} disabled={!allDDComplete}>Decline</Btn></div>
           </div>
         </div>}
-        {a.status === "Approved" && canDo("loans","update") && (
-          <div style={{ border:`1px solid ${C.border}`, padding:"10px 14px", marginTop:4 }}>
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-              <div>
-                <div style={{ fontSize:12, fontWeight:600, color:C.text }}>Loan Booking</div>
-                <div style={{ fontSize:11, color:C.textMuted }}>Verify conditions precedent and create loan record. This generates the loan agreement.</div>
-              </div>
-              <Btn onClick={()=>bookLoan(a.id)}>Book Loan</Btn>
-            </div>
-          </div>
-        )}
         {a.status === "Booked" && (
           <div style={{ border:`1px solid ${C.border}`, padding:"10px 14px", marginTop:4, background:C.surface2 }}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
