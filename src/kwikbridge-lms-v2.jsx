@@ -140,15 +140,15 @@ const APPROVAL_LIMITS = {
 };
 
 const SYSTEM_USERS = [
-  { id:"U001", name:"Thando Qamarana", initials:"TQ", email:"thando@thandoq.co.za", role:"ADMIN" },
-  { id:"U002", name:"J. Ndaba", initials:"JN", email:"j.ndaba@thandoq.co.za", role:"LOAN_OFFICER" },
-  { id:"U003", name:"P. Sithole", initials:"PS", email:"p.sithole@thandoq.co.za", role:"CREDIT" },
-  { id:"U004", name:"M. Zulu", initials:"MZ", email:"m.zulu@thandoq.co.za", role:"CREDIT_HEAD" },
-  { id:"U005", name:"N. Xaba", initials:"NX", email:"n.xaba@thandoq.co.za", role:"COLLECTIONS" },
-  { id:"U006", name:"S. Pillay", initials:"SP", email:"s.pillay@thandoq.co.za", role:"FINANCE" },
-  { id:"U007", name:"Compliance Officer", initials:"CO", email:"compliance@thandoq.co.za", role:"COMPLIANCE" },
-  { id:"U008", name:"Internal Auditor", initials:"IA", email:"audit@thandoq.co.za", role:"AUDITOR" },
-  { id:"U009", name:"Executive Viewer", initials:"EV", email:"exec@thandoq.co.za", role:"EXEC" },
+  { id:"U001", name:"Thando Qamarana", initials:"TQ", email:"thando@tqacapital.co.za", role:"ADMIN" },
+  { id:"U002", name:"J. Ndaba", initials:"JN", email:"j.ndaba@tqacapital.co.za", role:"LOAN_OFFICER" },
+  { id:"U003", name:"P. Sithole", initials:"PS", email:"p.sithole@tqacapital.co.za", role:"CREDIT" },
+  { id:"U004", name:"M. Zulu", initials:"MZ", email:"m.zulu@tqacapital.co.za", role:"CREDIT_HEAD" },
+  { id:"U005", name:"N. Xaba", initials:"NX", email:"n.xaba@tqacapital.co.za", role:"COLLECTIONS" },
+  { id:"U006", name:"S. Pillay", initials:"SP", email:"s.pillay@tqacapital.co.za", role:"FINANCE" },
+  { id:"U007", name:"Compliance Officer", initials:"CO", email:"compliance@tqacapital.co.za", role:"COMPLIANCE" },
+  { id:"U008", name:"Internal Auditor", initials:"IA", email:"audit@tqacapital.co.za", role:"AUDITOR" },
+  { id:"U009", name:"Executive Viewer", initials:"EV", email:"exec@tqacapital.co.za", role:"EXEC" },
 ];
 
 function can(userRole, module, action) {
@@ -191,7 +191,7 @@ function seed() {
     alerts: [...statutoryAlerts], audit: [], provisions: [], comms: [], documents: [],
     statutoryReports,
     settings: {
-      companyName:"ThandoQ and Associates (Pty) Ltd", ncrReg:"NCRCP22396", ncrExpiry:"31 July 2026",
+      companyName:"TQA Capital (Pty) Ltd", ncrReg:"NCRCP22396", ncrExpiry:"31 July 2026",
       branch:"East London, Nahoon Valley", yearEnd:"28 February 2026", annualDueDate:"2026-08-31",
       form39Required:"Annual", totalDisbursed:0,
       ncrAddress:"127 – 15th Road, Randjies Park, Midrand, 1685",
@@ -564,7 +564,7 @@ export default function App() {
           }
           clearTimeout(timeout);
           if (hasData) {
-            if (!results.settings) results.settings = { companyName:"ThandoQ and Associates (Pty) Ltd", ncrReg:"NCRCP22396", ncrExpiry:"31 July 2026", branch:"East London, Nahoon Valley" };
+            if (!results.settings) results.settings = { companyName:"TQA Capital (Pty) Ltd", ncrReg:"NCRCP22396", ncrExpiry:"31 July 2026", branch:"East London, Nahoon Valley" };
             setData(results);
             return;
           }
@@ -640,7 +640,7 @@ export default function App() {
         {page === "public_home" && <div>
           <div style={{ textAlign:"center", padding:"48px 0 32px" }}>
             <h1 style={{ fontSize:36, fontWeight:700, color:C.text, margin:"0 0 12px", letterSpacing:-1 }}>Business Finance for Growth</h1>
-            <p style={{ fontSize:16, color:C.textDim, maxWidth:560, margin:"0 auto 28px", lineHeight:1.6 }}>ThandoQ & Associates provides development finance to South African SMEs and empowerment businesses. NCR-registered credit provider (NCRCP22396).</p>
+            <p style={{ fontSize:16, color:C.textDim, maxWidth:560, margin:"0 auto 28px", lineHeight:1.6 }}>TQA Capital provides development finance to South African SMEs and start-ups. NCR-registered credit provider (NCRCP22396).</p>
             <div style={{ display:"flex", gap:12, justifyContent:"center" }}>
               <button onClick={()=>setPage("public_apply")} style={{ background:C.text, color:"#fff", border:"none", padding:"12px 28px", fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Apply for Finance</button>
               <button onClick={()=>setPage("public_track")} style={{ background:"none", border:`1px solid ${C.border}`, padding:"12px 28px", fontSize:14, fontWeight:500, color:C.text, cursor:"pointer", fontFamily:"inherit" }}>Track Application</button>
@@ -683,7 +683,7 @@ export default function App() {
         </div>}
       </main>
       <footer style={{ borderTop:`1px solid ${C.border}`, padding:"20px 24px", textAlign:"center", fontSize:10, color:C.textMuted, lineHeight:1.8 }}>
-        ThandoQ and Associates (Pty) Ltd · NCR Registration: NCRCP22396 · East London, Nahoon Valley<br/>
+        TQA Capital (Pty) Ltd · NCR Registration: NCRCP22396 · East London, Nahoon Valley<br/>
         Registered Credit Provider in terms of the National Credit Act 34 of 2005
       </footer>
     </div>
@@ -700,7 +700,7 @@ export default function App() {
         <div style={{ textAlign:"center", marginBottom:28 }}>
           <div style={{ fontSize:22, fontWeight:700, color:C.text, letterSpacing:-0.5 }}>KwikBridge</div>
           <div style={{ fontSize:10, color:C.textMuted, letterSpacing:1.5, textTransform:"uppercase", marginTop:2 }}>Loan Management System</div>
-          <div style={{ fontSize:11, color:C.textDim, marginTop:12 }}>ThandoQ & Associates (Pty) Ltd</div>
+          <div style={{ fontSize:11, color:C.textDim, marginTop:12 }}>TQA Capital (Pty) Ltd</div>
         </div>
 
         <div style={{ fontSize:16, fontWeight:600, color:C.text, marginBottom:16 }}>
@@ -718,7 +718,7 @@ export default function App() {
 
         <div style={{ marginBottom:10 }}>
           <label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Email</label>
-          <input type="email" value={authForm.email} onChange={e=>setAuthForm({...authForm,email:e.target.value})} placeholder="you@thandoq.co.za" onKeyDown={e=>e.key==="Enter"&&(authMode==="login"?handleSignIn():handleSignUp())} style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:13, fontFamily:"inherit" }} />
+          <input type="email" value={authForm.email} onChange={e=>setAuthForm({...authForm,email:e.target.value})} placeholder="you@tqacapital.co.za" onKeyDown={e=>e.key==="Enter"&&(authMode==="login"?handleSignIn():handleSignUp())} style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:13, fontFamily:"inherit" }} />
         </div>
 
         <div style={{ marginBottom:16 }}>
@@ -760,7 +760,7 @@ export default function App() {
         <div style={{ marginTop:24, paddingTop:16, borderTop:`1px solid ${C.border}`, textAlign:"center" }}>
           <div style={{ fontSize:10, color:C.textMuted, marginBottom:6 }}>Development Access</div>
           <div style={{ display:"flex", gap:6, justifyContent:"center" }}>
-            <button onClick={()=>{setAuthSession({token:"dev",user:{email:"admin@thandoq.co.za"}});setCurrentUser(SYSTEM_USERS[0]);setZone("staff");setPage("dashboard")}} style={{ background:"none", border:`1px solid ${C.border}`, padding:"6px 12px", fontSize:10, color:C.textDim, cursor:"pointer", fontFamily:"inherit" }}>
+            <button onClick={()=>{setAuthSession({token:"dev",user:{email:"admin@tqacapital.co.za"}});setCurrentUser(SYSTEM_USERS[0]);setZone("staff");setPage("dashboard")}} style={{ background:"none", border:`1px solid ${C.border}`, padding:"6px 12px", fontSize:10, color:C.textDim, cursor:"pointer", fontFamily:"inherit" }}>
               Staff (Admin)
             </button>
             <button onClick={()=>{setAuthSession({token:"dev-borrower",user:{email:"borrower@test.co.za"}});setCurrentUser({id:"B001",name:"Test Borrower",initials:"TB",email:"borrower@test.co.za",role:"BORROWER"});setZone("portal");setPage("portal_dashboard")}} style={{ background:"none", border:`1px solid ${C.border}`, padding:"6px 12px", fontSize:10, color:C.textDim, cursor:"pointer", fontFamily:"inherit" }}>
@@ -774,7 +774,7 @@ export default function App() {
         </div>
 
         <div style={{ textAlign:"center", marginTop:12, fontSize:9, color:C.textMuted, lineHeight:1.6 }}>
-          ThandoQ & Associates (Pty) Ltd<br/>NCR: NCRCP22396 · East London, Nahoon Valley
+          TQA Capital (Pty) Ltd<br/>NCR: NCRCP22396 · East London, Nahoon Valley
         </div>
       </div>
     </div>
@@ -825,7 +825,7 @@ export default function App() {
           <h2 style={{ margin:"0 0 16px", fontSize:22, fontWeight:700 }}>Welcome{myCustomer ? `, ${myCustomer.contact}` : ""}</h2>
           {!myCustomer && <div style={{ background:C.amberBg, border:`1px solid ${C.amber}`, padding:"14px 18px", marginBottom:16 }}>
             <div style={{ fontSize:13, fontWeight:600, color:C.amber }}>Complete Your Profile</div>
-            <div style={{ fontSize:12, color:C.textDim, marginTop:4 }}>Your email ({myEmail}) is not linked to a customer record. Please contact ThandoQ to complete your onboarding.</div>
+            <div style={{ fontSize:12, color:C.textDim, marginTop:4 }}>Your email ({myEmail}) is not linked to a customer record. Please contact TQA Capital to complete your onboarding.</div>
           </div>}
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12 }}>
             <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:20 }}><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase" }}>Applications</div><div style={{ fontSize:28, fontWeight:700, color:C.accent, marginTop:4 }}>{myApps.length}</div></div>
@@ -883,7 +883,7 @@ export default function App() {
           <h2 style={{ margin:"0 0 16px", fontSize:22, fontWeight:700 }}>My Profile</h2>
           {myCustomer ? <SectionCard title="Business Details">
             <InfoGrid items={[["Business Name",myCustomer.name],["Contact",myCustomer.contact],["Email",myCustomer.email],["Phone",myCustomer.phone],["Industry",myCustomer.industry],["BEE Level",`Level ${myCustomer.beeLevel}`],["FICA Status",myCustomer.ficaStatus],["Province",myCustomer.province]]} />
-          </SectionCard> : <div style={{ padding:32, textAlign:"center", color:C.textMuted }}>Profile not linked. Contact ThandoQ support.</div>}
+          </SectionCard> : <div style={{ padding:32, textAlign:"center", color:C.textMuted }}>Profile not linked. Contact TQA Capital support.</div>}
         </div>);
         default: return <div>Page not found.</div>;
       }
@@ -3608,7 +3608,7 @@ export default function App() {
           <SectionCard title={userEditing==="new"?"Create New User":`Edit: ${userForm.name}`}>
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:10 }}>
               <Field label="Full Name *"><Input value={userForm.name} onChange={e=>setUserForm({...userForm,name:e.target.value})} placeholder="e.g. Jane Doe" /></Field>
-              <Field label="Email *"><Input value={userForm.email} onChange={e=>setUserForm({...userForm,email:e.target.value})} placeholder="jane@thandoq.co.za" /></Field>
+              <Field label="Email *"><Input value={userForm.email} onChange={e=>setUserForm({...userForm,email:e.target.value})} placeholder="jane@tqacapital.co.za" /></Field>
               <Field label="Role"><Select value={userForm.role} onChange={e=>setUserForm({...userForm,role:e.target.value})} options={Object.entries(ROLES).map(([k,v])=>({value:k,label:v.label}))} /></Field>
             </div>
             {userEditing==="new" && <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
@@ -3832,7 +3832,7 @@ export default function App() {
         {!sideCollapsed && <div style={{ padding:"8px 12px 12px", borderTop:`1px solid ${C.border}` }}>
           <div style={{ fontSize:10, fontWeight:500, color:C.text, marginBottom:2 }}>{currentUser.name}</div>
           <div style={{ fontSize:9, color:C.textMuted, marginBottom:4 }}>{ROLES[role]?.label}</div>
-          <div style={{ fontSize:9, color:C.textMuted, lineHeight:1.5, letterSpacing:0.2 }}>ThandoQ & Associates<br/>NCR: {settings?.ncrReg||"—"}<br/>Valid: {settings?.ncrExpiry||"—"}</div>
+          <div style={{ fontSize:9, color:C.textMuted, lineHeight:1.5, letterSpacing:0.2 }}>TQA Capital<br/>NCR: {settings?.ncrReg||"—"}<br/>Valid: {settings?.ncrExpiry||"—"}</div>
           <div style={{ display:"flex", gap:4, marginTop:6 }}>
             <button onClick={reset} style={{ background:"none", border:`1px solid ${C.border}`, color:C.textMuted, borderRadius:2, padding:"2px 6px", fontSize:9, cursor:"pointer", fontFamily:"inherit" }}>Reset Demo</button>
             <button onClick={handleSignOut} style={{ background:"none", border:`1px solid ${C.border}`, color:C.red, borderRadius:2, padding:"2px 6px", fontSize:9, cursor:"pointer", fontFamily:"inherit" }}>Sign Out</button>
