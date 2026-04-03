@@ -393,7 +393,7 @@ function StepTracker({ steps, current }) {
 
 export default function App() {
   const [data, setData] = useState(null);
-  const [page, setPage] = useState("dashboard");
+  const [page, setPage] = useState("public_home");
   const [zone, setZone] = useState("public"); // public | portal | staff
   const [detail, setDetail] = useState(null);
   const [search, setSearch] = useState("");
