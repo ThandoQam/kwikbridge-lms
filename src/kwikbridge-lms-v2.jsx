@@ -424,6 +424,7 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState(true);
   const [authMode, setAuthMode] = useState("login"); // login | signup
   const [authForm, setAuthForm] = useState({ email:"", password:"", name:"", error:"" });
+  const [publicAppForm, setPublicAppForm] = useState({ step:1, name:"", contact:"", email:"", phone:"", password:"", idNum:"", regNum:"", businessName:"", industry:"Retail", sector:"", revenue:"", employees:"", years:"", address:"", province:"Eastern Cape", beeLevel:3, womenOwned:0, youthOwned:0, disabilityOwned:0, product:"", amount:"", term:"", purpose:"", error:"", submitted:false, preApprovalResult:null, trackingRef:null });
   const [userEditing, setUserEditing] = useState(null);
   const [userForm, setUserForm] = useState(null);
   const [sysUsers, setSysUsers] = useState([...SYSTEM_USERS]);
@@ -659,7 +660,7 @@ export default function App() {
           <div style={{ fontSize:9, color:C.textMuted, letterSpacing:1, textTransform:"uppercase" }}>Loan Management</div>
         </div>
         <nav style={{ display:"flex", gap:16, alignItems:"center" }}>
-          {[["public_home","Home"],["public_apply","Apply Now"],["public_track","Track Application"]].map(([k,label])=>(
+          {[["public_home","Home"],["public_apply","Apply for Financing"],["public_track","Track Application"]].map(([k,label])=>(
             <button key={k} onClick={()=>setPage(k)} style={{ background:"none", border:"none", fontSize:13, fontWeight:page===k?600:400, color:page===k?C.text:C.textDim, cursor:"pointer", fontFamily:"inherit", padding:"4px 0", borderBottom:page===k?`2px solid ${C.text}`:"2px solid transparent" }}>{label}</button>
           ))}
           <div style={{ width:1, height:20, background:C.border, margin:"0 4px" }} />
@@ -673,7 +674,7 @@ export default function App() {
             <h1 style={{ fontSize:36, fontWeight:700, color:C.text, margin:"0 0 12px", letterSpacing:-1 }}>Business Finance for Growth</h1>
             <p style={{ fontSize:16, color:C.textDim, maxWidth:560, margin:"0 auto 28px", lineHeight:1.6 }}>TQA Capital provides development finance to South African SMEs and start-ups. NCR-registered credit provider (NCRCP22396).</p>
             <div style={{ display:"flex", gap:12, justifyContent:"center" }}>
-              <button onClick={()=>setPage("public_apply")} style={{ background:C.text, color:"#fff", border:"none", padding:"12px 28px", fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Apply for Finance</button>
+              <button onClick={()=>setPage("public_apply")} style={{ background:C.text, color:"#fff", border:"none", padding:"12px 28px", fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Apply for Financing</button>
               <button onClick={()=>setPage("public_track")} style={{ background:"none", border:`1px solid ${C.border}`, padding:"12px 28px", fontSize:14, fontWeight:500, color:C.text, cursor:"pointer", fontFamily:"inherit" }}>Track Application</button>
             </div>
           </div>
@@ -691,25 +692,150 @@ export default function App() {
             ))}
           </div>
         </div>}
-        {page === "public_apply" && <div>
-          <h2 style={{ fontSize:24, fontWeight:700, margin:"0 0 8px" }}>Apply for Finance</h2>
-          <p style={{ fontSize:13, color:C.textDim, margin:"0 0 24px" }}>Create an account or sign in to submit your loan application.</p>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:24 }}>
-            <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"28px" }}>
-              <div style={{ fontSize:16, fontWeight:700, color:C.text, marginBottom:8 }}>New Applicant</div>
-              <p style={{ fontSize:12, color:C.textDim, lineHeight:1.6, marginBottom:16 }}>Register for a KwikBridge account to submit your application, upload documents, and track your progress online.</p>
-              <button onClick={()=>{setAuthMode("signup");setZone("auth")}} style={{ background:C.text, color:"#fff", border:"none", padding:"10px 24px", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit", width:"100%" }}>Create Account</button>
+        {page === "public_apply" && (()=>{
+          const f = publicAppForm;
+          const sf = (k,v) => setPublicAppForm({...f,[k]:v});
+          const activeProds = (data?.products||[]).filter(p=>p.status==="Active");
+          const selProd = activeProds.find(p=>p.id===f.product);
+          const I2 = { s1:"Your Details", s2:"Business Information", s3:"Financing Request", s4:"Review & Submit" };
+          const v1 = f.contact && f.email && f.phone && f.password && f.password.length >= 6;
+          const v2 = f.businessName && f.idNum && f.regNum && f.industry;
+          const v3 = f.product && f.amount && f.term && f.purpose;
+
+          // Pre-approval submission
+          const handleSubmitApplication = () => {
+            if (!v1||!v2||!v3) { sf("error","Please complete all required fields."); return; }
+            sf("error","");
+            // Create customer + application in data
+            const custId = `C${String((data?.customers?.length||0)+1).padStart(3,"0")}`;
+            const appId = `APP-${String((data?.applications?.length||0)+1).padStart(3,"0")}`;
+            const newCust = { id:custId, name:f.businessName, contact:f.contact, email:f.email, phone:f.phone, idNum:f.idNum, regNum:f.regNum, industry:f.industry, sector:f.sector, revenue:+f.revenue||0, employees:+f.employees||0, years:+f.years||0, beeLevel:+f.beeLevel||3, beeStatus:"Pending Review", beeExpiry:null, address:f.address, province:f.province, ficaStatus:"Pending", ficaDate:null, riskCategory:"Medium", created:Date.now(), womenOwned:+f.womenOwned||0, youthOwned:+f.youthOwned||0, disabilityOwned:+f.disabilityOwned||0 };
+            const newApp = { id:appId, custId, status:"Pre-Approval", product:f.product, amount:+f.amount, term:+f.term, purpose:f.purpose, rate:null, riskScore:null, dscr:null, currentRatio:null, debtEquity:null, socialScore:null, recommendation:null, approver:null, creditMemo:null, submitted:Date.now(), decided:null, conditions:[], assignedTo:null, createdBy:"PUBLIC", createdAt:Date.now(), expiresAt:Date.now()+30*day, sanctionsFlag:false, sanctionsDate:null, withdrawnAt:null, withdrawnBy:null, qaSignedOff:false, qaOfficer:null, qaDate:null, qaFindings:null };
+            const newComm = { id:uid(), custId, loanId:null, channel:"Email", direction:"Outbound", from:"System", subject:`Application ${appId} Received — Pre-Approval Pending`, body:`Dear ${f.contact},\n\nThank you for applying for ${selProd?.name||"financing"} of ${fmt.cur(f.amount)}.\n\nYour application reference is ${appId}. We are currently reviewing your pre-approval request.\n\nOnce pre-approval is granted, you will receive a notification to upload your KYB/FICA documentation (ID, company registration, proof of address, bank confirmation, financial statements) to complete the origination process.\n\nA formal loan application tracking number will be assigned once supporting documentation is received.\n\nRegards,\nTQA Capital`, ts:Date.now(), type:"Application" };
+            const newAlert = { id:uid(), type:"Application", severity:"info", title:`New Public Application — ${f.businessName}`, msg:`${appId}: ${selProd?.name} ${fmt.cur(f.amount)} over ${f.term}m. Pre-approval review required.`, read:false, ts:Date.now(), custId, loanId:null };
+            const newAudit = { id:uid(), action:"Public Application Submitted", entity:appId, user:"Public Applicant", detail:`${f.businessName} (${f.email}) applied for ${selProd?.name} ${fmt.cur(f.amount)} over ${f.term}m. Status: Pre-Approval.`, ts:Date.now(), category:"Origination" };
+            save({ ...data, customers:[...(data.customers||[]), newCust], applications:[...(data.applications||[]), newApp], comms:[...(data.comms||[]), newComm], alerts:[...(data.alerts||[]), newAlert], audit:[...(data.audit||[]), newAudit] });
+            setPublicAppForm({...f, submitted:true, preApprovalResult:"pending", trackingRef:appId });
+          };
+
+          if (f.submitted) return (
+            <div style={{ textAlign:"center", padding:"48px 0" }}>
+              <div style={{ fontSize:28, fontWeight:700, color:C.text, marginBottom:8 }}>Application Submitted</div>
+              <div style={{ fontSize:14, color:C.textDim, maxWidth:480, margin:"0 auto", lineHeight:1.6 }}>
+                Thank you, {f.contact}. Your application for {selProd?.name} of {fmt.cur(f.amount)} has been received.
+              </div>
+              <div style={{ background:C.surface, border:`1px solid ${C.border}`, display:"inline-block", padding:"16px 32px", margin:"24px auto" }}>
+                <div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase", letterSpacing:1 }}>Application Reference</div>
+                <div style={{ fontSize:28, fontWeight:800, color:C.text, letterSpacing:1, marginTop:4 }}>{f.trackingRef}</div>
+              </div>
+              <div style={{ fontSize:13, color:C.textDim, maxWidth:480, margin:"0 auto 24px", lineHeight:1.6 }}>
+                We will review your pre-approval request and notify you at <strong>{f.email}</strong> once a decision is made.
+                Upon pre-approval, you will be asked to upload KYB/FICA documentation to proceed with formal origination.
+              </div>
+              <div style={{ display:"flex", gap:12, justifyContent:"center" }}>
+                <button onClick={()=>{setAuthMode("login");setZone("auth");setAuthForm({email:f.email,password:"",name:"",error:""})}} style={{ background:C.text, color:"#fff", border:"none", padding:"10px 24px", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Sign In to Track Progress</button>
+                <button onClick={()=>{setPublicAppForm({...publicAppForm,step:1,submitted:false,preApprovalResult:null,trackingRef:null,error:""});setPage("public_home")}} style={{ background:"none", border:`1px solid ${C.border}`, padding:"10px 24px", fontSize:13, fontWeight:500, color:C.text, cursor:"pointer", fontFamily:"inherit" }}>Back to Home</button>
+              </div>
             </div>
-            <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"28px" }}>
-              <div style={{ fontSize:16, fontWeight:700, color:C.text, marginBottom:8 }}>Existing Customer</div>
-              <p style={{ fontSize:12, color:C.textDim, lineHeight:1.6, marginBottom:16 }}>Sign in to view your existing applications, make payments, upload documents, or apply for additional finance.</p>
-              <button onClick={()=>{setAuthMode("login");setZone("auth")}} style={{ background:"none", border:`1px solid ${C.text}`, color:C.text, padding:"10px 24px", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit", width:"100%" }}>Sign In</button>
+          );
+
+          return (<div>
+            <h2 style={{ fontSize:24, fontWeight:700, margin:"0 0 4px" }}>Apply for Financing</h2>
+            <p style={{ fontSize:13, color:C.textDim, margin:"0 0 20px" }}>Complete all sections below. No separate registration required — your account is created as part of this application.</p>
+
+            {/* Step indicators */}
+            <div style={{ display:"flex", gap:0, marginBottom:24 }}>
+              {[1,2,3,4].map(s=>(
+                <div key={s} style={{ flex:1, padding:"8px 0", textAlign:"center", background:f.step===s?C.text:f.step>s?C.surface:C.surface2, color:f.step===s?"#fff":f.step>s?C.green:C.textMuted, fontSize:11, fontWeight:f.step===s?600:400, cursor:"pointer", border:`1px solid ${f.step===s?C.text:C.border}`, borderRight:s<4?"none":"" }} onClick={()=>{if(s<f.step||(s===2&&v1)||(s===3&&v1&&v2)||(s===4&&v1&&v2&&v3)) sf("step",s)}}>
+                  {f.step>s?"✓ ":""}{I2["s"+s]}
+                </div>
+              ))}
             </div>
-          </div>
-        </div>}
+
+            {f.error && <div style={{ background:"#fef2f2", border:"1px solid #fca5a5", color:"#dc2626", padding:"8px 14px", fontSize:12, marginBottom:16 }}>{f.error}</div>}
+
+            {/* Step 1: Your Details */}
+            {f.step===1 && <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"24px" }}>
+              <div style={{ fontSize:15, fontWeight:700, marginBottom:14 }}>Your Details</div>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Full Name *</label><input value={f.contact} onChange={e=>sf("contact",e.target.value)} placeholder="e.g. Thando Qamarana" style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
+                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Email Address *</label><input type="email" value={f.email} onChange={e=>sf("email",e.target.value)} placeholder="you@company.co.za" style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
+                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Phone Number *</label><input value={f.phone} onChange={e=>sf("phone",e.target.value)} placeholder="0XX XXX XXXX" style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
+                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Create Password *</label><input type="password" value={f.password} onChange={e=>sf("password",e.target.value)} placeholder="Min 6 characters" style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
+              </div>
+              <div style={{ fontSize:10, color:C.textMuted, marginTop:10 }}>Your login credentials will be created automatically. You can sign in to track your application after submission.</div>
+              <div style={{ display:"flex", justifyContent:"flex-end", marginTop:16 }}>
+                <button disabled={!v1} onClick={()=>sf("step",2)} style={{ background:v1?C.text:C.border, color:v1?"#fff":C.textMuted, border:"none", padding:"10px 28px", fontSize:13, fontWeight:600, cursor:v1?"pointer":"not-allowed", fontFamily:"inherit" }}>Next: Business Information →</button>
+              </div>
+            </div>}
+
+            {/* Step 2: Business Information */}
+            {f.step===2 && <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"24px" }}>
+              <div style={{ fontSize:15, fontWeight:700, marginBottom:14 }}>Business Information</div>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Business Name *</label><input value={f.businessName} onChange={e=>sf("businessName",e.target.value)} placeholder="e.g. Nomsa Trading (Pty) Ltd" style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
+                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>ID Number *</label><input value={f.idNum} onChange={e=>sf("idNum",e.target.value)} placeholder="13-digit SA ID" style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
+                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Company Registration *</label><input value={f.regNum} onChange={e=>sf("regNum",e.target.value)} placeholder="YYYY/XXXXXX/07" style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
+                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Industry *</label><select value={f.industry} onChange={e=>sf("industry",e.target.value)} style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit", background:"#fff" }}>{["Retail","Agriculture","Technology","Construction","Food Processing","Transport","Manufacturing","Professional Services","Other"].map(v=><option key={v}>{v}</option>)}</select></div>
+                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Annual Revenue (R)</label><input type="number" value={f.revenue} onChange={e=>sf("revenue",e.target.value)} style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
+                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Number of Employees</label><input type="number" value={f.employees} onChange={e=>sf("employees",e.target.value)} style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
+                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Years in Business</label><input type="number" value={f.years} onChange={e=>sf("years",e.target.value)} style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
+                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Province</label><select value={f.province} onChange={e=>sf("province",e.target.value)} style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit", background:"#fff" }}>{["Eastern Cape","Western Cape","Gauteng","KwaZulu-Natal","Free State","North West","Limpopo","Mpumalanga","Northern Cape"].map(v=><option key={v}>{v}</option>)}</select></div>
+                <div style={{ gridColumn:"1/-1" }}><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Business Address</label><input value={f.address} onChange={e=>sf("address",e.target.value)} placeholder="Street address, city" style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
+              </div>
+              <div style={{ display:"flex", justifyContent:"space-between", marginTop:16 }}>
+                <button onClick={()=>sf("step",1)} style={{ background:"none", border:`1px solid ${C.border}`, padding:"10px 24px", fontSize:13, color:C.textDim, cursor:"pointer", fontFamily:"inherit" }}>← Back</button>
+                <button disabled={!v2} onClick={()=>sf("step",3)} style={{ background:v2?C.text:C.border, color:v2?"#fff":C.textMuted, border:"none", padding:"10px 28px", fontSize:13, fontWeight:600, cursor:v2?"pointer":"not-allowed", fontFamily:"inherit" }}>Next: Financing Request →</button>
+              </div>
+            </div>}
+
+            {/* Step 3: Financing Request */}
+            {f.step===3 && <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"24px" }}>
+              <div style={{ fontSize:15, fontWeight:700, marginBottom:14 }}>Financing Request</div>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+                <div style={{ gridColumn:"1/-1" }}><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Select Product *</label><select value={f.product} onChange={e=>sf("product",e.target.value)} style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit", background:"#fff" }}><option value="">— Select a product —</option>{activeProds.map(p=><option key={p.id} value={p.id}>{p.name} (from {p.baseRate}%)</option>)}</select></div>
+                {selProd && <div style={{ gridColumn:"1/-1", background:C.surface2, padding:"10px 14px", fontSize:12, color:C.textDim, lineHeight:1.5, border:`1px solid ${C.border}` }}>{selProd.description}{selProd.idealFor && <div style={{ marginTop:4 }}><strong>Ideal for:</strong> {selProd.idealFor}</div>}</div>}
+                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Loan Amount (R) *</label><input type="number" value={f.amount} onChange={e=>sf("amount",e.target.value)} placeholder={selProd?`${fmt.cur(selProd.minAmount)} – ${fmt.cur(selProd.maxAmount)}`:""} style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
+                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Term (months) *</label><input type="number" value={f.term} onChange={e=>sf("term",e.target.value)} placeholder={selProd?`${selProd.minTerm < 1 ? Math.round(selProd.minTerm*30)+' days' : selProd.minTerm+'m'} – ${selProd.maxTerm}m`:""} style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
+                <div style={{ gridColumn:"1/-1" }}><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Purpose of Financing *</label><textarea value={f.purpose} onChange={e=>sf("purpose",e.target.value)} rows={3} placeholder="Describe what the financing will be used for..." style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit", resize:"vertical" }} /></div>
+              </div>
+              <div style={{ display:"flex", justifyContent:"space-between", marginTop:16 }}>
+                <button onClick={()=>sf("step",2)} style={{ background:"none", border:`1px solid ${C.border}`, padding:"10px 24px", fontSize:13, color:C.textDim, cursor:"pointer", fontFamily:"inherit" }}>← Back</button>
+                <button disabled={!v3} onClick={()=>sf("step",4)} style={{ background:v3?C.text:C.border, color:v3?"#fff":C.textMuted, border:"none", padding:"10px 28px", fontSize:13, fontWeight:600, cursor:v3?"pointer":"not-allowed", fontFamily:"inherit" }}>Next: Review & Submit →</button>
+              </div>
+            </div>}
+
+            {/* Step 4: Review & Submit */}
+            {f.step===4 && <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"24px" }}>
+              <div style={{ fontSize:15, fontWeight:700, marginBottom:14 }}>Review Your Application</div>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:16 }}>
+                <div style={{ borderRight:`1px solid ${C.border}`, paddingRight:16 }}>
+                  <div style={{ fontSize:12, fontWeight:600, color:C.text, marginBottom:8 }}>Applicant</div>
+                  {[[f.contact],[f.email],[f.phone]].map(([v],i)=><div key={i} style={{ fontSize:12, color:C.textDim, padding:"2px 0" }}>{v}</div>)}
+                  <div style={{ fontSize:12, fontWeight:600, color:C.text, margin:"12px 0 8px" }}>Business</div>
+                  {[[f.businessName],[`${f.industry} · ${f.province}`],[f.regNum],[f.revenue?`Revenue: ${fmt.cur(f.revenue)}`:null],[f.employees?`${f.employees} employees`:null]].filter(([v])=>v).map(([v],i)=><div key={i} style={{ fontSize:12, color:C.textDim, padding:"2px 0" }}>{v}</div>)}
+                </div>
+                <div>
+                  <div style={{ fontSize:12, fontWeight:600, color:C.text, marginBottom:8 }}>Financing</div>
+                  <div style={{ fontSize:20, fontWeight:700, color:C.text }}>{fmt.cur(f.amount)}</div>
+                  <div style={{ fontSize:12, color:C.textDim, marginTop:4 }}>{selProd?.name} · {f.term} months</div>
+                  <div style={{ fontSize:12, fontWeight:600, color:C.text, margin:"12px 0 8px" }}>Purpose</div>
+                  <div style={{ fontSize:12, color:C.textDim, lineHeight:1.5 }}>{f.purpose}</div>
+                </div>
+              </div>
+              <div style={{ background:C.surface2, border:`1px solid ${C.border}`, padding:"10px 14px", fontSize:11, color:C.textDim, lineHeight:1.6, marginBottom:16 }}>
+                By submitting this application, you confirm that all information provided is accurate and complete. You consent to TQA Capital processing your personal information in accordance with POPIA. A pre-approval decision will be communicated to your email address. Upon pre-approval, you will be requested to upload KYB/FICA documentation.
+              </div>
+              <div style={{ display:"flex", justifyContent:"space-between" }}>
+                <button onClick={()=>sf("step",3)} style={{ background:"none", border:`1px solid ${C.border}`, padding:"10px 24px", fontSize:13, color:C.textDim, cursor:"pointer", fontFamily:"inherit" }}>← Back</button>
+                <button onClick={handleSubmitApplication} style={{ background:C.text, color:"#fff", border:"none", padding:"12px 32px", fontSize:14, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>Submit Application</button>
+              </div>
+            </div>}
+          </div>);
+        })()}
         {page === "public_track" && <div>
           <h2 style={{ fontSize:24, fontWeight:700, margin:"0 0 8px" }}>Track Your Application</h2>
-          <p style={{ fontSize:13, color:C.textDim, margin:"0 0 20px" }}>Sign in to your borrower portal to check the status of your application.</p>
+          <p style={{ fontSize:13, color:C.textDim, margin:"0 0 20px" }}>Sign in to your borrower portal to view application status, upload documents, and see notifications.</p>
           <button onClick={()=>{setAuthMode("login");setZone("auth")}} style={{ background:C.text, color:"#fff", border:"none", padding:"10px 24px", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Sign In to Portal</button>
         </div>}
       </main>
