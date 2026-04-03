@@ -2938,6 +2938,37 @@ export default function App() {
               </div>
             </div>
           )}
+          {/* Underwriting Record — read-only expandable for audit/review */}
+          {Object.keys(w).length > 0 && <div style={{ marginTop:8 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 10px", border:`1px solid ${C.border}`, cursor:"pointer", background:C.surface2 }} onClick={()=>setExpandedStep(expandedStep==="uwRecord"?null:"uwRecord")}>
+              <span style={{ fontSize:12, fontWeight:600, color:C.textDim }}>Underwriting Record</span>
+              <span style={{ fontSize:10, color:C.textMuted }}>(click to {expandedStep==="uwRecord"?"collapse":"expand"})</span>
+              <span style={{ marginLeft:"auto", color:C.textMuted, transform:expandedStep==="uwRecord"?"rotate(90deg)":"none", transition:"transform .15s" }}>{I.chev}</span>
+            </div>
+            {expandedStep==="uwRecord" && <div style={{ border:`1px solid ${C.border}`, borderTop:"none" }}>
+              {steps.filter(s=>s.key!=="decision").map((s,i) => (
+                <div key={i} style={{ borderBottom:`1px solid ${C.border}` }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:8, padding:"6px 10px" }}>
+                    <div style={{ width:14, height:14, borderRadius:7, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, background:s.done?C.green:"transparent", color:s.done?"#fff":C.textMuted, fontSize:7, fontWeight:600, border:`1px solid ${s.done?C.green:C.border}` }}>{s.done?I.check:""}</div>
+                    <span style={{ fontSize:11, fontWeight:s.done?500:400, color:s.done?C.text:C.textMuted }}>{s.label}</span>
+                    {s.done && <span style={{ fontSize:9, color:C.green, marginLeft:4 }}>Complete</span>}
+                    {!s.done && s.hasData && <span style={{ fontSize:9, color:C.amber, marginLeft:4 }}>Incomplete</span>}
+                    {!s.done && !s.hasData && <span style={{ fontSize:9, color:C.textMuted, marginLeft:4 }}>Not performed</span>}
+                  </div>
+                  {s.hasData && <div style={{ padding:"4px 10px 8px 32px", fontSize:11, color:C.textDim }}>
+                    {s.key==="submitted" && s.detail && <div>{s.detail}</div>}
+                    {s.key==="kyc" && w.kycFindings && <div>{w.kycFindings.filter(f=>f.officerAction).map((f,j)=><div key={j} style={{ padding:"2px 0" }}><span style={{ color:f.status==="Pass"?C.green:C.amber, fontWeight:500 }}>{f.status}</span> {f.item}{f.officerNote?` — ${f.officerNote}`:""}</div>)}{w.kycOfficer && <div style={{ fontSize:10, color:C.textMuted, marginTop:2 }}>Signed off by {w.kycOfficer}</div>}</div>}
+                    {s.key==="docs" && w.docsFindings && <div>{w.docsFindings.filter(f=>!f.inherited&&f.officerAction).map((f,j)=><div key={j} style={{ padding:"2px 0" }}><span style={{ color:C.green, fontWeight:500 }}>{f.status}</span> {f.item}{f.officerNote?` — ${f.officerNote}`:""}</div>)}{w.docsOfficer && <div style={{ fontSize:10, color:C.textMuted, marginTop:2 }}>Signed off by {w.docsOfficer}</div>}</div>}
+                    {s.key==="sitevisit" && w.siteVisitFindings && <div>{w.siteVisitFindings.filter(f=>f.value).map((f,j)=><div key={j} style={{ padding:"2px 0" }}><span style={{ fontWeight:500 }}>{f.item}:</span> {f.value?.substring(0,120)}{f.value?.length>120?"...":""}{f.rating?` [${f.rating}]`:""}</div>)}{w.siteVisitOfficer && <div style={{ fontSize:10, color:C.textMuted, marginTop:2 }}>Signed off by {w.siteVisitOfficer}</div>}</div>}
+                    {s.key==="credit" && w.creditFindings && <div>{w.creditFindings.map((f,j)=><div key={j} style={{ padding:"2px 0" }}><span style={{ fontWeight:500 }}>{f.item}:</span> {f.systemValue||""}{f.flag?<span style={{ fontSize:9, marginLeft:4, padding:"0 4px", background:f.flag==="Accept"?C.green:f.flag==="Concern"?C.red:C.purple, color:"#fff" }}>{f.flag}</span>:""}{f.analystNote?<div style={{ paddingLeft:8, color:C.textDim, fontSize:10, marginTop:1 }}>{f.analystNote.substring(0,150)}{f.analystNote.length>150?"...":""}</div>:""}</div>)}</div>}
+                    {s.key==="collateral" && w.collateralFindings && <div>{w.collateralFindings.map((f,j)=><div key={j} style={{ padding:"2px 0" }}><span style={{ fontWeight:500 }}>{f.item}:</span> {fmt.cur(f.value)} — {f.detail?.substring(0,100)}</div>)}<div style={{ fontWeight:500, marginTop:2 }}>Total: {fmt.cur(w.collateralTotal)}</div></div>}
+                    {s.key==="social" && w.socialFindings && renderReadOnly(w.socialFindings)}
+                  </div>}
+                </div>
+              ))}
+              {w.analystNotes && <div style={{ padding:"6px 10px", borderTop:`1px solid ${C.border}` }}><span style={{ fontSize:10, fontWeight:600, color:C.textDim }}>Analyst Notes:</span><div style={{ fontSize:11, color:C.textDim, marginTop:2 }}>{w.analystNotes}</div></div>}
+            </div>}
+          </div>}
         </div>}
 
         {/* Interactive workflow steps — only for Draft/Submitted/Underwriting */}
