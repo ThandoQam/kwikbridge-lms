@@ -528,6 +528,54 @@ export default function App() {
     setAuthForm({ email:"", password:"", name:"", error:"" });
   };
 
+
+  useEffect(() => {
+      (async () => {
+        // Try Supabase with a 3-second timeout
+        try {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 3000);
+          const sbGetWithTimeout = async (table) => {
+            const r = await fetch(sb(table) + "?order=id", { headers: sbHeaders, signal: controller.signal });
+            return r.ok ? r.json() : [];
+          };
+          const results = {};
+          let hasData = false;
+          for (const [key, table] of Object.entries(TABLES)) {
+            if (key === "settings") {
+              const rows = await sbGetWithTimeout(table);
+              results[key] = rows[0] ? fromDb(rows[0]) : null;
+            } else {
+              const rows = await sbGetWithTimeout(table);
+              results[key] = rows.map(fromDb);
+              if (rows.length > 0) hasData = true;
+            }
+          }
+          clearTimeout(timeout);
+          if (hasData) {
+            if (!results.settings) results.settings = { companyName:"ThandoQ and Associates (Pty) Ltd", ncrReg:"NCRCP22396", ncrExpiry:"31 July 2026", branch:"East London, Nahoon Valley" };
+            setData(results);
+            return;
+          }
+        } catch (e) { console.log("Supabase load skipped:", e.name); }
+        // Fallback: window.storage
+        try {
+          const r = await store.get(SK);
+          if (r?.value) {
+            const loaded = JSON.parse(r.value);
+            // Check if cached data has the current schema (qaSignedOff on apps)
+            const hasCurrentSchema = loaded.applications?.some(a => a.qaSignedOff !== undefined);
+            if (hasCurrentSchema) { setData(loaded); return; }
+            // Outdated cache — discard and re-seed
+          }
+        } catch {}
+        // Last resort: seed
+        const d = seed();
+        try { await store.set(SK, JSON.stringify(d)); } catch {}
+        setData(d);
+      })();
+    }, []);
+
   // ═══ AUTH GATE — Login/Signup Page ═══
   if (authLoading) return <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100vh", background:C.bg, fontFamily:"'Outfit',sans-serif" }}><div style={{ textAlign:"center", color:C.textMuted }}><div style={{ fontSize:14 }}>KwikBridge LMS</div><div style={{ fontSize:12, marginTop:4 }}>Checking authentication...</div></div></div>;
 
@@ -609,51 +657,7 @@ export default function App() {
       </div>
     </div>
   );
-    (async () => {
-      // Try Supabase with a 3-second timeout
-      try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 3000);
-        const sbGetWithTimeout = async (table) => {
-          const r = await fetch(sb(table) + "?order=id", { headers: sbHeaders, signal: controller.signal });
-          return r.ok ? r.json() : [];
-        };
-        const results = {};
-        let hasData = false;
-        for (const [key, table] of Object.entries(TABLES)) {
-          if (key === "settings") {
-            const rows = await sbGetWithTimeout(table);
-            results[key] = rows[0] ? fromDb(rows[0]) : null;
-          } else {
-            const rows = await sbGetWithTimeout(table);
-            results[key] = rows.map(fromDb);
-            if (rows.length > 0) hasData = true;
-          }
-        }
-        clearTimeout(timeout);
-        if (hasData) {
-          if (!results.settings) results.settings = { companyName:"ThandoQ and Associates (Pty) Ltd", ncrReg:"NCRCP22396", ncrExpiry:"31 July 2026", branch:"East London, Nahoon Valley" };
-          setData(results);
-          return;
-        }
-      } catch (e) { console.log("Supabase load skipped:", e.name); }
-      // Fallback: window.storage
-      try {
-        const r = await store.get(SK);
-        if (r?.value) {
-          const loaded = JSON.parse(r.value);
-          // Check if cached data has the current schema (qaSignedOff on apps)
-          const hasCurrentSchema = loaded.applications?.some(a => a.qaSignedOff !== undefined);
-          if (hasCurrentSchema) { setData(loaded); return; }
-          // Outdated cache — discard and re-seed
-        }
-      } catch {}
-      // Last resort: seed
-      const d = seed();
-      try { await store.set(SK, JSON.stringify(d)); } catch {}
-      setData(d);
-    })();
-  }, []);
+
 
   // Save: update in-memory state + persist to Supabase (async, non-blocking)
   const save = useCallback(async next => {

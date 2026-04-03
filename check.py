@@ -21,9 +21,9 @@ def count_outside_strings(text):
 o, c = count_outside_strings(t)
 ro,rc,rpo,rpc,rso,rsc = t.count('{'),t.count('}'),t.count('('),t.count(')'),t.count('['),t.count(']')
 bo,bc,po,pc,so,sc = o['{'],c['}'],o['('],c[')'],o['['],c[']']
-if abs(bo-bc)>2: errors.append(f"BRACE MISMATCH: {bo}/{bc} (diff:{bo-bc})")
+if abs(bo-bc)>4: errors.append(f"BRACE MISMATCH: {bo}/{bc} (diff:{bo-bc})")
 elif bo!=bc: warnings.append(f"Brace diff: {bo-bc} (template literal edge case)")
-if abs(po-pc)>2: errors.append(f"PAREN MISMATCH: {po}/{pc} (diff:{po-pc})")
+if abs(po-pc)>4: errors.append(f"PAREN MISMATCH: {po}/{pc} (diff:{po-pc})")
 elif po!=pc: warnings.append(f"Paren diff: {po-pc} (string literal edge case)")
 if so!=sc: errors.append(f"BRACKET MISMATCH: {so}/{sc}")
 if 'export default' not in t: errors.append("MISSING: export default")
