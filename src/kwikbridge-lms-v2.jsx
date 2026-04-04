@@ -577,7 +577,7 @@ export default function App() {
           if (r?.value) {
             const loaded = JSON.parse(r.value);
             const hasCurrentSchema = loaded.applications?.some(a => a.qaSignedOff !== undefined) || (loaded.applications?.length === 0 && loaded.products?.length > 0);
-            if (hasCurrentSchema) { setData(loaded); return; }
+            if (hasCurrentSchema && loaded.customers?.length > 0) { setData(loaded); return; }
           }
         } catch {}
         // Then try Supabase with 3-second timeout
