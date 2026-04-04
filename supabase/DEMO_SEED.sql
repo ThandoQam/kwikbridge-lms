@@ -13,7 +13,34 @@
 -- Timestamps (relative to "now" = April 2026)
 -- We use epoch milliseconds to match the app's convention
 
+-- ═══ ENSURE ALL COLUMNS EXIST (patches for older schemas) ═══
+ALTER TABLE customers ADD COLUMN IF NOT EXISTS social_score NUMERIC DEFAULT 0;
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS assigned_to TEXT;
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS underwriting_workflow JSONB;
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS sanctions_flag BOOLEAN DEFAULT FALSE;
+ALTER TABLE applications ADD COLUMN IF NOT EXISTS sanctions_date BIGINT;
+ALTER TABLE loans ADD COLUMN IF NOT EXISTS total_paid NUMERIC DEFAULT 0;
+ALTER TABLE loans ADD COLUMN IF NOT EXISTS accrued_interest NUMERIC DEFAULT 0;
+ALTER TABLE documents ADD COLUMN IF NOT EXISTS file_path TEXT;
+ALTER TABLE documents ADD COLUMN IF NOT EXISTS file_size INTEGER DEFAULT 0;
+ALTER TABLE documents ADD COLUMN IF NOT EXISTS notes TEXT;
+ALTER TABLE documents ADD COLUMN IF NOT EXISTS verified_by TEXT;
+ALTER TABLE documents ADD COLUMN IF NOT EXISTS verified_at BIGINT;
+ALTER TABLE collections ADD COLUMN IF NOT EXISTS loan_id TEXT;
+ALTER TABLE collections ADD COLUMN IF NOT EXISTS channel TEXT;
+ALTER TABLE comms ADD COLUMN IF NOT EXISTS related_to TEXT;
+ALTER TABLE comms ADD COLUMN IF NOT EXISTS loan_id TEXT;
+ALTER TABLE provisions ADD COLUMN IF NOT EXISTS method TEXT;
+ALTER TABLE provisions ADD COLUMN IF NOT EXISTS loan_id TEXT;
+ALTER TABLE audit_trail ADD COLUMN IF NOT EXISTS category TEXT;
+
 -- ═══ PRODUCTS (seed only if empty) ═══
+-- Add missing columns if they don't exist (safe for re-runs)
+ALTER TABLE products ADD COLUMN IF NOT EXISTS ideal_for TEXT;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS s1_pd NUMERIC DEFAULT 0;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS ecl NUMERIC DEFAULT 0;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS lgd NUMERIC DEFAULT 0;
+
 INSERT INTO products (id, name, description, ideal_for, min_amount, max_amount, min_term, max_term, base_rate, monthly_rate, repayment_type, arrangement_fee, commitment_fee, grace_period, max_ltv, min_dscr, risk_class, ecl, s1_pd, lgd, eligible_bee, eligible_industries, status, created_by, created_at)
 VALUES
   ('P001', 'PO Financing — ECDoE', 'Government purchase order financing for Eastern Cape Department of Education contractors.', 'ECDoE-contracted suppliers and service providers.', 1000000, 7500000, 3, 6, 42.0, 3.5, 'Bullet', 2.5, 0.5, 0, 90, 1.15, 'A', 0.70, 0.006, 0.22, '[1,2,3,4]', '["Education","Construction","Services"]', 'Active', 'SYSTEM', 1711929600000),
