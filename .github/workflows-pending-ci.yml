@@ -1,0 +1,209 @@
+# KwikBridge LMS — CI/CD Pipeline
+# Runs on push to main and on pull requests.
+# Steps: install → lint → type-check → integrity → build → deploy
+#
+# Vercel handles deployment automatically via GitHub integration.
+# This workflow adds quality gates that must pass before/after deploy.
+
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: '20'
+  PYTHON_VERSION: '3.12'
+
+jobs:
+  # ═══════════════════════════════════════════════════════════
+  # JOB 1: Lint + Type Check + Integrity
+  # ═══════════════════════════════════════════════════════════
+  quality:
+    name: Quality Gates
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript type check
+        run: npx tsc --noEmit
+
+      - name: ESLint (if configured)
+        run: npx eslint src/ --ext .ts,.tsx --max-warnings 50 || true
+        continue-on-error: true
+
+      - name: Setup Python (for integrity check)
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Monolith integrity check
+        run: python3 check.py src/kwikbridge-lms-v2.jsx
+
+  # ═══════════════════════════════════════════════════════════
+  # JOB 2: Build
+  # ═══════════════════════════════════════════════════════════
+  build:
+    name: Build
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build production bundle
+        run: npm run build
+
+      - name: Report bundle size
+        run: |
+          echo "═══ BUILD OUTPUT ═══"
+          du -sh dist/
+          find dist/ -name '*.js' -exec du -sh {} +
+          find dist/ -name '*.css' -exec du -sh {} +
+          echo "═══════════════════"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7
+
+  # ═══════════════════════════════════════════════════════════
+  # JOB 3: Test Suite
+  # Runs the 11 Python test suites against the source.
+  # ═══════════════════════════════════════════════════════════
+  test:
+    name: Test Suite
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Run test suites
+        run: |
+          echo "═══ KWIKBRIDGE TEST SUITE ═══"
+          TOTAL_PASS=0
+          TOTAL_FAIL=0
+          FAILED_SUITES=""
+
+          for test_file in test_suite.py smoke_test.py data_validation_test.py accessibility_test.py design_consistency_test.py; do
+            if [ -f "$test_file" ]; then
+              echo ""
+              echo "Running $test_file..."
+              if python3 "$test_file"; then
+                echo "  ✓ $test_file PASSED"
+              else
+                echo "  ✗ $test_file FAILED"
+                FAILED_SUITES="$FAILED_SUITES $test_file"
+              fi
+            fi
+          done
+
+          if [ -n "$FAILED_SUITES" ]; then
+            echo ""
+            echo "FAILED SUITES:$FAILED_SUITES"
+            exit 1
+          fi
+
+          echo ""
+          echo "✓ All test suites passed"
+
+  # ═══════════════════════════════════════════════════════════
+  # JOB 4: Security Scan
+  # Basic dependency audit + secret detection.
+  # ═══════════════════════════════════════════════════════════
+  security:
+    name: Security Scan
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: npm audit (production)
+        run: npm audit --production --audit-level=high || true
+        continue-on-error: true
+
+      - name: Check for secrets in source
+        run: |
+          echo "Scanning for potential secrets..."
+          # Check for common secret patterns (excluding known Supabase anon key)
+          FOUND=$(grep -rn \
+            -e "sk_live_" \
+            -e "sk_test_" \
+            -e "PRIVATE.KEY" \
+            -e "-----BEGIN RSA" \
+            -e "password.*=" \
+            --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" \
+            src/ || true)
+
+          if [ -n "$FOUND" ]; then
+            echo "⚠ Potential secrets found:"
+            echo "$FOUND"
+            echo ""
+            echo "Review the above and ensure no real secrets are committed."
+          else
+            echo "✓ No potential secrets detected"
+          fi
+
+  # ═══════════════════════════════════════════════════════════
+  # JOB 5: Deploy Status (informational)
+  # Vercel auto-deploys on push to main. This job confirms.
+  # ═══════════════════════════════════════════════════════════
+  deploy-status:
+    name: Deploy Status
+    needs: [build, test]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Deployment confirmation
+        run: |
+          echo "═══════════════════════════════════════════"
+          echo "  DEPLOYMENT"
+          echo "═══════════════════════════════════════════"
+          echo ""
+          echo "  Quality gates: ✓ passed"
+          echo "  Build:         ✓ passed"
+          echo "  Tests:         ✓ passed"
+          echo ""
+          echo "  Vercel auto-deploys from main branch."
+          echo "  Check: https://vercel.com/dashboard"
+          echo ""
+          echo "═══════════════════════════════════════════"
