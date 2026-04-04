@@ -193,6 +193,10 @@ export interface Document {
   reviewedBy?: string;
   reviewedAt?: number;
   notes?: string;
+  storagePath?: string;
+  fileSize?: number;
+  mimeType?: string;
+  originalName?: string;
 }
 
 export interface AuditEntry {
