@@ -187,18 +187,18 @@ VALUES
 ON CONFLICT (id) DO NOTHING;
 
 -- ═══ DOCUMENTS — Sample uploads per customer ═══
-INSERT INTO documents (id, cust_id, app_id, name, type, status, uploaded_at, uploaded_by, verified_by, verified_at, file_path, file_size, notes)
+INSERT INTO documents (id, cust_id, app_id, name, type, status, uploaded_at, uploaded_by, reviewed_by, reviewed_at, notes)
 VALUES
-  ('DOC-001', 'C001', 'APP-005', 'Sipho Ndamase ID', 'ID Document', 'Verified', 1738368000000, 'C001', 'Loan Officer', 1738454400000, 'C001/id_doc.pdf', 245000, 'SA ID verified against Home Affairs.'),
-  ('DOC-002', 'C001', 'APP-005', 'MBS CIPC Certificate', 'Company Registration', 'Verified', 1738368000000, 'C001', 'Loan Officer', 1738454400000, 'C001/cipc.pdf', 180000, 'CIPC registration 2012/145678/07 confirmed.'),
-  ('DOC-003', 'C001', 'APP-005', 'MBS Financial Statements FY2025', 'Financial Statements', 'Verified', 1738368000000, 'C001', 'Credit Analyst', 1738540800000, 'C001/financials_2025.pdf', 520000, 'Signed AFS for year ended Feb 2025.'),
-  ('DOC-004', 'C001', 'APP-005', 'ECDoE Purchase Order MBD-2024-7892', 'Contract/PO', 'Verified', 1738368000000, 'C001', 'Credit Analyst', 1738540800000, 'C001/po_ecdoe.pdf', 310000, 'Purchase order confirmed with ECDoE procurement.'),
-  ('DOC-005', 'C001', 'APP-005', 'BEE Certificate — Level 1', 'BEE Certificate', 'Verified', 1738368000000, 'C001', 'Compliance', 1738540800000, 'C001/bee_cert.pdf', 150000, 'Level 1 BEE, 100% Black-owned.'),
-  ('DOC-006', 'C007', 'APP-007', 'Vuyani Plaatjie ID', 'ID Document', 'Verified', 1735689600000, 'C007', 'Loan Officer', 1735776000000, 'C007/id_doc.pdf', 230000, 'SA ID verified.'),
-  ('DOC-007', 'C007', 'APP-007', 'Mdantsane Auto CIPC', 'Company Registration', 'Verified', 1735689600000, 'C007', 'Loan Officer', 1735776000000, 'C007/cipc.pdf', 175000, 'Verified.'),
-  ('DOC-008', 'C003', 'APP-004', 'Thandi Madikizela ID', 'ID Document', 'Verified', 1742256000000, 'C003', 'Loan Officer', 1742342400000, 'C003/id_doc.pdf', 240000, 'SA ID verified.'),
-  ('DOC-009', 'C004', 'APP-003', 'Xhosa Digital CIPC', 'Company Registration', 'Pending Review', 1742860800000, 'C004', NULL, NULL, 'C004/cipc.pdf', 190000, 'Awaiting verification.'),
-  ('DOC-010', 'C006', 'APP-002', 'Motherwell Fresh Produce Business Plan', 'Business Plan', 'Pending Review', 1743552000000, 'C006', NULL, NULL, 'C006/bizplan.pdf', 850000, 'Comprehensive plan including irrigation upgrade ROI analysis.')
+  ('DOC-001', 'C001', 'APP-005', 'Sipho Ndamase ID', 'ID Document', 'Verified', 1738368000000, 'C001', 'Loan Officer', 1738454400000, 'SA ID verified against Home Affairs.'),
+  ('DOC-002', 'C001', 'APP-005', 'MBS CIPC Certificate', 'Company Registration', 'Verified', 1738368000000, 'C001', 'Loan Officer', 1738454400000, 'CIPC registration 2012/145678/07 confirmed.'),
+  ('DOC-003', 'C001', 'APP-005', 'MBS Financial Statements FY2025', 'Financial Statements', 'Verified', 1738368000000, 'C001', 'Credit Analyst', 1738540800000, 'Signed AFS for year ended Feb 2025.'),
+  ('DOC-004', 'C001', 'APP-005', 'ECDoE Purchase Order MBD-2024-7892', 'Contract/PO', 'Verified', 1738368000000, 'C001', 'Credit Analyst', 1738540800000, 'Purchase order confirmed with ECDoE procurement.'),
+  ('DOC-005', 'C001', 'APP-005', 'BEE Certificate — Level 1', 'BEE Certificate', 'Verified', 1738368000000, 'C001', 'Compliance', 1738540800000, 'Level 1 BEE, 100% Black-owned.'),
+  ('DOC-006', 'C007', 'APP-007', 'Vuyani Plaatjie ID', 'ID Document', 'Verified', 1735689600000, 'C007', 'Loan Officer', 1735776000000, 'SA ID verified.'),
+  ('DOC-007', 'C007', 'APP-007', 'Mdantsane Auto CIPC', 'Company Registration', 'Verified', 1735689600000, 'C007', 'Loan Officer', 1735776000000, 'Verified.'),
+  ('DOC-008', 'C003', 'APP-004', 'Thandi Madikizela ID', 'ID Document', 'Verified', 1742256000000, 'C003', 'Loan Officer', 1742342400000, 'SA ID verified.'),
+  ('DOC-009', 'C004', 'APP-003', 'Xhosa Digital CIPC', 'Company Registration', 'Pending Review', 1742860800000, 'C004', NULL, NULL, 'Awaiting verification.'),
+  ('DOC-010', 'C006', 'APP-002', 'Motherwell Fresh Produce Business Plan', 'Business Plan', 'Pending Review', 1743552000000, 'C006', NULL, NULL, 'Comprehensive plan including irrigation upgrade ROI analysis.')
 ON CONFLICT (id) DO NOTHING;
 
 -- ═══ AUDIT TRAIL — Key lifecycle events ═══
@@ -229,12 +229,12 @@ VALUES
 ON CONFLICT (id) DO NOTHING;
 
 -- ═══ COMMS — Sample communications ═══
-INSERT INTO comms (id, cust_id, loan_id, channel, direction, "from", subject, body, ts, related_to)
+INSERT INTO comms (id, cust_id, type, direction, sent_by, subject, body, sent_at)
 VALUES
-  ('COM-001', 'C007', 'LN-003', 'SMS', 'Outbound', 'SYSTEM', 'Payment Reminder', 'Dear Vuyani, your payment of R24,150.00 for loan LN-003 is overdue. Please contact us on 043 761 5500 to discuss. — KwikBridge', 1743033600000, 'LN-003'),
-  ('COM-002', 'C007', 'LN-003', 'Post', 'Outbound', 'Noluthando Mgquba', 'Section 129 Notice', 'Formal notice in terms of Section 129 of the National Credit Act. 20 business days to respond.', 1742688000000, 'LN-003'),
-  ('COM-003', 'C003', NULL, 'Email', 'Outbound', 'Thabo Mokoena', 'Application Approved — APP-004', 'Dear Thandi, we are pleased to advise that your application for R500,000 Working Capital has been approved. Please review and sign the attached loan agreement.', 1742860800000, 'APP-004'),
-  ('COM-004', 'C006', NULL, 'Email', 'Inbound', 'Zukiswa Nqweniso', 'Application Query', 'Hi, I submitted my application APP-002 last week. Could you please advise on the expected timeline for review? Many thanks, Zuki.', 1743811200000, 'APP-002')
+  ('COM-001', 'C007', 'SMS', 'Outbound', 'SYSTEM', 'Payment Reminder', 'Dear Vuyani, your payment of R24,150.00 for loan LN-003 is overdue. Please contact us on 043 761 5500 to discuss. — KwikBridge', 1743033600000),
+  ('COM-002', 'C007', 'Letter', 'Outbound', 'Noluthando Mgquba', 'Section 129 Notice', 'Formal notice in terms of Section 129 of the National Credit Act. 20 business days to respond.', 1742688000000),
+  ('COM-003', 'C003', 'Email', 'Outbound', 'Thabo Mokoena', 'Application Approved — APP-004', 'Dear Thandi, we are pleased to advise that your application for R500,000 Working Capital has been approved. Please review and sign the attached loan agreement.', 1742860800000),
+  ('COM-004', 'C006', 'Email', 'Inbound', 'Zukiswa Nqweniso', 'Application Query', 'Hi, I submitted my application APP-002 last week. Could you please advise on the expected timeline for review? Many thanks, Zuki.', 1743811200000)
 ON CONFLICT (id) DO NOTHING;
 
 -- ═══ SETTINGS ═══
