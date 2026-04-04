@@ -238,15 +238,13 @@ VALUES
 ON CONFLICT (id) DO NOTHING;
 
 -- ═══ SETTINGS ═══
-INSERT INTO settings (id, data)
-VALUES ('main', '{
-  "companyName": "TQA Capital (Pty) Ltd",
-  "ncrReg": "NCRCP22396",
-  "ncrExpiry": "31 July 2026",
-  "branch": "East London, Nahoon Valley",
-  "regNumber": "2017/313869/07"
-}'::jsonb)
-ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data;
+INSERT INTO settings (id, company_name, ncr_reg, ncr_expiry, branch, year_end)
+VALUES (1, 'TQA Capital (Pty) Ltd', 'NCRCP22396', '31 July 2026', 'East London, Nahoon Valley', 'February')
+ON CONFLICT (id) DO UPDATE SET 
+  company_name = EXCLUDED.company_name,
+  ncr_reg = EXCLUDED.ncr_reg,
+  ncr_expiry = EXCLUDED.ncr_expiry,
+  branch = EXCLUDED.branch;
 
 -- ═══ VERIFY SEED ═══
 SELECT 'customers' AS "table", COUNT(*) AS "rows" FROM customers
