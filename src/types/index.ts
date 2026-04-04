@@ -130,7 +130,12 @@ export interface Loan {
   payments: Payment[];
   ptpHistory: PTPEntry[];
   arrangementFee: number;
-  commitmentFee: number;
+  commitmentFee?: number;
+  accruedInterest?: number;
+  interestLedger?: { date: string; balance: number; rate: number; accrued: number }[];
+  totalPaid?: number;
+  lastPmt?: number;
+  lastPmtAmt?: number;
 }
 
 export interface Payment {
