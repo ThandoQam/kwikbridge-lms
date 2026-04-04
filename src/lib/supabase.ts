@@ -2,7 +2,7 @@
 // All Supabase REST API calls with normalised schema support
 
 export const SUPABASE_URL = "https://yioqaluxgqxsifclydmd.supabase.co";
-export const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlpb3FhbHV4Z3F4c2lmY2x5ZG1kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg3MTc2MDcsImV4cCI6MjA2NDI5MzYwN30.3sRVBp1QGqE0iP4tMnVBg5z6cJRnoGbiLsaB4se9Z2M";
+export const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlpb3FhbHV4Z3F4c2lmY2x5ZG1kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxNDQwMTQsImV4cCI6MjA5MDcyMDAxNH0.PwccS7acx7syNvsDTV_rp6zNttk1gxrF_ObnwolHFH8";
 
 // Table name mapping (JS camelCase key → Supabase snake_case table)
 export const TABLES: Record<string, string> = {

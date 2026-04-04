@@ -33,7 +33,7 @@ const store = {
 
 // ═══ SUPABASE CLIENT ═══
 const SUPABASE_URL = "https://yioqaluxgqxsifclydmd.supabase.co";
-const SUPABASE_KEY = "sb_publishable_5-mJwKTUJKxdZSTXZMJd-A_89ZkNWrM";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlpb3FhbHV4Z3F4c2lmY2x5ZG1kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxNDQwMTQsImV4cCI6MjA5MDcyMDAxNH0.PwccS7acx7syNvsDTV_rp6zNttk1gxrF_ObnwolHFH8";
 const sb = (table) => `${SUPABASE_URL}/rest/v1/${table}`;
 const sbHeaders = { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json", "Prefer": "return=minimal" };
 const sbGet = async (table) => { const r = await fetch(sb(table) + "?order=id", { headers: sbHeaders }); return r.ok ? r.json() : []; };
