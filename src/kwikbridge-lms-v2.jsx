@@ -279,7 +279,7 @@ function Btn({ children, onClick, variant = "primary", size = "md", icon, disabl
   const s = styles[variant];
   const pad = size === "sm" ? "5px 10px" : size === "lg" ? "10px 20px" : "7px 14px";
   const fs = size === "sm" ? 12 : 13;
-  return <button disabled={disabled} onClick={onClick} style={{ display:"inline-flex", alignItems:"center", gap:6, padding:pad, background:s.bg, color:s.color, border:s.border, borderRadius:3, fontSize:fs, fontWeight:500, cursor:disabled?"not-allowed":"pointer", opacity:disabled?0.4:1, transition:"all .15s", fontFamily:"inherit", letterSpacing:0.1 }}>{icon}{children}</button>;
+  return <button disabled={disabled} onClick={onClick} style={{ display:"inline-flex", alignItems:"center", gap:8, padding:pad, background:s.bg, color:s.color, border:s.border, borderRadius:3, fontSize:fs, fontWeight:500, cursor:disabled?"not-allowed":"pointer", opacity:disabled?0.4:1, transition:"all .15s", fontFamily:"inherit", letterSpacing:0.1 }}>{icon}{children}</button>;
 }
 
 function Table({ columns, rows, onRowClick, emptyMsg = "No records found" }) {
@@ -310,7 +310,7 @@ function Modal({ open, onClose, title, width = 520, children }) {
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.25)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={onClose}>
       <div style={{ background: C.surface, borderRadius: 2, padding: 0, width, maxWidth: "95vw", maxHeight: "90vh", overflow: "hidden", border: `1px solid ${C.borderLight}`, boxShadow: "0 8px 30px rgba(0,0,0,0.08)" }} onClick={e => e.stopPropagation()}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderBottom: `1px solid ${C.border}` }}>
-          <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: C.text }}>{title}</h3>
+          <h3 style={{ margin: 0, fontSize:14, fontWeight: 600, color: C.text }}>{title}</h3>
           <button onClick={onClose} style={{ background: "none", border: "none", color: C.textMuted, cursor: "pointer", padding: 4 }}>{I.x}</button>
         </div>
         <div style={{ padding: 20, overflowY: "auto", maxHeight: "calc(90vh - 60px)" }}>{children}</div>
@@ -356,7 +356,7 @@ function InfoGrid({ items }) {
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 0, border: `1px solid ${C.border}` }}>
       {items.map(([l, v], i) => (
         <div key={i} style={{ padding: "8px 12px", borderBottom: `1px solid ${C.border}`, borderRight: `1px solid ${C.border}` }}>
-          <div style={{ fontSize: 10, fontWeight: 500, color: C.textMuted, textTransform: "uppercase", letterSpacing: 0.5 }}>{l}</div>
+          <div style={{ fontSize: 10, fontWeight: 600, color: C.textMuted, textTransform: "uppercase", letterSpacing: 0.5 }}>{l}</div>
           <div style={{ fontSize: 13, fontWeight: 500, color: C.text, marginTop: 2 }}>{v}</div>
         </div>
       ))}
@@ -383,7 +383,7 @@ function StepTracker({ steps, current }) {
         const done = i < current;
         const active = i === current;
         return (
-          <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+          <div key={i} style={{ display: "flex", gap:12, alignItems: "flex-start" }}>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
               <div style={{ width: 22, height: 22, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, background: done ? C.text : "transparent", color: done ? "#fff" : active ? C.text : C.textMuted, fontSize: 10, fontWeight: 600, border: `1px solid ${done ? C.text : C.border}` }}>
                 {done ? I.check : i + 1}
@@ -405,7 +405,7 @@ function EmptyState({ icon, title, message, action, onAction }) {
   return (
     <div className="kb-animate" style={{ textAlign:"center", padding:"48px 24px" }}>
       <div style={{ fontSize:36, marginBottom:12, opacity:0.3 }}>{icon || "📋"}</div>
-      <div style={{ fontSize:14, fontWeight:600, color:C.text, marginBottom:6 }}>{title || "Nothing here yet"}</div>
+      <div style={{ fontSize:14, fontWeight:600, color:C.text, marginBottom:8 }}>{title || "Nothing here yet"}</div>
       <div style={{ fontSize:12, color:C.textMuted, maxWidth:300, margin:"0 auto", lineHeight:1.5, marginBottom:16 }}>{message || ""}</div>
       {action && onAction && <Btn onClick={onAction} size="sm">{action}</Btn>}
     </div>
@@ -687,14 +687,14 @@ export default function App() {
       <header style={{ background:C.surface, borderBottom:`1px solid ${C.border}`, padding:"0 24px", height:56, display:"flex", alignItems:"center", justifyContent:"space-between", position:"sticky", top:0, zIndex:10 }}>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
           <div style={{ fontSize:18, fontWeight:700, color:C.text, letterSpacing:-0.5 }}>KwikBridge</div>
-          <div style={{ fontSize:9, color:C.textMuted, letterSpacing:1, textTransform:"uppercase" }}>Loan Management</div>
+          <div style={{ fontSize:10, color:C.textMuted, letterSpacing:1, textTransform:"uppercase" }}>Loan Management</div>
         </div>
         <nav className="kb-pub-nav" style={{ display:"flex", gap:16, alignItems:"center" }}>
           {[["public_home","Home"],["public_apply","Apply for Financing"],["public_track","Track Application"]].map(([k,label])=>(
             <button key={k} onClick={()=>setPage(k)} style={{ background:"none", border:"none", fontSize:13, fontWeight:page===k?600:400, color:page===k?C.text:C.textDim, cursor:"pointer", fontFamily:"inherit", padding:"4px 0", borderBottom:page===k?`2px solid ${C.text}`:"2px solid transparent" }}>{label}</button>
           ))}
           <div style={{ width:1, height:20, background:C.border, margin:"0 4px" }} />
-          <button onClick={()=>{setAuthMode("login");setZone("auth");setAuthForm({email:"",password:"",name:"",error:""})}} style={{ background:"none", border:`1px solid ${C.border}`, padding:"6px 14px", fontSize:12, fontWeight:500, color:C.text, cursor:"pointer", fontFamily:"inherit" }}>Staff Login</button>
+          <button onClick={()=>{setAuthMode("login");setZone("auth");setAuthForm({email:"",password:"",name:"",error:""})}} style={{ background:"none", border:`1px solid ${C.border}`, padding:"8px 14px", fontSize:12, fontWeight:500, color:C.text, cursor:"pointer", fontFamily:"inherit" }}>Staff Login</button>
         </nav>
       </header>
       {/* Public Content */}
@@ -793,12 +793,12 @@ export default function App() {
 
             {/* Step 1: Your Details */}
             {f.step===1 && <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"24px" }}>
-              <div style={{ fontSize:15, fontWeight:700, marginBottom:14 }}>Your Details</div>
+              <div style={{ fontSize:14, fontWeight:700, marginBottom:16 }}>Your Details</div>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Full Name *</label><input value={f.contact} onChange={e=>sf("contact",e.target.value)} placeholder="e.g. Thando Qamarana" style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
-                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Email Address *</label><input type="email" value={f.email} onChange={e=>sf("email",e.target.value)} placeholder="you@company.co.za" style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
-                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Phone Number *</label><input value={f.phone} onChange={e=>sf("phone",e.target.value)} placeholder="0XX XXX XXXX" style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
-                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Create Password *</label><input type="password" value={f.password} onChange={e=>sf("password",e.target.value)} placeholder="Min 6 characters" style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
+                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Full Name *</label><input value={f.contact} onChange={e=>sf("contact",e.target.value)} placeholder="e.g. Thando Qamarana" style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
+                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Email Address *</label><input type="email" value={f.email} onChange={e=>sf("email",e.target.value)} placeholder="you@company.co.za" style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
+                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Phone Number *</label><input value={f.phone} onChange={e=>sf("phone",e.target.value)} placeholder="0XX XXX XXXX" style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
+                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Create Password *</label><input type="password" value={f.password} onChange={e=>sf("password",e.target.value)} placeholder="Min 6 characters" style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
               </div>
               <div style={{ fontSize:10, color:C.textMuted, marginTop:10 }}>Your login credentials will be created automatically. You can sign in to track your application after submission.</div>
               <div style={{ display:"flex", justifyContent:"flex-end", marginTop:16 }}>
@@ -808,17 +808,17 @@ export default function App() {
 
             {/* Step 2: Business Information */}
             {f.step===2 && <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"24px" }}>
-              <div style={{ fontSize:15, fontWeight:700, marginBottom:14 }}>Business Information</div>
+              <div style={{ fontSize:14, fontWeight:700, marginBottom:16 }}>Business Information</div>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Business Name *</label><input value={f.businessName} onChange={e=>sf("businessName",e.target.value)} placeholder="e.g. Nomsa Trading (Pty) Ltd" style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
-                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>ID Number *</label><input value={f.idNum} onChange={e=>sf("idNum",e.target.value)} placeholder="13-digit SA ID" style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
-                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Company Registration *</label><input value={f.regNum} onChange={e=>sf("regNum",e.target.value)} placeholder="YYYY/XXXXXX/07" style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
-                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Industry *</label><select value={f.industry} onChange={e=>sf("industry",e.target.value)} style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit", background:"#fff" }}>{["Retail","Agriculture","Technology","Construction","Food Processing","Transport","Manufacturing","Professional Services","Other"].map(v=><option key={v}>{v}</option>)}</select></div>
-                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Annual Revenue (R)</label><input type="number" value={f.revenue} onChange={e=>sf("revenue",e.target.value)} style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
-                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Number of Employees</label><input type="number" value={f.employees} onChange={e=>sf("employees",e.target.value)} style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
-                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Years in Business</label><input type="number" value={f.years} onChange={e=>sf("years",e.target.value)} style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
-                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Province</label><select value={f.province} onChange={e=>sf("province",e.target.value)} style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit", background:"#fff" }}>{["Eastern Cape","Western Cape","Gauteng","KwaZulu-Natal","Free State","North West","Limpopo","Mpumalanga","Northern Cape"].map(v=><option key={v}>{v}</option>)}</select></div>
-                <div style={{ gridColumn:"1/-1" }}><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Business Address</label><input value={f.address} onChange={e=>sf("address",e.target.value)} placeholder="Street address, city" style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
+                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Business Name *</label><input value={f.businessName} onChange={e=>sf("businessName",e.target.value)} placeholder="e.g. Nomsa Trading (Pty) Ltd" style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
+                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>ID Number *</label><input value={f.idNum} onChange={e=>sf("idNum",e.target.value)} placeholder="13-digit SA ID" style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
+                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Company Registration *</label><input value={f.regNum} onChange={e=>sf("regNum",e.target.value)} placeholder="YYYY/XXXXXX/07" style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
+                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Industry *</label><select value={f.industry} onChange={e=>sf("industry",e.target.value)} style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit", background:"#fff" }}>{["Retail","Agriculture","Technology","Construction","Food Processing","Transport","Manufacturing","Professional Services","Other"].map(v=><option key={v}>{v}</option>)}</select></div>
+                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Annual Revenue (R)</label><input type="number" value={f.revenue} onChange={e=>sf("revenue",e.target.value)} style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
+                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Number of Employees</label><input type="number" value={f.employees} onChange={e=>sf("employees",e.target.value)} style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
+                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Years in Business</label><input type="number" value={f.years} onChange={e=>sf("years",e.target.value)} style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
+                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Province</label><select value={f.province} onChange={e=>sf("province",e.target.value)} style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit", background:"#fff" }}>{["Eastern Cape","Western Cape","Gauteng","KwaZulu-Natal","Free State","North West","Limpopo","Mpumalanga","Northern Cape"].map(v=><option key={v}>{v}</option>)}</select></div>
+                <div style={{ gridColumn:"1/-1" }}><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Business Address</label><input value={f.address} onChange={e=>sf("address",e.target.value)} placeholder="Street address, city" style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
               </div>
               <div style={{ display:"flex", justifyContent:"space-between", marginTop:16 }}>
                 <button onClick={()=>sf("step",1)} style={{ background:"none", border:`1px solid ${C.border}`, padding:"10px 24px", fontSize:13, color:C.textDim, cursor:"pointer", fontFamily:"inherit" }}>← Back</button>
@@ -828,13 +828,13 @@ export default function App() {
 
             {/* Step 3: Financing Request */}
             {f.step===3 && <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"24px" }}>
-              <div style={{ fontSize:15, fontWeight:700, marginBottom:14 }}>Financing Request</div>
+              <div style={{ fontSize:14, fontWeight:700, marginBottom:16 }}>Financing Request</div>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-                <div style={{ gridColumn:"1/-1" }}><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Select Product *</label><select value={f.product} onChange={e=>sf("product",e.target.value)} style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit", background:"#fff" }}><option value="">— Select a product —</option>{activeProds.map(p=><option key={p.id} value={p.id}>{p.name} ({p.monthlyRate||p.baseRate}%/mo · {p.repaymentType})</option>)}</select></div>
-                {selProd && <div style={{ gridColumn:"1/-1", background:C.surface2, padding:"10px 14px", fontSize:12, color:C.textDim, lineHeight:1.5, border:`1px solid ${C.border}` }}>{selProd.description}{selProd.idealFor && <div style={{ marginTop:4 }}><strong>Ideal for:</strong> {selProd.idealFor}</div>}</div>}
-                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Loan Amount (R) *</label><input type="number" value={f.amount} onChange={e=>sf("amount",e.target.value)} placeholder={selProd?`${fmt.cur(selProd.minAmount)} – ${fmt.cur(selProd.maxAmount)}`:""} style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
-                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Term (months) *</label><input type="number" value={f.term} onChange={e=>sf("term",e.target.value)} placeholder={selProd?`${selProd.minTerm < 1 ? Math.round(selProd.minTerm*30)+' days' : selProd.minTerm+'m'} – ${selProd.maxTerm}m`:""} style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
-                <div style={{ gridColumn:"1/-1" }}><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Purpose of Financing *</label><textarea value={f.purpose} onChange={e=>sf("purpose",e.target.value)} rows={3} placeholder="Describe what the financing will be used for..." style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit", resize:"vertical" }} /></div>
+                <div style={{ gridColumn:"1/-1" }}><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Select Product *</label><select value={f.product} onChange={e=>sf("product",e.target.value)} style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit", background:"#fff" }}><option value="">— Select a product —</option>{activeProds.map(p=><option key={p.id} value={p.id}>{p.name} ({p.monthlyRate||p.baseRate}%/mo · {p.repaymentType})</option>)}</select></div>
+                {selProd && <div style={{ gridColumn:"1/-1", background:C.surface2, padding:"12px 16px", fontSize:12, color:C.textDim, lineHeight:1.5, border:`1px solid ${C.border}` }}>{selProd.description}{selProd.idealFor && <div style={{ marginTop:4 }}><strong>Ideal for:</strong> {selProd.idealFor}</div>}</div>}
+                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Loan Amount (R) *</label><input type="number" value={f.amount} onChange={e=>sf("amount",e.target.value)} placeholder={selProd?`${fmt.cur(selProd.minAmount)} – ${fmt.cur(selProd.maxAmount)}`:""} style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
+                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Term (months) *</label><input type="number" value={f.term} onChange={e=>sf("term",e.target.value)} placeholder={selProd?`${selProd.minTerm < 1 ? Math.round(selProd.minTerm*30)+' days' : selProd.minTerm+'m'} – ${selProd.maxTerm}m`:""} style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
+                <div style={{ gridColumn:"1/-1" }}><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Purpose of Financing *</label><textarea value={f.purpose} onChange={e=>sf("purpose",e.target.value)} rows={3} placeholder="Describe what the financing will be used for..." style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit", resize:"vertical" }} /></div>
               </div>
               <div style={{ display:"flex", justifyContent:"space-between", marginTop:16 }}>
                 <button onClick={()=>sf("step",2)} style={{ background:"none", border:`1px solid ${C.border}`, padding:"10px 24px", fontSize:13, color:C.textDim, cursor:"pointer", fontFamily:"inherit" }}>← Back</button>
@@ -844,7 +844,7 @@ export default function App() {
 
             {/* Step 4: Review & Submit */}
             {f.step===4 && <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"24px" }}>
-              <div style={{ fontSize:15, fontWeight:700, marginBottom:14 }}>Review Your Application</div>
+              <div style={{ fontSize:14, fontWeight:700, marginBottom:16 }}>Review Your Application</div>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:16 }}>
                 <div style={{ borderRight:`1px solid ${C.border}`, paddingRight:16 }}>
                   <div style={{ fontSize:12, fontWeight:600, color:C.text, marginBottom:8 }}>Applicant</div>
@@ -860,7 +860,7 @@ export default function App() {
                   <div style={{ fontSize:12, color:C.textDim, lineHeight:1.5 }}>{f.purpose}</div>
                 </div>
               </div>
-              <div style={{ background:C.surface2, border:`1px solid ${C.border}`, padding:"10px 14px", fontSize:11, color:C.textDim, lineHeight:1.6, marginBottom:16 }}>
+              <div style={{ background:C.surface2, border:`1px solid ${C.border}`, padding:"12px 16px", fontSize:11, color:C.textDim, lineHeight:1.6, marginBottom:16 }}>
                 By submitting this application, you confirm that all information provided is accurate and complete. You consent to TQA Capital processing your personal information in accordance with POPIA. A pre-approval decision will be communicated to your email address. Upon pre-approval, you will be requested to upload KYB/FICA documentation.
               </div>
               <div style={{ display:"flex", justifyContent:"space-between" }}>
@@ -876,7 +876,7 @@ export default function App() {
           <button onClick={()=>{setAuthMode("login");setZone("auth")}} style={{ background:C.text, color:"#fff", border:"none", padding:"10px 24px", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Sign In to Portal</button>
         </div>}
       </main>
-      <footer style={{ borderTop:`1px solid ${C.border}`, padding:"20px 24px", textAlign:"center", fontSize:10, color:C.textMuted, lineHeight:1.8 }}>
+      <footer style={{ borderTop:`1px solid ${C.border}`, padding:"20px 24px", textAlign:"center", fontSize:10, color:C.textMuted, lineHeight:1.5 }}>
         TQA Capital (Pty) Ltd · NCR Registration: NCRCP22396 · East London, Nahoon Valley<br/>
         Registered Credit Provider in terms of the National Credit Act 34 of 2005
       </footer>
@@ -892,7 +892,7 @@ export default function App() {
       <style>{`*{box-sizing:border-box} input:focus{outline:none;border-color:#0f172a !important}`}</style>
       <div style={{ width:400, background:C.surface, border:`1px solid ${C.border}`, padding:40 }}>
         <div style={{ textAlign:"center", marginBottom:28 }}>
-          <div style={{ fontSize:22, fontWeight:700, color:C.text, letterSpacing:-0.5 }}>KwikBridge</div>
+          <div style={{ fontSize:24, fontWeight:700, color:C.text, letterSpacing:-0.5 }}>KwikBridge</div>
           <div style={{ fontSize:10, color:C.textMuted, letterSpacing:1.5, textTransform:"uppercase", marginTop:2 }}>Loan Management System</div>
           <div style={{ fontSize:11, color:C.textDim, marginTop:12 }}>TQA Capital (Pty) Ltd</div>
         </div>
@@ -904,20 +904,20 @@ export default function App() {
         {authForm.error && <div style={{ background:"#fef2f2", border:"1px solid #fca5a5", color:"#dc2626", padding:"8px 12px", fontSize:12, marginBottom:12, lineHeight:1.4 }}>{authForm.error}</div>}
 
         {authMode === "signup" && (
-          <div style={{ marginBottom:10 }}>
+          <div style={{ marginBottom:12 }}>
             <label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Full Name</label>
-            <input value={authForm.name} onChange={e=>setAuthForm({...authForm,name:e.target.value})} placeholder="e.g. Thando Qamarana" style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:13, fontFamily:"inherit" }} />
+            <input value={authForm.name} onChange={e=>setAuthForm({...authForm,name:e.target.value})} placeholder="e.g. Thando Qamarana" style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:13, fontFamily:"inherit" }} />
           </div>
         )}
 
-        <div style={{ marginBottom:10 }}>
+        <div style={{ marginBottom:12 }}>
           <label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Email</label>
-          <input type="email" value={authForm.email} onChange={e=>setAuthForm({...authForm,email:e.target.value})} placeholder="you@tqacapital.co.za" onKeyDown={e=>e.key==="Enter"&&(authMode==="login"?handleSignIn():handleSignUp())} style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:13, fontFamily:"inherit" }} />
+          <input type="email" value={authForm.email} onChange={e=>setAuthForm({...authForm,email:e.target.value})} placeholder="you@tqacapital.co.za" onKeyDown={e=>e.key==="Enter"&&(authMode==="login"?handleSignIn():handleSignUp())} style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:13, fontFamily:"inherit" }} />
         </div>
 
         <div style={{ marginBottom:16 }}>
           <label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Password</label>
-          <input type="password" value={authForm.password} onChange={e=>setAuthForm({...authForm,password:e.target.value})} placeholder={authMode==="signup"?"Min 6 characters":"Enter password"} onKeyDown={e=>e.key==="Enter"&&(authMode==="login"?handleSignIn():handleSignUp())} style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:13, fontFamily:"inherit" }} />
+          <input type="password" value={authForm.password} onChange={e=>setAuthForm({...authForm,password:e.target.value})} placeholder={authMode==="signup"?"Min 6 characters":"Enter password"} onKeyDown={e=>e.key==="Enter"&&(authMode==="login"?handleSignIn():handleSignUp())} style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:13, fontFamily:"inherit" }} />
         </div>
 
         <button onClick={authMode==="login"?handleSignIn:handleSignUp} style={{ width:"100%", padding:"10px", background:C.text, color:"#fff", border:"none", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit", letterSpacing:0.3 }}>
@@ -925,18 +925,18 @@ export default function App() {
         </button>
 
         {/* OAuth providers */}
-        <div style={{ margin:"20px 0 16px", display:"flex", alignItems:"center", gap:10 }}>
+        <div style={{ margin:"20px 0 16px", display:"flex", alignItems:"center", gap:12 }}>
           <div style={{ flex:1, height:1, background:C.border }} />
           <span style={{ fontSize:10, color:C.textMuted }}>or continue with</span>
           <div style={{ flex:1, height:1, background:C.border }} />
         </div>
 
         <div style={{ display:"flex", gap:8 }}>
-          <a href={authOAuthUrl("google")} style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:6, padding:"9px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:12, fontWeight:500, textDecoration:"none", cursor:"pointer", fontFamily:"inherit" }}>
+          <a href={authOAuthUrl("google")} style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"9px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:12, fontWeight:500, textDecoration:"none", cursor:"pointer", fontFamily:"inherit" }}>
             <svg width="16" height="16" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
             Google
           </a>
-          <a href={authOAuthUrl("apple")} style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:6, padding:"9px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:12, fontWeight:500, textDecoration:"none", cursor:"pointer", fontFamily:"inherit" }}>
+          <a href={authOAuthUrl("apple")} style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"9px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:12, fontWeight:500, textDecoration:"none", cursor:"pointer", fontFamily:"inherit" }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
             Apple
           </a>
@@ -952,12 +952,12 @@ export default function App() {
 
         {/* Dev bypass */}
         <div style={{ marginTop:24, paddingTop:16, borderTop:`1px solid ${C.border}`, textAlign:"center" }}>
-          <div style={{ fontSize:10, color:C.textMuted, marginBottom:6 }}>Development Access</div>
-          <div style={{ display:"flex", gap:6, justifyContent:"center" }}>
-            <button onClick={()=>{setAuthSession({token:"dev",user:{email:"admin@tqacapital.co.za"}});setCurrentUser(SYSTEM_USERS[0]);setZone("staff");setPage("dashboard")}} style={{ background:"none", border:`1px solid ${C.border}`, padding:"6px 12px", fontSize:10, color:C.textDim, cursor:"pointer", fontFamily:"inherit" }}>
+          <div style={{ fontSize:10, color:C.textMuted, marginBottom:8 }}>Development Access</div>
+          <div style={{ display:"flex", gap:8, justifyContent:"center" }}>
+            <button onClick={()=>{setAuthSession({token:"dev",user:{email:"admin@tqacapital.co.za"}});setCurrentUser(SYSTEM_USERS[0]);setZone("staff");setPage("dashboard")}} style={{ background:"none", border:`1px solid ${C.border}`, padding:"8px 12px", fontSize:10, color:C.textDim, cursor:"pointer", fontFamily:"inherit" }}>
               Staff (Admin)
             </button>
-            <button onClick={()=>{setAuthSession({token:"dev-borrower",user:{email:"borrower@test.co.za"}});setCurrentUser({id:"B001",name:"Test Borrower",initials:"TB",email:"borrower@test.co.za",role:"BORROWER"});setZone("portal");setPage("portal_dashboard")}} style={{ background:"none", border:`1px solid ${C.border}`, padding:"6px 12px", fontSize:10, color:C.textDim, cursor:"pointer", fontFamily:"inherit" }}>
+            <button onClick={()=>{setAuthSession({token:"dev-borrower",user:{email:"borrower@test.co.za"}});setCurrentUser({id:"B001",name:"Test Borrower",initials:"TB",email:"borrower@test.co.za",role:"BORROWER"});setZone("portal");setPage("portal_dashboard")}} style={{ background:"none", border:`1px solid ${C.border}`, padding:"8px 12px", fontSize:10, color:C.textDim, cursor:"pointer", fontFamily:"inherit" }}>
               Borrower Portal
             </button>
           </div>
@@ -967,7 +967,7 @@ export default function App() {
           <button onClick={()=>{setZone("public");setPage("public_home");setAuthSession(null)}} style={{ background:"none", border:"none", fontSize:11, color:C.accent, cursor:"pointer", fontFamily:"inherit", textDecoration:"underline" }}>← Back to Public Site</button>
         </div>
 
-        <div style={{ textAlign:"center", marginTop:12, fontSize:9, color:C.textMuted, lineHeight:1.6 }}>
+        <div style={{ textAlign:"center", marginTop:12, fontSize:10, color:C.textMuted, lineHeight:1.6 }}>
           TQA Capital (Pty) Ltd<br/>NCR: NCRCP22396 · East London, Nahoon Valley
         </div>
       </div>
@@ -993,8 +993,8 @@ export default function App() {
   if (!data) return <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100vh", background:C.bg, fontFamily:"'Outfit',sans-serif" }}>
       <div style={{ textAlign:"center" }}>
         <div style={{ fontSize:18, fontWeight:700, color:C.text, letterSpacing:-0.3, marginBottom:4 }}>KwikBridge</div>
-        <div style={{ fontSize:9, color:C.textMuted, letterSpacing:1.5, textTransform:"uppercase", marginBottom:24 }}>Loan Management</div>
-        <div style={{ display:"flex", gap:6, justifyContent:"center", marginBottom:16 }}>
+        <div style={{ fontSize:10, color:C.textMuted, letterSpacing:1.5, textTransform:"uppercase", marginBottom:24 }}>Loan Management</div>
+        <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:16 }}>
           {[0,1,2].map(i => <div key={i} className="kb-pulse" style={{ width:8, height:8, borderRadius:4, background:C.accent, animationDelay:`${i*0.2}s` }} />)}
         </div>
         <div style={{ fontSize:11, color:C.textMuted }}>Connecting to database…</div>
@@ -1025,25 +1025,25 @@ export default function App() {
     const renderPortalPage = () => {
       switch(page) {
         case "portal_dashboard": return (<div>
-          <h2 style={{ margin:"0 0 16px", fontSize:22, fontWeight:700 }}>Welcome{myCustomer ? `, ${myCustomer.contact}` : ""}</h2>
-          {!myCustomer && <div style={{ background:C.amberBg, border:`1px solid ${C.amber}`, padding:"14px 18px", marginBottom:16 }}>
+          <h2 style={{ margin:"0 0 16px", fontSize:24, fontWeight:700 }}>Welcome{myCustomer ? `, ${myCustomer.contact}` : ""}</h2>
+          {!myCustomer && <div style={{ background:C.amberBg, border:`1px solid ${C.amber}`, padding:"16px 20px", marginBottom:16 }}>
             <div style={{ fontSize:13, fontWeight:600, color:C.amber }}>Complete Your Profile</div>
             <div style={{ fontSize:12, color:C.textDim, marginTop:4 }}>Your email ({myEmail}) is not linked to a customer record. Please contact TQA Capital to complete your onboarding.</div>
           </div>}
           <div className="kb-grid-3" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12 }}>
-            <div className="kb-kpi" style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding:20, position:"relative", overflow:"hidden", boxShadow:"0 1px 3px rgba(0,0,0,0.04)" }}><div style={{ position:"absolute", top:0, left:0, right:0, height:3, background:C.accent }} /><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase", letterSpacing:0.8 }}>Applications</div><div style={{ fontSize:28, fontWeight:700, color:C.accent, marginTop:6 }}>{myApps.length}</div><div style={{ fontSize:10, color:C.textDim, marginTop:4 }}>{myApps.filter(a=>a.status==="Approved").length} approved</div></div>
-            <div className="kb-kpi" style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding:20, position:"relative", overflow:"hidden", boxShadow:"0 1px 3px rgba(0,0,0,0.04)" }}><div style={{ position:"absolute", top:0, left:0, right:0, height:3, background:C.green }} /><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase", letterSpacing:0.8 }}>Active Loans</div><div style={{ fontSize:28, fontWeight:700, color:C.green, marginTop:6 }}>{myLoans.filter(l=>l.status==="Active").length}</div><div style={{ fontSize:10, color:C.textDim, marginTop:4 }}>{myLoans.filter(l=>l.dpd===0).length} current</div></div>
+            <div className="kb-kpi" style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding:20, position:"relative", overflow:"hidden", boxShadow:"0 1px 3px rgba(0,0,0,0.04)" }}><div style={{ position:"absolute", top:0, left:0, right:0, height:3, background:C.accent }} /><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase", letterSpacing:0.8 }}>Applications</div><div style={{ fontSize:28, fontWeight:700, color:C.accent, marginTop:8 }}>{myApps.length}</div><div style={{ fontSize:10, color:C.textDim, marginTop:4 }}>{myApps.filter(a=>a.status==="Approved").length} approved</div></div>
+            <div className="kb-kpi" style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding:20, position:"relative", overflow:"hidden", boxShadow:"0 1px 3px rgba(0,0,0,0.04)" }}><div style={{ position:"absolute", top:0, left:0, right:0, height:3, background:C.green }} /><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase", letterSpacing:0.8 }}>Active Loans</div><div style={{ fontSize:28, fontWeight:700, color:C.green, marginTop:8 }}>{myLoans.filter(l=>l.status==="Active").length}</div><div style={{ fontSize:10, color:C.textDim, marginTop:4 }}>{myLoans.filter(l=>l.dpd===0).length} current</div></div>
             <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:20 }}><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase" }}>Total Balance</div><div style={{ fontSize:28, fontWeight:700, color:C.blue, marginTop:4 }}>{fmt.cur(myLoans.reduce((s,l)=>s+l.balance,0))}</div></div>
           </div>
           {myApps.length > 0 && <div style={{ marginTop:16 }}><h3 style={{ fontSize:14, fontWeight:600, margin:"0 0 8px" }}>Recent Applications</h3>
-            {myApps.slice(0,3).map(a=><div key={a.id} style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"12px 16px", marginBottom:6, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+            {myApps.slice(0,3).map(a=><div key={a.id} style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"12px 16px", marginBottom:8, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
               <div><div style={{ fontSize:13, fontWeight:600 }}>{a.id} — {a.purpose?.substring(0,50)}</div><div style={{ fontSize:11, color:C.textMuted }}>{fmt.cur(a.amount)} · {a.term}m · {fmt.date(a.submitted||a.createdAt)}</div></div>
               <Badge color={a.status==="Approved"?"green":a.status==="Declined"?"red":a.status==="Draft"?"gray":"blue"}>{a.status}</Badge>
             </div>)}
           </div>}
         </div>);
         case "portal_applications": return (<div>
-          <h2 style={{ margin:"0 0 16px", fontSize:22, fontWeight:700 }}>My Applications</h2>
+          <h2 style={{ margin:"0 0 16px", fontSize:24, fontWeight:700 }}>My Applications</h2>
           <Table columns={[
             {label:"ID",render:r=><span style={{fontWeight:600}}>{r.id}</span>},
             {label:"Product",render:r=>prod(r.product)?.name||r.product},
@@ -1076,18 +1076,18 @@ export default function App() {
             setPortalPayment({loanId:null,amount:"",method:"EFT",ref:""});
           };
           return (<div>
-            <h2 style={{ margin:"0 0 16px", fontSize:22, fontWeight:700 }}>My Loans</h2>
+            <h2 style={{ margin:"0 0 16px", fontSize:24, fontWeight:700 }}>My Loans</h2>
             {myLoans.length===0 ? <div style={{ padding:40, textAlign:"center", color:C.textMuted }}>No active loans.</div> :
             myLoans.map(l=>(
               <div key={l.id} style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"20px", marginBottom:12 }}>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:12 }}>
                   <div>
-                    <div style={{ fontSize:15, fontWeight:700 }}>{l.id} — {prod(l.product)?.name||"Loan"}</div>
+                    <div style={{ fontSize:14, fontWeight:700 }}>{l.id} — {prod(l.product)?.name||"Loan"}</div>
                     <div style={{ fontSize:12, color:C.textDim, marginTop:2 }}>Disbursed {fmt.date(l.disbursedAt)} · {l.rate}% · {l.term}m</div>
                   </div>
                   <Badge color={l.dpd>0?"red":"green"}>{l.dpd>0?`${l.dpd} DPD`:"Current"}</Badge>
                 </div>
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:12, marginBottom:14 }}>
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:12, marginBottom:16 }}>
                   <div><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase" }}>Original</div><div style={{ fontSize:14, fontWeight:700 }}>{fmt.cur(l.amount)}</div></div>
                   <div><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase" }}>Balance</div><div style={{ fontSize:14, fontWeight:700, color:l.dpd>0?C.red:C.text }}>{fmt.cur(l.balance)}</div></div>
                   <div><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase" }}>Next Due</div><div style={{ fontSize:14, fontWeight:600 }}>{fmt.date(l.nextDue)}</div></div>
@@ -1096,7 +1096,7 @@ export default function App() {
                 {/* Recent payments */}
                 {(l.payments||[]).length>0 && <div style={{ marginBottom:12 }}>
                   <div style={{ fontSize:11, fontWeight:600, marginBottom:4 }}>Recent Payments</div>
-                  {(l.payments||[]).slice(-3).reverse().map((p,i)=><div key={i} style={{ fontSize:11, color:C.textDim, padding:"3px 0", display:"flex", justifyContent:"space-between" }}><span>{fmt.date(p.date)} · {p.method} · {p.ref}</span><span style={{ fontWeight:600 }}>{fmt.cur(p.amount)}</span></div>)}
+                  {(l.payments||[]).slice(-3).reverse().map((p,i)=><div key={i} style={{ fontSize:11, color:C.textDim, padding:"4px 0", display:"flex", justifyContent:"space-between" }}><span>{fmt.date(p.date)} · {p.method} · {p.ref}</span><span style={{ fontWeight:600 }}>{fmt.cur(p.amount)}</span></div>)}
                 </div>}
                 <div style={{ display:"flex", gap:8, borderTop:`1px solid ${C.border}`, paddingTop:12 }}>
                   <button onClick={()=>setPortalPayment({loanId:l.id,amount:"",method:"EFT",ref:""})} style={{ background:C.text, color:"#fff", border:"none", padding:"8px 16px", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Make Payment</button>
@@ -1106,19 +1106,19 @@ export default function App() {
             ))}
             {/* PTP Modal */}
             {portalPtp.loanId && <Modal title={`Promise to Pay — ${portalPtp.loanId}`} onClose={()=>setPortalPtp({loanId:null,date:"",amount:"",notes:""})}>
-              <div style={{ display:"grid", gap:10 }}>
-                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Payment Date *</label><input type="date" value={portalPtp.date} onChange={e=>setPortalPtp({...portalPtp,date:e.target.value})} style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
-                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Amount (R) *</label><input type="number" value={portalPtp.amount} onChange={e=>setPortalPtp({...portalPtp,amount:e.target.value})} style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
-                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Notes</label><textarea value={portalPtp.notes} onChange={e=>setPortalPtp({...portalPtp,notes:e.target.value})} rows={2} style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
+              <div style={{ display:"grid", gap:12 }}>
+                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Payment Date *</label><input type="date" value={portalPtp.date} onChange={e=>setPortalPtp({...portalPtp,date:e.target.value})} style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
+                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Amount (R) *</label><input type="number" value={portalPtp.amount} onChange={e=>setPortalPtp({...portalPtp,amount:e.target.value})} style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
+                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Notes</label><textarea value={portalPtp.notes} onChange={e=>setPortalPtp({...portalPtp,notes:e.target.value})} rows={2} style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
                 <Btn onClick={handlePtp} disabled={!portalPtp.date||!portalPtp.amount}>Submit PTP</Btn>
               </div>
             </Modal>}
             {/* Payment Modal */}
             {portalPayment.loanId && <Modal title={`Make Payment — ${portalPayment.loanId}`} onClose={()=>setPortalPayment({loanId:null,amount:"",method:"EFT",ref:""})}>
-              <div style={{ display:"grid", gap:10 }}>
-                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Amount (R) *</label><input type="number" value={portalPayment.amount} onChange={e=>setPortalPayment({...portalPayment,amount:e.target.value})} style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
-                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Payment Method</label><select value={portalPayment.method} onChange={e=>setPortalPayment({...portalPayment,method:e.target.value})} style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit", background:"#fff" }}>{["EFT","Debit Order","Card","Cash Deposit"].map(m=><option key={m}>{m}</option>)}</select></div>
-                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Reference / Proof *</label><input value={portalPayment.ref} onChange={e=>setPortalPayment({...portalPayment,ref:e.target.value})} placeholder="Bank reference or deposit slip number" style={{ width:"100%", padding:"9px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
+              <div style={{ display:"grid", gap:12 }}>
+                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Amount (R) *</label><input type="number" value={portalPayment.amount} onChange={e=>setPortalPayment({...portalPayment,amount:e.target.value})} style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
+                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Payment Method</label><select value={portalPayment.method} onChange={e=>setPortalPayment({...portalPayment,method:e.target.value})} style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit", background:"#fff" }}>{["EFT","Debit Order","Card","Cash Deposit"].map(m=><option key={m}>{m}</option>)}</select></div>
+                <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Reference / Proof *</label><input value={portalPayment.ref} onChange={e=>setPortalPayment({...portalPayment,ref:e.target.value})} placeholder="Bank reference or deposit slip number" style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
                 <div style={{ background:C.surface2, padding:"8px 12px", fontSize:11, color:C.textDim }}>Payment will be verified by our finance team within 24 hours. Balance updated upon confirmation.</div>
                 <Btn onClick={handlePayment} disabled={!portalPayment.amount||!portalPayment.ref}>Submit Payment</Btn>
               </div>
@@ -1161,12 +1161,12 @@ export default function App() {
           };
 
           return (<div>
-            <h2 style={{ margin:"0 0 4px", fontSize:22, fontWeight:700 }}>KYB / FICA Documents</h2>
+            <h2 style={{ margin:"0 0 4px", fontSize:24, fontWeight:700 }}>KYB / FICA Documents</h2>
             <p style={{ fontSize:12, color:C.textDim, margin:"0 0 16px" }}>Upload all required documents to proceed with your loan application. A tracking number will be assigned once all mandatory documents are received.</p>
 
             {/* Progress indicator */}
             {(()=>{const req=KYB_FICA_DOCS.filter(d=>d.required).length; const done=KYB_FICA_DOCS.filter(d=>d.required&&myDocs.some(md=>md.docType===d.key)).length; return (
-              <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"14px 18px", marginBottom:16, display:"flex", alignItems:"center", gap:14 }}>
+              <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"16px 20px", marginBottom:16, display:"flex", alignItems:"center", gap:16 }}>
                 <div style={{ flex:1 }}>
                   <div style={{ display:"flex", justifyContent:"space-between", fontSize:11, marginBottom:4 }}><span style={{ fontWeight:600 }}>Mandatory Documents</span><span style={{ color:done===req?C.green:C.amber, fontWeight:600 }}>{done}/{req}</span></div>
                   <div style={{ height:6, background:C.surface2, borderRadius:3 }}><div style={{ height:6, background:done===req?C.green:C.amber, borderRadius:3, width:`${(done/req)*100}%`, transition:"width .3s" }} /></div>
@@ -1176,12 +1176,12 @@ export default function App() {
             );})()}
 
             {/* Document checklist */}
-            <div style={{ display:"flex", flexDirection:"column", gap:6, marginBottom:20 }}>
+            <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:20 }}>
               {KYB_FICA_DOCS.map(doc=>{
                 const st = getDocStatus(doc.key);
                 return (
                   <div key={doc.key} style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"12px 16px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-                    <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:12 }}>
                       <div style={{ width:8, height:8, borderRadius:4, background:st.color==="green"?C.green:st.color==="red"?C.red:st.color==="blue"?C.blue:C.border }} />
                       <div>
                         <div style={{ fontSize:13, fontWeight:500 }}>{doc.label}{doc.required&&<span style={{ color:C.red, marginLeft:3 }}>*</span>}</div>
@@ -1189,7 +1189,7 @@ export default function App() {
                       </div>
                     </div>
                     {(st.status==="Not Uploaded"||st.status.includes("Re-upload")) && (
-                      <button onClick={()=>handleDocUpload(doc)} style={{ background:C.text, color:"#fff", border:"none", padding:"6px 14px", fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Upload</button>
+                      <button onClick={()=>handleDocUpload(doc)} style={{ background:C.text, color:"#fff", border:"none", padding:"8px 14px", fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Upload</button>
                     )}
                     {st.status==="Under Review" && <span style={{ fontSize:10, color:C.blue, fontWeight:500 }}>Pending verification</span>}
                   </div>
@@ -1205,29 +1205,29 @@ export default function App() {
                   <div style={{ fontSize:12, fontWeight:600, marginBottom:4 }}>Bank Account Verification</div>
                   <div style={{ fontSize:11, color:C.textDim, marginBottom:8 }}>Verify your bank account details via API integration.</div>
                   {portalVerify.bankStatus==="verified" ? <Badge color="green">Verified</Badge> :
-                   <button onClick={runBankVerification} disabled={portalVerify.running} style={{ background:portalVerify.running?C.border:C.text, color:portalVerify.running?C.textMuted:"#fff", border:"none", padding:"7px 16px", fontSize:11, fontWeight:600, cursor:portalVerify.running?"not-allowed":"pointer", fontFamily:"inherit" }}>{portalVerify.running?"Verifying...":"Verify Bank Account"}</button>}
+                   <button onClick={runBankVerification} disabled={portalVerify.running} style={{ background:portalVerify.running?C.border:C.text, color:portalVerify.running?C.textMuted:"#fff", border:"none", padding:"8px 16px", fontSize:11, fontWeight:600, cursor:portalVerify.running?"not-allowed":"pointer", fontFamily:"inherit" }}>{portalVerify.running?"Verifying...":"Verify Bank Account"}</button>}
                 </div>
                 <div style={{ border:`1px solid ${C.border}`, padding:"14px" }}>
                   <div style={{ fontSize:12, fontWeight:600, marginBottom:4 }}>Credit Bureau Check</div>
                   <div style={{ fontSize:11, color:C.textDim, marginBottom:8 }}>Run a credit vetting check (TransUnion/Experian).</div>
                   {portalVerify.creditStatus ? <Badge color="blue">{portalVerify.creditStatus}</Badge> :
-                   <button onClick={runCreditCheck} disabled={portalVerify.running} style={{ background:portalVerify.running?C.border:C.text, color:portalVerify.running?C.textMuted:"#fff", border:"none", padding:"7px 16px", fontSize:11, fontWeight:600, cursor:portalVerify.running?"not-allowed":"pointer", fontFamily:"inherit" }}>{portalVerify.running?"Running check...":"Run Credit Check"}</button>}
+                   <button onClick={runCreditCheck} disabled={portalVerify.running} style={{ background:portalVerify.running?C.border:C.text, color:portalVerify.running?C.textMuted:"#fff", border:"none", padding:"8px 16px", fontSize:11, fontWeight:600, cursor:portalVerify.running?"not-allowed":"pointer", fontFamily:"inherit" }}>{portalVerify.running?"Running check...":"Run Credit Check"}</button>}
                 </div>
               </div>
             </div>
           </div>);
         }
         case "portal_comms": return (<div>
-          <h2 style={{ margin:"0 0 16px", fontSize:22, fontWeight:700 }}>Messages</h2>
+          <h2 style={{ margin:"0 0 16px", fontSize:24, fontWeight:700 }}>Messages</h2>
           {myComms.length === 0 ? <div style={{ textAlign:"center", padding:40, color:C.textMuted }}>No messages.</div> :
-          myComms.sort((a,b)=>b.ts-a.ts).map(c=><div key={c.id} style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"12px 16px", marginBottom:6 }}>
+          myComms.sort((a,b)=>b.ts-a.ts).map(c=><div key={c.id} style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"12px 16px", marginBottom:8 }}>
             <div style={{ display:"flex", justifyContent:"space-between", fontSize:11, color:C.textMuted }}><span>{c.channel} · {c.direction}</span><span>{fmt.date(c.ts)}</span></div>
             <div style={{ fontSize:13, fontWeight:600, marginTop:4 }}>{c.subject}</div>
             <div style={{ fontSize:12, color:C.textDim, marginTop:4, lineHeight:1.5 }}>{c.body}</div>
           </div>)}
         </div>);
         case "portal_profile": return (<div>
-          <h2 style={{ margin:"0 0 16px", fontSize:22, fontWeight:700 }}>My Profile</h2>
+          <h2 style={{ margin:"0 0 16px", fontSize:24, fontWeight:700 }}>My Profile</h2>
           {myCustomer ? <SectionCard title="Business Details">
             <InfoGrid items={[["Business Name",myCustomer.name],["Contact",myCustomer.contact],["Email",myCustomer.email],["Phone",myCustomer.phone],["Industry",myCustomer.industry],["BEE Level",`Level ${myCustomer.beeLevel}`],["FICA Status",myCustomer.ficaStatus],["Province",myCustomer.province]]} />
           </SectionCard> : <div style={{ padding:32, textAlign:"center", color:C.textMuted }}>Profile not linked. Contact TQA Capital support.</div>}
@@ -1244,11 +1244,11 @@ export default function App() {
         <aside style={{ width:200, background:C.surface, borderRight:`1px solid ${C.border}`, display:"flex", flexDirection:"column" }}>
           <div style={{ padding:"14px", borderBottom:`1px solid ${C.border}` }}>
             <div style={{ fontSize:14, fontWeight:700, color:C.text }}>KwikBridge</div>
-            <div style={{ fontSize:9, color:C.textMuted, letterSpacing:0.8, textTransform:"uppercase" }}>Borrower Portal</div>
+            <div style={{ fontSize:10, color:C.textMuted, letterSpacing:0.8, textTransform:"uppercase" }}>Borrower Portal</div>
           </div>
-          <nav style={{ flex:1, padding:"6px 4px" }}>
+          <nav style={{ flex:1, padding:"8px 4px" }}>
             {portalNav.map(n=>(
-              <button key={n.key} onClick={()=>navTo(n.key)} style={{ width:"100%", display:"flex", alignItems:"center", gap:8, padding:"8px 10px", marginBottom:1, background:page===n.key?C.surface2:"transparent", border:"none", cursor:"pointer", fontFamily:"inherit", fontSize:12, fontWeight:page===n.key?600:400, color:page===n.key?C.text:C.textDim, textAlign:"left" }}>
+              <button key={n.key} onClick={()=>navTo(n.key)} style={{ width:"100%", display:"flex", alignItems:"center", gap:8, padding:"8px 12px", marginBottom:1, background:page===n.key?C.surface2:"transparent", border:"none", cursor:"pointer", fontFamily:"inherit", fontSize:12, fontWeight:page===n.key?600:400, color:page===n.key?C.text:C.textDim, textAlign:"left" }}>
                 {n.icon}<span style={{ flex:1 }}>{n.label}</span>
                 {n.count>0&&<span style={{ fontSize:10, color:C.textMuted }}>{n.count}</span>}
               </button>
@@ -1256,8 +1256,8 @@ export default function App() {
           </nav>
           <div style={{ padding:"8px 12px 12px", borderTop:`1px solid ${C.border}` }}>
             <div style={{ fontSize:10, fontWeight:500, color:C.text }}>{authSession?.user?.email}</div>
-            <div style={{ fontSize:9, color:C.textMuted, marginBottom:4 }}>Borrower Account</div>
-            <button onClick={handleSignOut} style={{ background:"none", border:`1px solid ${C.border}`, color:C.red, padding:"2px 6px", fontSize:9, cursor:"pointer", fontFamily:"inherit" }}>Sign Out</button>
+            <div style={{ fontSize:10, color:C.textMuted, marginBottom:4 }}>Borrower Account</div>
+            <button onClick={handleSignOut} style={{ background:"none", border:`1px solid ${C.border}`, color:C.red, padding:"2px 6px", fontSize:10, cursor:"pointer", fontFamily:"inherit" }}>Sign Out</button>
           </div>
         </aside>
         {/* Portal Main */}
@@ -2003,7 +2003,7 @@ export default function App() {
     return (<div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
         <div>
-          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: C.text }}>Dashboard</h2>
+          <h2 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: C.text, letterSpacing:-0.3 }}>Dashboard</h2>
           <p style={{ margin: "4px 0 0", fontSize: 12, color: C.textMuted }}>{currentUser.name} · {ROLES[role]?.label} · {roleSummary[role] || ""}</p>
         </div>
         {canDo("origination","create") && <Btn onClick={() => setModal("newApp")} icon={I.plus}>New Application</Btn>}
@@ -2035,7 +2035,7 @@ export default function App() {
               const bal = sl.reduce((sum, l) => sum + l.balance, 0);
               const colors = { 1: C.green, 2: C.amber, 3: C.red };
               const labels = { 1: "Performing", 2: "Underperforming", 3: "Non-performing" };
-              return (<div key={s} style={{ marginBottom: 14 }}>
+              return (<div key={s} style={{ marginBottom:16 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 600, color: C.textDim, marginBottom: 4 }}>
                   <span>Stage {s}: {labels[s]}</span><span>{sl.length} ({pct}%) · {fmt.cur(bal)}</span>
                 </div>
@@ -2073,10 +2073,10 @@ export default function App() {
             const days = Math.ceil((new Date(r.dueDate) - new Date()) / 864e5);
             const uc = days < 0 ? C.red : days <= 30 ? C.red : days <= 60 ? C.amber : C.textDim;
             return (
-              <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "10px 0", borderBottom: `1px solid ${C.border}` }}>
+              <div key={r.id} style={{ display: "flex", alignItems: "center", gap:16, padding: "10px 0", borderBottom: `1px solid ${C.border}` }}>
                 <div style={{ width: 36, height: 36, border: `1px solid ${C.border}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                   <div style={{ fontSize: 14, fontWeight: 700, color: uc, lineHeight: 1 }}>{days < 0 ? "!" : days}</div>
-                  <div style={{ fontSize: 7, color: C.textMuted, fontWeight: 500 }}>{days < 0 ? "LATE" : "DAYS"}</div>
+                  <div style={{ fontSize:10, color: C.textMuted, fontWeight: 500 }}>{days < 0 ? "LATE" : "DAYS"}</div>
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 13, fontWeight: 600, color: C.text }}>{r.name}</div>
@@ -2094,19 +2094,19 @@ export default function App() {
       {(role === "LOAN_OFFICER" || role === "CREDIT" || role === "CREDIT_SNR" || role === "COLLECTIONS") && (
         <SectionCard title="My Tasks">
           {role === "LOAN_OFFICER" && applications.filter(a => a.status === "Submitted").map(a => (
-            <div key={a.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"6px 0", borderBottom:`1px solid ${C.border}`, fontSize:12 }}>
+            <div key={a.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 0", borderBottom:`1px solid ${C.border}`, fontSize:12 }}>
               <span><span style={{ fontWeight:600 }}>{a.id}</span> — {cust(a.custId)?.name} — {fmt.cur(a.amount)} — awaiting DD initiation</span>
               <Btn size="sm" variant="secondary" onClick={()=>setDetail({type:"application",id:a.id})}>Open</Btn>
             </div>
           ))}
           {(role === "CREDIT" || role === "CREDIT_SNR") && applications.filter(a => a.status === "Underwriting").map(a => (
-            <div key={a.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"6px 0", borderBottom:`1px solid ${C.border}`, fontSize:12 }}>
+            <div key={a.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 0", borderBottom:`1px solid ${C.border}`, fontSize:12 }}>
               <span><span style={{ fontWeight:600 }}>{a.id}</span> — {cust(a.custId)?.name} — {fmt.cur(a.amount)} — underwriting in progress</span>
               <Btn size="sm" variant="secondary" onClick={()=>setDetail({type:"application",id:a.id})}>Open</Btn>
             </div>
           ))}
           {role === "COLLECTIONS" && arrLoans.map(l => (
-            <div key={l.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"6px 0", borderBottom:`1px solid ${C.border}`, fontSize:12 }}>
+            <div key={l.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 0", borderBottom:`1px solid ${C.border}`, fontSize:12 }}>
               <span><span style={{ fontWeight:600 }}>{l.id}</span> — {cust(l.custId)?.name} — {l.dpd} DPD — {fmt.cur(l.balance)}</span>
               <Btn size="sm" variant="secondary" onClick={()=>setDetail({type:"loan",id:l.id})}>Open</Btn>
             </div>
@@ -2165,29 +2165,29 @@ export default function App() {
 
     return (<div>
       <div style={{ display:"flex", justifyContent:"space-between", marginBottom:16 }}>
-        <div><h2 style={{ margin:0, fontSize:22, fontWeight:700, color:C.text }}>Customer Management</h2><p style={{ margin:"4px 0 0", fontSize:13, color:C.textMuted }}>Onboarding, KYC/FICA verification, BEE profiling & relationship management</p></div>
+        <div><h2 style={{ margin:0, fontSize:24, fontWeight:700, color:C.text }}>Customer Management</h2><p style={{ margin:"4px 0 0", fontSize:13, color:C.textMuted }}>Onboarding, KYC/FICA verification, BEE profiling & relationship management</p></div>
         {canDo("customers","create") && <Btn onClick={()=>setShowCreate(!showCreate)} icon={I.plus}>New Customer</Btn>}
       </div>
 
       {showCreate && (
         <SectionCard title="Register New Customer">
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:10 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:12 }}>
             <Field label="Business Name *"><Input value={cForm.name} onChange={e=>setCForm({...cForm,name:e.target.value})} placeholder="e.g. Nomsa Trading (Pty) Ltd" /></Field>
             <Field label="Contact Person *"><Input value={cForm.contact} onChange={e=>setCForm({...cForm,contact:e.target.value})} placeholder="Full name" /></Field>
             <Field label="Email"><Input value={cForm.email} onChange={e=>setCForm({...cForm,email:e.target.value})} placeholder="email@company.co.za" /></Field>
           </div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:10 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:12 }}>
             <Field label="Phone"><Input value={cForm.phone} onChange={e=>setCForm({...cForm,phone:e.target.value})} placeholder="0XX XXX XXXX" /></Field>
             <Field label="ID Number *"><Input value={cForm.idNum} onChange={e=>setCForm({...cForm,idNum:e.target.value})} placeholder="13-digit SA ID" /></Field>
             <Field label="Company Registration *"><Input value={cForm.regNum} onChange={e=>setCForm({...cForm,regNum:e.target.value})} placeholder="YYYY/XXXXXX/07" /></Field>
           </div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:10, marginBottom:10 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:12, marginBottom:12 }}>
             <Field label="Industry"><Select value={cForm.industry} onChange={e=>setCForm({...cForm,industry:e.target.value})} options={["Retail","Agriculture","Technology","Construction","Food Processing","Transport","Manufacturing","Professional Services","Other"].map(v=>({value:v,label:v}))} /></Field>
             <Field label="Sector"><Input value={cForm.sector} onChange={e=>setCForm({...cForm,sector:e.target.value})} placeholder="e.g. Consumer Goods" /></Field>
             <Field label="Annual Revenue (R)"><Input type="number" value={cForm.revenue} onChange={e=>setCForm({...cForm,revenue:e.target.value})} /></Field>
             <Field label="Employees"><Input type="number" value={cForm.employees} onChange={e=>setCForm({...cForm,employees:e.target.value})} /></Field>
           </div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:10, marginBottom:10 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:12, marginBottom:12 }}>
             <Field label="Years in Business"><Input type="number" value={cForm.years} onChange={e=>setCForm({...cForm,years:e.target.value})} /></Field>
             <Field label="BEE Level"><Select value={cForm.beeLevel} onChange={e=>setCForm({...cForm,beeLevel:e.target.value})} options={[1,2,3,4,5,6,7,8].map(v=>({value:v,label:`Level ${v}`}))} /></Field>
             <Field label="Women Ownership %"><Input type="number" min="0" max="100" value={cForm.womenOwned} onChange={e=>setCForm({...cForm,womenOwned:e.target.value})} placeholder="0-100" /></Field>
@@ -2233,7 +2233,7 @@ export default function App() {
 
     return (<div>
       <div style={{ display:"flex", justifyContent:"space-between", marginBottom:16 }}>
-        <div><h2 style={{ margin:0, fontSize:22, fontWeight:700, color:C.text }}>Loan Origination</h2><p style={{ margin:"4px 0 0", fontSize:13, color:C.textMuted }}>Application intake, QA & document validation, assignment & pipeline management</p></div>
+        <div><h2 style={{ margin:0, fontSize:24, fontWeight:700, color:C.text }}>Loan Origination</h2><p style={{ margin:"4px 0 0", fontSize:13, color:C.textMuted }}>Application intake, QA & document validation, assignment & pipeline management</p></div>
         {canDo("origination","create") && <Btn onClick={() => setModal("newApp")} icon={I.plus}>New Application</Btn>}
       </div>
 
@@ -2290,7 +2290,7 @@ export default function App() {
     const pending = applications.filter(a => ["Submitted","Underwriting"].includes(a.status));
     const decided = applications.filter(a => ["Approved","Declined"].includes(a.status)).slice(-5);
     return (<div>
-      <h2 style={{ margin:"0 0 4px", fontSize:22, fontWeight:700, color:C.text }}>Credit Assessment & Underwriting</h2>
+      <h2 style={{ margin:"0 0 4px", fontSize:24, fontWeight:700, color:C.text }}>Credit Assessment & Underwriting</h2>
       <p style={{ margin:"0 0 20px", fontSize:13, color:C.textMuted }}>Risk analysis, affordability, scoring & credit decisions</p>
       <SectionCard title={`Pending Decisions (${pending.length})`}>
         <Table columns={[
@@ -2299,7 +2299,7 @@ export default function App() {
           { label:"Amount", render:r=>fmt.cur(r.amount) },
           { label:"Authority", render:r=>r.amount>1000000?"Credit Committee":r.amount>500000?"Head of Credit":r.amount>250000?"Senior Analyst":"Analyst" },
           { label:"Status", render:r=>statusBadge(r.status) },
-          { label:"Actions", render:r=><div style={{ display:"flex", gap:6 }}>{r.status==="Submitted"&&canDo("underwriting","update")&&<Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();moveToUnderwriting(r.id)}}>Start DD</Btn>}{r.status==="Underwriting"&&canDo("underwriting","view")&&<Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();setDetail({type:"application",id:r.id})}}>Open Workflow</Btn>}</div> },
+          { label:"Actions", render:r=><div style={{ display:"flex", gap:8 }}>{r.status==="Submitted"&&canDo("underwriting","update")&&<Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();moveToUnderwriting(r.id)}}>Start DD</Btn>}{r.status==="Underwriting"&&canDo("underwriting","view")&&<Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();setDetail({type:"application",id:r.id})}}>Open Workflow</Btn>}</div> },
         ]} rows={pending} onRowClick={r=>setDetail({type:"application",id:r.id})} />
       </SectionCard>
       <SectionCard title="Recent Decisions">
@@ -2347,19 +2347,19 @@ export default function App() {
     const facilUtil = fundingCap>0 ? currentBook/fundingCap : 0;
 
     const row = (label, value, indent=false, accent=false, divider=false) => (
-      <div style={{ display:"flex", justifyContent:"space-between", padding:"7px 0", borderBottom:divider?`2px solid ${C.text}`:`1px solid ${C.border}`, paddingLeft:indent?16:0 }}>
+      <div style={{ display:"flex", justifyContent:"space-between", padding:"8px 0", borderBottom:divider?`2px solid ${C.text}`:`1px solid ${C.border}`, paddingLeft:indent?16:0 }}>
         <span style={{ fontSize:12, fontWeight:accent?700:indent?400:600, color:accent?C.text:indent?C.textDim:C.text }}>{label}</span>
         <span style={{ fontSize:12, fontWeight:accent?700:600, fontFamily:"monospace", color:accent?C.text:C.text }}>{value}</span>
       </div>
     );
 
     return (<div>
-      <h2 style={{ margin:"0 0 4px", fontSize:22, fontWeight:700, color:C.text }}>Loans</h2>
+      <h2 style={{ margin:"0 0 4px", fontSize:24, fontWeight:700, color:C.text }}>Loans</h2>
       <p style={{ margin:"0 0 16px", fontSize:13, color:C.textMuted }}>Booking, disbursement, portfolio monitoring & covenant tracking</p>
 
-      <div style={{ display:"flex", gap:6, marginBottom:16 }}>
-        <button onClick={()=>setView("book")} style={{ background:view==="book"?C.text:"none", color:view==="book"?"#fff":C.textDim, border:`1px solid ${view==="book"?C.text:C.border}`, padding:"6px 14px", fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Loan Book</button>
-        <button onClick={()=>setView("analytics")} style={{ background:view==="analytics"?C.text:"none", color:view==="analytics"?"#fff":C.textDim, border:`1px solid ${view==="analytics"?C.text:C.border}`, padding:"6px 14px", fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Portfolio Analytics</button>
+      <div style={{ display:"flex", gap:8, marginBottom:16 }}>
+        <button onClick={()=>setView("book")} style={{ background:view==="book"?C.text:"none", color:view==="book"?"#fff":C.textDim, border:`1px solid ${view==="book"?C.text:C.border}`, padding:"8px 14px", fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Loan Book</button>
+        <button onClick={()=>setView("analytics")} style={{ background:view==="analytics"?C.text:"none", color:view==="analytics"?"#fff":C.textDim, border:`1px solid ${view==="analytics"?C.text:C.border}`, padding:"8px 14px", fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Portfolio Analytics</button>
       </div>
 
       {view === "book" && <div>
@@ -2427,7 +2427,7 @@ export default function App() {
           {row("Current book", fmt.cur(currentBook), true)}
           {row("Facility capacity", fmt.cur(fundingCap), true)}
           <div style={{ height:12 }} />
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"7px 0" }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 0" }}>
             <span style={{ fontSize:12, fontWeight:600 }}>Facility utilisation</span>
             <span style={{ fontSize:12, fontWeight:700, fontFamily:"monospace", color:facilUtil>0.85?C.red:facilUtil>0.7?C.amber:C.green }}>{fmt.pct(facilUtil)}</span>
           </div>
@@ -2477,7 +2477,7 @@ export default function App() {
     };
 
     return (<div>
-      <h2 style={{ margin:"0 0 4px", fontSize:22, fontWeight:700, color:C.text }}>Loan Servicing</h2>
+      <h2 style={{ margin:"0 0 4px", fontSize:24, fontWeight:700, color:C.text }}>Loan Servicing</h2>
       <p style={{ margin:"0 0 16px", fontSize:13, color:C.textMuted }}>Payment processing, amortization schedules, statements & account management</p>
 
       <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:16 }}>
@@ -2576,7 +2576,7 @@ export default function App() {
     const late = delinquent.filter(l=>l.dpd>90);
 
     return (<div>
-      <h2 style={{ margin:"0 0 4px", fontSize:22, fontWeight:700, color:C.text }}>Collections & Recovery</h2>
+      <h2 style={{ margin:"0 0 4px", fontSize:24, fontWeight:700, color:C.text }}>Collections & Recovery</h2>
       <p style={{ margin:"0 0 16px", fontSize:13, color:C.textMuted }}>NCA-compliant delinquency management, PTP tracking, restructuring & legal recovery</p>
       <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:16 }}>
         <KPI label="Early (1-30)" value={early.length} sub={fmt.cur(early.reduce((s,l)=>s+l.balance,0))} />
@@ -2601,7 +2601,7 @@ export default function App() {
         { label:"DPD", render:r=><span style={{ fontSize:18, fontWeight:700, color:r.dpd<=30?C.amber:C.red }}>{r.dpd}</span> },
         { label:"Stage", render:r=><Badge color={r.dpd<=30?"amber":r.dpd<=90?"red":"red"}>{r.dpd<=30?"Early":r.dpd<=90?"Mid":"Late"}</Badge> },
         { label:"Last Action", render:r=>{ const last=collections.filter(c=>c.loanId===r.id).sort((a,b)=>b.created-a.created)[0]; return last?<span style={{ fontSize:10, color:C.textDim }}>{last.action} ({fmt.date(last.created)})</span>:<span style={{ fontSize:10, color:C.textMuted }}>None</span>; }},
-        { label:"Actions", render:r=>canDo("collections","create") ? <div style={{ display:"flex", gap:3 }}>
+        { label:"Actions", render:r=>canDo("collections","create") ? <div style={{ display:"flex", gap:4 }}>
           <Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();addCollectionAction(r.id,"Phone Call","Outbound call.",{channel:"Phone"})}}>Call</Btn>
           <Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();setActionModal({loanId:r.id,type:"ptp"})}}>PTP</Btn>
           {r.dpd>30&&<Btn size="sm" variant="danger" onClick={e=>{e.stopPropagation();addCollectionAction(r.id,"Letter of Demand","Formal NCA demand issued.",{channel:"Letter"})}}>Demand</Btn>}
@@ -2658,7 +2658,7 @@ export default function App() {
       {/* PTP Modal */}
       <Modal open={actionModal?.type==="ptp"} onClose={()=>setActionModal(null)} title={`Promise-to-Pay — ${actionModal?.loanId}`} width={440}>
         <div style={{ fontSize:12, color:C.textDim, marginBottom:12 }}>Record a payment commitment from the customer.</div>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
           <Field label="PTP Date"><Input type="date" value={ptpForm.date} onChange={e=>setPtpForm({...ptpForm,date:e.target.value})} /></Field>
           <Field label="PTP Amount (R)"><Input type="number" value={ptpForm.amount} onChange={e=>setPtpForm({...ptpForm,amount:e.target.value})} /></Field>
         </div>
@@ -2697,7 +2697,7 @@ export default function App() {
     const totalECL = provisions.reduce((s,p)=>s+p.ecl,0);
     const totalEAD = provisions.reduce((s,p)=>s+p.ead,0);
     return (<div>
-      <h2 style={{ margin:"0 0 4px", fontSize:22, fontWeight:700, color:C.text }}>IFRS 9 Impairment & Provisioning</h2>
+      <h2 style={{ margin:"0 0 4px", fontSize:24, fontWeight:700, color:C.text }}>IFRS 9 Impairment & Provisioning</h2>
       <p style={{ margin:"0 0 20px", fontSize:13, color:C.textMuted }}>Expected Credit Loss calculation, staging & forward-looking ECL models</p>
       <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:20 }}>
         <KPI label="Total ECL Provision" value={fmt.cur(totalECL)} accent={C.purple} />
@@ -2716,7 +2716,7 @@ export default function App() {
           { label:"ECL", render:r=><span style={{ fontWeight:700, color:C.purple }}>{fmt.cur(r.ecl)}</span> },
           { label:"Method", render:r=><span style={{ fontSize:11, color:C.textDim }}>{r.method}</span> },
         ]} rows={provisions} />
-        <div style={{ textAlign:"right", marginTop:14, fontSize:15, fontWeight:700, color:C.text }}>Total ECL: <span style={{ color:C.purple }}>{fmt.cur(totalECL)}</span></div>
+        <div style={{ textAlign:"right", marginTop:14, fontSize:14, fontWeight:700, color:C.text }}>Total ECL: <span style={{ color:C.purple }}>{fmt.cur(totalECL)}</span></div>
       </SectionCard>
       <SectionCard title="IFRS 9 Stage Distribution">
         {[1,2,3].map(s => {
@@ -2757,7 +2757,7 @@ export default function App() {
     ];
 
     return (<div>
-      <h2 style={{ margin:"0 0 4px", fontSize:22, fontWeight:700, color:C.text }}>Governance, Risk & Compliance</h2>
+      <h2 style={{ margin:"0 0 4px", fontSize:24, fontWeight:700, color:C.text }}>Governance, Risk & Compliance</h2>
       <p style={{ margin:"0 0 16px", fontSize:13, color:C.textMuted }}>Audit trail, control points, approval authorities, regulatory compliance & alerts</p>
       <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:16 }}>
         <KPI label="Audit Entries" value={audit.length} />
@@ -2774,7 +2774,7 @@ export default function App() {
       ]} active={tab} onChange={setTab} />
 
       {tab==="audit" && <div>
-        <div style={{ display:"flex", gap:8, marginBottom:10 }}>
+        <div style={{ display:"flex", gap:8, marginBottom:12 }}>
           <select value={auditFilter.category} onChange={e=>setAuditFilter({...auditFilter,category:e.target.value})} style={{ padding:"4px 6px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:11, fontFamily:"inherit" }}>
             <option value="">All Categories</option>
             {categories.map(c=><option key={c} value={c}>{c}</option>)}
@@ -2846,7 +2846,7 @@ export default function App() {
       </div>}
 
       {tab==="alerts" && <div>
-        <div style={{ display:"flex", gap:8, marginBottom:10 }}>
+        <div style={{ display:"flex", gap:8, marginBottom:12 }}>
           <span style={{ fontSize:11, color:C.textMuted }}>{alerts.filter(a=>!a.read).length} unread of {alerts.length} total</span>
           {canDo("governance","update") && alerts.some(a=>!a.read) && <Btn size="sm" variant="ghost" onClick={()=>save({...data,alerts:alerts.map(a=>({...a,read:true}))})}>Mark All Read</Btn>}
         </div>
@@ -2883,7 +2883,7 @@ export default function App() {
     const form39Frequency = totalDisbursedAmt > 15000000 ? "Quarterly" : "Annual";
 
     return (<div>
-      <h2 style={{ margin:"0 0 4px", fontSize:22, fontWeight:700, color:C.text }}>NCR Statutory Reporting</h2>
+      <h2 style={{ margin:"0 0 4px", fontSize:24, fontWeight:700, color:C.text }}>NCR Statutory Reporting</h2>
       <p style={{ margin:"0 0 20px", fontSize:13, color:C.textMuted }}>Regulatory reporting calendar, deadlines & submission tracking — NCRCP22396</p>
 
       {/* Critical deadline banner */}
@@ -2891,7 +2891,7 @@ export default function App() {
         const next = upcoming[0];
         const days = daysUntil(next.dueDate);
         return (
-          <div style={{ background: C.surface, border: `1px solid ${C.border}`, padding: "12px 16px", marginBottom: 20, display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, padding: "12px 16px", marginBottom: 20, display: "flex", alignItems: "center", gap:16 }}>
             <div style={{ flexShrink: 0 }}>{I.warning}</div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>Next Deadline: {next.name}</div>
@@ -2925,7 +2925,7 @@ export default function App() {
           const days = daysUntil(r.dueDate);
           return (
             <div key={r.id} style={{ background: C.surface, border: `1px solid ${C.border}`, padding: "12px 16px", marginBottom: 8 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom:12 }}>
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
                     <span style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{r.name}</span>
@@ -2939,7 +2939,7 @@ export default function App() {
                   <div style={{ fontSize: 11, color: C.textMuted, marginTop: 4 }}>Due: {fmt.date(new Date(r.dueDate))}</div>
                 </div>
               </div>
-              <div style={{ fontSize: 12, color: C.textDim, marginBottom: 10, lineHeight: 1.5 }}>{r.notes}</div>
+              <div style={{ fontSize: 12, color: C.textDim, marginBottom:12, lineHeight: 1.5 }}>{r.notes}</div>
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                 {r.status === "Not Started" && canDo("statutory","update") && <Btn size="sm" variant="secondary" onClick={() => updateStatutoryStatus(r.id, "In Progress")}>Start Preparation</Btn>}
                 {r.status === "In Progress" && canDo("statutory","update") && <Btn size="sm" variant="secondary" onClick={() => updateStatutoryStatus(r.id, "Under Review")}>Submit for Review</Btn>}
@@ -2959,7 +2959,7 @@ export default function App() {
 
       {tab === "calendar" && (<div>
         <SectionCard title="Annual Statutory Reports (Due within 6 months of year-end)">
-          <div style={{ fontSize: 12, color: C.textDim, marginBottom: 14, lineHeight: 1.6, padding: "10px 14px", background: C.surface2 }}>
+          <div style={{ fontSize: 12, color: C.textDim, marginBottom:16, lineHeight: 1.6, padding: "10px 14px", background: C.surface2 }}>
             Credit providers registered under the NCA must submit the following reports to the NCR within <span style={{ fontWeight: 600, color: C.text }}>6 months</span> of their financial year-end. Year-end: <span style={{ fontWeight: 600, color: C.text }}>{settings?.yearEnd}</span> → Deadline: <span style={{ fontWeight: 600, color: C.red }}>{settings?.annualDueDate}</span>
           </div>
           <Table columns={[
@@ -2973,7 +2973,7 @@ export default function App() {
         </SectionCard>
 
         <SectionCard title="Form 39 – Statistical Returns (Quarterly)">
-          <div style={{ fontSize: 12, color: C.textDim, marginBottom: 14, lineHeight: 1.6, padding: "10px 14px", background: C.surface2 }}>
+          <div style={{ fontSize: 12, color: C.textDim, marginBottom:16, lineHeight: 1.6, padding: "10px 14px", background: C.surface2 }}>
             Annual disbursements: <span style={{ fontWeight: 700, color: C.text }}>{fmt.cur(totalDisbursedAmt)}</span> — {totalDisbursedAmt > 15000000
               ? <span style={{ color: C.red, fontWeight: 700 }}>Exceeds R15 million → Form 39 must be submitted QUARTERLY</span>
               : <span style={{ color: C.green, fontWeight: 700 }}>Below R15 million → Form 39 submitted annually (1 Jan – 31 Dec)</span>
@@ -3025,7 +3025,7 @@ export default function App() {
         <SectionCard title="NCR Submission Requirements">
           <div style={{ fontSize: 13, color: C.textDim, lineHeight: 1.8 }}>
             <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 6 }}>Annual Statutory Reports</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom:8 }}>Annual Statutory Reports</div>
               <div>Registered credit providers must submit the following within <span style={{ fontWeight: 700, color: C.amber }}>6 months of their financial year-end</span>:</div>
               <div style={{ padding: "10px 0 10px 16px" }}>
                 {["Annual Compliance Report", "Annual Financial Statements (must include auditor's report)", "Annual Financial & Operational Return", "Assurance Engagement Report"].map((item, i) => (
@@ -3038,8 +3038,8 @@ export default function App() {
             </div>
 
             <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 6 }}>Form 39 – Statistical Returns</div>
-              <div style={{ padding: "8px 12px", background: C.surface2, border: `1px solid ${C.border}`, marginBottom: 10 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom:8 }}>Form 39 – Statistical Returns</div>
+              <div style={{ padding: "8px 12px", background: C.surface2, border: `1px solid ${C.border}`, marginBottom:12 }}>
                 <span style={{ fontWeight: 700 }}>Current annual disbursements: {fmt.cur(totalDisbursedAmt)}</span> — {totalDisbursedAmt > 15000000
                   ? <span style={{ color: C.red, fontWeight: 700 }}>Exceeds R15 million → Quarterly submission required</span>
                   : <span style={{ color: C.green, fontWeight: 700 }}>Below R15 million → Annual submission (1 Jan – 31 Dec)</span>
@@ -3048,8 +3048,8 @@ export default function App() {
             </div>
 
             <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 6 }}>Submission Channels</div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom:8 }}>Submission Channels</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap:12 }}>
                 {[
                   ["Annual Statutory Reports", "submissions@ncr.org.za", C.purple],
                   ["Form 39 Statistical Returns", "returns@ncr.org.za", C.blue],
@@ -3065,7 +3065,7 @@ export default function App() {
             </div>
 
             <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 6 }}>Company Details</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom:8 }}>Company Details</div>
               <InfoGrid items={[
                 ["Registered Name", settings?.companyName],
                 ["NCR Registration", settings?.ncrReg],
@@ -3095,7 +3095,7 @@ export default function App() {
     const verified = docs.filter(d => d.status === "Verified");
 
     return (<div>
-      <h2 style={{ margin:"0 0 4px", fontSize:22, fontWeight:700, color:C.text }}>Document Management</h2>
+      <h2 style={{ margin:"0 0 4px", fontSize:24, fontWeight:700, color:C.text }}>Document Management</h2>
       <p style={{ margin:"0 0 16px", fontSize:13, color:C.textMuted }}>Centralised document registry — KYC/KYB, financial, legal, collateral & compliance</p>
 
       <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:16 }}>
@@ -3115,7 +3115,7 @@ export default function App() {
       {/* Category filter */}
       <div style={{ display:"flex", gap:0, marginBottom:16, borderBottom:`1px solid ${C.border}` }}>
         {categories.map(c => (
-          <button key={c} onClick={()=>setCatFilter(c)} style={{ padding:"5px 12px", border:"none", borderBottom: catFilter===c?`2px solid ${C.textDim}`:"2px solid transparent", background:"transparent", color:catFilter===c?C.text:C.textMuted, fontSize:11, fontWeight:catFilter===c?600:400, cursor:"pointer", fontFamily:"inherit", marginBottom:-1 }}>{c}</button>
+          <button key={c} onClick={()=>setCatFilter(c)} style={{ padding:"4px 12px", border:"none", borderBottom: catFilter===c?`2px solid ${C.textDim}`:"2px solid transparent", background:"transparent", color:catFilter===c?C.text:C.textMuted, fontSize:11, fontWeight:catFilter===c?600:400, cursor:"pointer", fontFamily:"inherit", marginBottom:-1 }}>{c}</button>
         ))}
       </div>
 
@@ -3143,7 +3143,7 @@ export default function App() {
           <SectionCard title="Outstanding Documents by Customer">
             {Object.entries(pending.reduce((acc, d) => { const n = cust(d.custId)?.name || d.custId; (acc[n] = acc[n] || []).push(d); return acc; }, {})).map(([name, docs], i) => (
               <div key={i} style={{ marginBottom:12 }}>
-                <div style={{ fontSize:13, fontWeight:600, color:C.text, marginBottom:6 }}>{name}</div>
+                <div style={{ fontSize:13, fontWeight:600, color:C.text, marginBottom:8 }}>{name}</div>
                 {docs.map((d, j) => (
                   <div key={j} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"4px 0", borderBottom:`1px solid ${C.border}`, fontSize:12 }}>
                     <div style={{ display:"flex", alignItems:"center", gap:8 }}>
@@ -3169,7 +3169,7 @@ export default function App() {
             {expiring.sort((a,b)=>a.expiryDate-b.expiryDate).map((d, i) => {
               const daysLeft = Math.ceil((d.expiryDate - now) / day);
               return (
-                <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"6px 0", borderBottom:`1px solid ${C.border}` }}>
+                <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 0", borderBottom:`1px solid ${C.border}` }}>
                   <div>
                     <div style={{ fontSize:12, fontWeight:500, color:C.text }}>{d.name}</div>
                     <div style={{ fontSize:11, color:C.textMuted }}>{cust(d.custId)?.name} · {d.type}</div>
@@ -3204,8 +3204,8 @@ export default function App() {
 
     return (<div>
       <div style={{ display:"flex", justifyContent:"space-between", marginBottom:16 }}>
-        <div><h2 style={{ margin:0, fontSize:22, fontWeight:700, color:C.text }}>Reports & Analytics</h2><p style={{ margin:"4px 0 0", fontSize:13, color:C.textMuted }}>Portfolio performance, risk analysis, collections, servicing & impact reporting</p></div>
-        {canDo("reports","export") && <div style={{ display:"flex", gap:6 }}>
+        <div><h2 style={{ margin:0, fontSize:24, fontWeight:700, color:C.text }}>Reports & Analytics</h2><p style={{ margin:"4px 0 0", fontSize:13, color:C.textMuted }}>Portfolio performance, risk analysis, collections, servicing & impact reporting</p></div>
+        {canDo("reports","export") && <div style={{ display:"flex", gap:8 }}>
           <Btn size="sm" variant="secondary" onClick={()=>exportCSV("Portfolio_Report",["Loan ID","Borrower","Amount","Balance","Rate","DPD","Stage","Status"],loans.map(l=>[l.id,cust(l.custId)?.name,l.amount,l.balance,l.rate,l.dpd,l.stage,l.status]))}>Export Portfolio</Btn>
           <Btn size="sm" variant="secondary" onClick={()=>exportCSV("Audit_Trail",["Timestamp","Category","Action","Entity","User","Detail"],audit.map(a=>[fmt.dateTime(a.ts),a.category,a.action,a.entity,a.user,a.detail]))}>Export Audit</Btn>
         </div>}
@@ -3213,7 +3213,7 @@ export default function App() {
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
         <SectionCard title="Portfolio Summary">
           {[["Total Loan Book",fmt.cur(totalBook)],["Active Loans",activeLoans.length],["Booked (Awaiting Disbursement)",loans.filter(l=>l.status==="Booked").length],["Settled",loans.filter(l=>l.status==="Settled").length],["Written Off",loans.filter(l=>l.status==="Written Off").length],["Total Disbursed",fmt.cur(loans.reduce((s,l)=>s+l.amount,0))],["Weighted Avg Rate",`${activeLoans.length?(activeLoans.reduce((s,l)=>s+l.rate,0)/activeLoans.length).toFixed(1):0}%`],["Total ECL",fmt.cur(totalECL)],["ECL Coverage",totalBook>0?fmt.pct(totalECL/totalBook):"0%"]].map(([l,v],i) => (
-            <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"6px 0", borderBottom:`1px solid ${C.border}` }}>
+            <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"8px 0", borderBottom:`1px solid ${C.border}` }}>
               <span style={{ fontSize:12, color:C.textDim }}>{l}</span><span style={{ fontSize:13, fontWeight:700, color:C.text }}>{v}</span>
             </div>
           ))}
@@ -3228,14 +3228,14 @@ export default function App() {
         </SectionCard>
         <SectionCard title="Collections Summary">
           {[["Delinquent Accounts",delinquent.length],["Total Arrears",fmt.cur(delinquent.reduce((s,l)=>s+l.balance,0))],["Early (1-30 DPD)",delinquent.filter(l=>l.dpd<=30).length],["Mid (31-90 DPD)",delinquent.filter(l=>l.dpd>30&&l.dpd<=90).length],["Late (91+ DPD)",delinquent.filter(l=>l.dpd>90).length],["Collection Actions (Total)",collections.length],["Active PTPs",collections.filter(c=>c.ptpDate&&c.ptpDate>Date.now()).length],["Write-Off Proposals",collections.filter(c=>c.writeOff).length]].map(([l,v],i) => (
-            <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"6px 0", borderBottom:`1px solid ${C.border}` }}>
+            <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"8px 0", borderBottom:`1px solid ${C.border}` }}>
               <span style={{ fontSize:12, color:C.textDim }}>{l}</span><span style={{ fontSize:13, fontWeight:700, color:typeof v==="number"&&v>0?C.red:C.text }}>{v}</span>
             </div>
           ))}
         </SectionCard>
         <SectionCard title="Servicing Summary">
           {[["Payments Processed",allPmts.length],["Total Collected",fmt.cur(allPmts.reduce((s,p)=>s+p.amount,0))],["Interest Collected",fmt.cur(allPmts.reduce((s,p)=>s+(p.interest||0),0))],["Principal Collected",fmt.cur(allPmts.reduce((s,p)=>s+(p.principal||0),0))],["Monthly Receivable",fmt.cur(activeLoans.reduce((s,l)=>s+l.monthlyPmt,0))],["Overdue Accounts",delinquent.length]].map(([l,v],i) => (
-            <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"6px 0", borderBottom:`1px solid ${C.border}` }}>
+            <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"8px 0", borderBottom:`1px solid ${C.border}` }}>
               <span style={{ fontSize:12, color:C.textDim }}>{l}</span><span style={{ fontSize:13, fontWeight:700, color:C.text }}>{v}</span>
             </div>
           ))}
@@ -3244,14 +3244,14 @@ export default function App() {
           {["Approved","Declined","Submitted","Underwriting","Booked","Withdrawn"].map(s => {
             const count = applications.filter(a => a.status === s).length;
             if (count === 0) return null;
-            return (<div key={s} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"6px 0", borderBottom:`1px solid ${C.border}` }}>
+            return (<div key={s} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 0", borderBottom:`1px solid ${C.border}` }}>
               {statusBadge(s)}<div><span style={{ fontSize:16, fontWeight:700, color:C.text }}>{count}</span><span style={{ fontSize:11, color:C.textMuted, marginLeft:8 }}>({applications.length>0?fmt.pct(count/applications.length,0):"0%"})</span></div>
             </div>);
           })}
         </SectionCard>
         <SectionCard title="Development Impact">
           {[["Total Jobs Supported",fmt.num(customers.reduce((s,c)=>s+c.employees,0))],["BEE Level 1 Clients",customers.filter(c=>c.beeLevel===1).length],["BEE Level 1-2 Exposure",fmt.cur(activeLoans.filter(l=>cust(l.custId)?.beeLevel<=2).reduce((s,l)=>s+l.balance,0))],["Women-Owned (>50%)",customers.filter(c=>(c.womenOwned||0)>50).length],["Youth-Owned (>50%)",customers.filter(c=>(c.youthOwned||0)>50).length],["Disability-Owned (>50%)",customers.filter(c=>(c.disabilityOwned||0)>50).length],["Avg Social Impact Score",applications.filter(a=>a.socialScore).length>0?Math.round(applications.filter(a=>a.socialScore).reduce((s,a)=>s+a.socialScore,0)/applications.filter(a=>a.socialScore).length):"—"],["Provinces Covered",new Set(customers.map(c=>c.province)).size],["Industries Covered",new Set(customers.map(c=>c.industry)).size]].map(([l,v],i) => (
-            <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"6px 0", borderBottom:`1px solid ${C.border}` }}>
+            <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"8px 0", borderBottom:`1px solid ${C.border}` }}>
               <span style={{ fontSize:12, color:C.textDim }}>{l}</span><span style={{ fontSize:13, fontWeight:700, color:C.accent }}>{v}</span>
             </div>
           ))}
@@ -3262,7 +3262,7 @@ export default function App() {
 
   function Comms() {
     return (<div>
-      <h2 style={{ margin:"0 0 4px", fontSize:22, fontWeight:700, color:C.text }}>Communication Center</h2>
+      <h2 style={{ margin:"0 0 4px", fontSize:24, fontWeight:700, color:C.text }}>Communication Center</h2>
       <p style={{ margin:"0 0 20px", fontSize:13, color:C.textMuted }}>Omnichannel communication log — Phone, Email, SMS, Letters, Meetings</p>
       <Table columns={[
         { label:"Date", render:r=>fmt.dateTime(r.ts) },
@@ -3297,7 +3297,7 @@ export default function App() {
       return (<div><BackBtn />
         <div style={{ display:"flex", alignItems:"center", gap:16, marginBottom:20 }}>
           <div style={{ width:40, height:40, borderRadius:2, background:C.surface2, border:`1px solid ${C.border}`, display:"flex", alignItems:"center", justifyContent:"center", color:C.textDim, fontSize:16, fontWeight:600 }}>{c.name.charAt(0)}</div>
-          <div><h2 style={{ margin:0, fontSize:22, fontWeight:700, color:C.text }}>{c.name}</h2><p style={{ margin:"2px 0 0", fontSize:12, color:C.textMuted }}>{c.id} · {c.industry} · {c.province}</p></div>
+          <div><h2 style={{ margin:0, fontSize:24, fontWeight:700, color:C.text }}>{c.name}</h2><p style={{ margin:"2px 0 0", fontSize:12, color:C.textMuted }}>{c.id} · {c.industry} · {c.province}</p></div>
           <div style={{ marginLeft:"auto", display:"flex", gap:8 }}>{statusBadge(c.ficaStatus)}<Badge color="purple">BEE Level {c.beeLevel}</Badge><Badge color={c.riskCategory==="Low"?"green":c.riskCategory==="Medium"?"amber":"red"}>{c.riskCategory} Risk</Badge></div>
         </div>
 
@@ -3307,23 +3307,23 @@ export default function App() {
             <InfoGrid items={[["Contact",c.contact],["Email",c.email],["Phone",c.phone],["ID Number",c.idNum],["Reg Number",c.regNum],["Address",c.address],["Annual Revenue",fmt.cur(c.revenue)],["Employees",c.employees],["Years in Business",c.years],["Sector",c.sector],["BEE Expiry",fmt.date(c.beeExpiry)],["Women Ownership",(c.womenOwned||0)+"%"],["Youth Ownership",(c.youthOwned||0)+"%"],["Disability Ownership",(c.disabilityOwned||0)+"%"],["FICA Date",fmt.date(c.ficaDate)],["Created",fmt.date(c.created)]]} />
           ) : (
             <div>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:10 }}>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:12 }}>
                 <Field label="Business Name"><Input value={detailForm.name} onChange={e=>setDetailForm({...detailForm,name:e.target.value})} /></Field>
                 <Field label="Contact"><Input value={detailForm.contact} onChange={e=>setDetailForm({...detailForm,contact:e.target.value})} /></Field>
                 <Field label="Email"><Input value={detailForm.email} onChange={e=>setDetailForm({...detailForm,email:e.target.value})} /></Field>
               </div>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:10, marginBottom:10 }}>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:12, marginBottom:12 }}>
                 <Field label="Phone"><Input value={detailForm.phone} onChange={e=>setDetailForm({...detailForm,phone:e.target.value})} /></Field>
                 <Field label="Industry"><Select value={detailForm.industry} onChange={e=>setDetailForm({...detailForm,industry:e.target.value})} options={["Retail","Agriculture","Technology","Construction","Food Processing","Transport","Manufacturing","Professional Services","Other"].map(v=>({value:v,label:v}))} /></Field>
                 <Field label="Revenue"><Input type="number" value={detailForm.revenue} onChange={e=>setDetailForm({...detailForm,revenue:+e.target.value})} /></Field>
                 <Field label="Employees"><Input type="number" value={detailForm.employees} onChange={e=>setDetailForm({...detailForm,employees:+e.target.value})} /></Field>
               </div>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:10 }}>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:12 }}>
                 <Field label="Address"><Input value={detailForm.address} onChange={e=>setDetailForm({...detailForm,address:e.target.value})} /></Field>
                 <Field label="Province"><Select value={detailForm.province} onChange={e=>setDetailForm({...detailForm,province:e.target.value})} options={["Eastern Cape","Western Cape","Gauteng","KwaZulu-Natal","Free State","North West","Limpopo","Mpumalanga","Northern Cape"].map(v=>({value:v,label:v}))} /></Field>
                 <Field label="Risk Category"><Select value={detailForm.riskCategory} onChange={e=>setDetailForm({...detailForm,riskCategory:e.target.value})} options={["Low","Medium","High"].map(v=>({value:v,label:v}))} /></Field>
               </div>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:10 }}>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:12 }}>
                 <Field label="Women Ownership %"><Input type="number" min="0" max="100" value={detailForm.womenOwned||0} onChange={e=>setDetailForm({...detailForm,womenOwned:+e.target.value})} /></Field>
                 <Field label="Youth Ownership %"><Input type="number" min="0" max="100" value={detailForm.youthOwned||0} onChange={e=>setDetailForm({...detailForm,youthOwned:+e.target.value})} /></Field>
                 <Field label="Disability Ownership %"><Input type="number" min="0" max="100" value={detailForm.disabilityOwned||0} onChange={e=>setDetailForm({...detailForm,disabilityOwned:+e.target.value})} /></Field>
@@ -3343,7 +3343,7 @@ export default function App() {
               <div style={{ fontSize:13, fontWeight:600, color:C.text }}>Status: {c.ficaStatus}</div>
               <div style={{ fontSize:11, color:C.textMuted }}>{c.ficaDate ? `Verified: ${fmt.date(c.ficaDate)}` : "Not yet verified"}</div>
             </div>
-            <div style={{ display:"flex", gap:6, marginLeft:"auto" }}>
+            <div style={{ display:"flex", gap:8, marginLeft:"auto" }}>
               {canDoAny("customers",["update"]) && (ficaActions[c.ficaStatus]||[]).map((a,i) => (
                 <Btn key={i} size="sm" variant={a.target==="Verified"?"default":a.target==="Failed"?"danger":"secondary"} onClick={()=>updateFicaStatus(c.id, a.target)}>{a.label}</Btn>
               ))}
@@ -3361,14 +3361,14 @@ export default function App() {
               <div style={{ fontSize:13, fontWeight:600, color:C.text }}>BEE Level {c.beeLevel} — {c.beeStatus}</div>
               <div style={{ fontSize:11, color:C.textMuted }}>{c.beeExpiry ? `Expires: ${fmt.date(c.beeExpiry)}${c.beeExpiry < now + 90*day ? " ⚠ Expiring soon" : ""}` : "No expiry date"}</div>
             </div>
-            {canDoAny("customers",["update"]) && <div style={{ display:"flex", gap:6, marginLeft:"auto" }}>
+            {canDoAny("customers",["update"]) && <div style={{ display:"flex", gap:8, marginLeft:"auto" }}>
               {c.beeStatus !== "Verified" && <Btn size="sm" onClick={()=>updateBeeStatus(c.id,"Verified",detailBeeForm.level,detailBeeForm.expiry)}>Verify BEE</Btn>}
               {c.beeStatus === "Verified" && <Btn size="sm" variant="secondary" onClick={()=>updateBeeStatus(c.id,"Expired",null,null)}>Mark Expired</Btn>}
               <Btn size="sm" variant="ghost" onClick={()=>updateBeeStatus(c.id,"Pending Review",null,null)}>Reset</Btn>
             </div>}
           </div>
           {canDoAny("customers",["update"]) && (
-            <div style={{ display:"flex", gap:10, alignItems:"flex-end" }}>
+            <div style={{ display:"flex", gap:12, alignItems:"flex-end" }}>
               <Field label="BEE Level"><Select value={detailBeeForm.level} onChange={e=>setDetailBeeForm({...detailBeeForm,level:e.target.value})} options={[1,2,3,4,5,6,7,8].map(v=>({value:v,label:`Level ${v}`}))} /></Field>
               <Field label="Certificate Expiry"><Input type="date" value={detailBeeForm.expiry} onChange={e=>setDetailBeeForm({...detailBeeForm,expiry:e.target.value})} /></Field>
             </div>
@@ -3387,7 +3387,7 @@ export default function App() {
               const d=Math.ceil((r.expiryDate-now)/day);
               return <span style={{fontSize:11,fontWeight:d<=30?600:400,color:d<=30?C.red:d<=90?C.amber:C.textDim}}>{fmt.date(r.expiryDate)}</span>;
             }},
-            {label:"Actions", render:r=><div style={{ display:"flex", gap:3 }}>
+            {label:"Actions", render:r=><div style={{ display:"flex", gap:4 }}>
               {canDo("documents","approve") && r.status!=="Verified" && <Btn size="sm" variant="ghost" onClick={e=>{e.stopPropagation();approveDocument(r.id)}}>Approve</Btn>}
               {canDo("documents","update") && r.status!=="Rejected" && <Btn size="sm" variant="ghost" onClick={e=>{e.stopPropagation();rejectDocument(r.id,"Re-submission required.")}}>Reject</Btn>}
             </div>},
@@ -3445,39 +3445,39 @@ export default function App() {
               const isInherited = f.inherited;
               return (
               <div key={i} style={{ borderBottom:i<findings.length-1?`1px solid ${C.border}`:"none", opacity:isInherited?0.6:1 }}>
-                <div style={{ display:"flex", gap:6, padding:"5px 8px", fontSize:11, alignItems:"center" }}>
+                <div style={{ display:"flex", gap:8, padding:"4px 8px", fontSize:11, alignItems:"center" }}>
                   <span style={{ width:40, flexShrink:0, fontWeight:500, color: f.status==="Pass"||f.status==="Verified"||f.status==="Confirmed (Override)"?C.green : f.status==="Flagged"?C.amber : f.status==="Rejected"||f.status==="Fail"||f.status==="Missing"?C.red : f.status==="Pending KYC"?C.amber : C.textMuted }}>{f.officerAction?f.status:(f.systemResult||f.status)}</span>
                   <span style={{ width:130, flexShrink:0, fontWeight:500, color:isInherited?C.textDim:C.text, fontSize:11 }}>{f.item}</span>
                   <span style={{ flex:1, color:C.textDim, fontSize:11 }}>{f.detail}{f.source?` (${f.source})`:""}{f.purpose&&!isInherited?<span style={{ color:C.textMuted, fontSize:10 }}> — {f.purpose}</span>:""}</span>
                   {/* View Document button */}
-                  {doc && !isInherited && <button onClick={()=>setViewingDoc(isExpanded?null:`${stepKey}-${i}`)} style={{ padding:"1px 5px", fontSize:9, border:`1px solid ${C.border}`, background:isExpanded?C.surface2:"transparent", color:C.accent, cursor:"pointer", fontFamily:"inherit", fontWeight:isExpanded?600:400 }}>{isExpanded?"Close":"View"}</button>}
+                  {doc && !isInherited && <button onClick={()=>setViewingDoc(isExpanded?null:`${stepKey}-${i}`)} style={{ padding:"1px 5px", fontSize:10, border:`1px solid ${C.border}`, background:isExpanded?C.surface2:"transparent", color:C.accent, cursor:"pointer", fontFamily:"inherit", fontWeight:isExpanded?600:400 }}>{isExpanded?"Close":"View"}</button>}
                   {/* Request button — shown for Missing non-inherited docs */}
                   {!doc && !isInherited && f.systemResult==="Missing" && isUW && (() => {
                     const reqs = (w.docRequests||[]).filter(r=>r.docType===f.item);
                     const lastReq = reqs[reqs.length-1];
                     return lastReq
-                      ? <span style={{ fontSize:9, color:C.textMuted, flexShrink:0 }}>Requested {fmt.date(lastReq.requestedAt)} by {lastReq.requestedBy}</span>
-                      : <button onClick={()=>requestDocFromApplicant(a.id,f.item,"")} style={{ padding:"1px 5px", fontSize:9, border:`1px solid ${C.border}`, background:"transparent", color:C.text, cursor:"pointer", fontFamily:"inherit" }}>Request</button>;
+                      ? <span style={{ fontSize:10, color:C.textMuted, flexShrink:0 }}>Requested {fmt.date(lastReq.requestedAt)} by {lastReq.requestedBy}</span>
+                      : <button onClick={()=>requestDocFromApplicant(a.id,f.item,"")} style={{ padding:"1px 5px", fontSize:10, border:`1px solid ${C.border}`, background:"transparent", color:C.text, cursor:"pointer", fontFamily:"inherit" }}>Request</button>;
                   })()}
                   {/* Inherited indicator */}
-                  {isInherited && <span style={{ fontSize:9, color:C.textMuted, flexShrink:0, fontStyle:"italic" }}>from Step 2</span>}
+                  {isInherited && <span style={{ fontSize:10, color:C.textMuted, flexShrink:0, fontStyle:"italic" }}>from Step 2</span>}
                   {/* Confirm / Flag / Reject — only for non-inherited items */}
                   {isActionable && !isInherited && !f.officerAction && (
-                    <div style={{ display:"flex", gap:3, flexShrink:0 }}>
-                      <button onClick={()=>actionFindingItem(a.id,stepKey,i,"Confirmed","")} style={{ padding:"1px 5px", fontSize:9, border:`1px solid ${C.border}`, background:"transparent", color:C.green, cursor:"pointer", fontFamily:"inherit" }}>Confirm</button>
-                      <button onClick={()=>actionFindingItem(a.id,stepKey,i,"Flagged","")} style={{ padding:"1px 5px", fontSize:9, border:`1px solid ${C.border}`, background:"transparent", color:C.amber, cursor:"pointer", fontFamily:"inherit" }}>Flag</button>
-                      <button onClick={()=>actionFindingItem(a.id,stepKey,i,"Rejected","")} style={{ padding:"1px 5px", fontSize:9, border:`1px solid ${C.border}`, background:"transparent", color:C.red, cursor:"pointer", fontFamily:"inherit" }}>Reject</button>
+                    <div style={{ display:"flex", gap:4, flexShrink:0 }}>
+                      <button onClick={()=>actionFindingItem(a.id,stepKey,i,"Confirmed","")} style={{ padding:"1px 5px", fontSize:10, border:`1px solid ${C.border}`, background:"transparent", color:C.green, cursor:"pointer", fontFamily:"inherit" }}>Confirm</button>
+                      <button onClick={()=>actionFindingItem(a.id,stepKey,i,"Flagged","")} style={{ padding:"1px 5px", fontSize:10, border:`1px solid ${C.border}`, background:"transparent", color:C.amber, cursor:"pointer", fontFamily:"inherit" }}>Flag</button>
+                      <button onClick={()=>actionFindingItem(a.id,stepKey,i,"Rejected","")} style={{ padding:"1px 5px", fontSize:10, border:`1px solid ${C.border}`, background:"transparent", color:C.red, cursor:"pointer", fontFamily:"inherit" }}>Reject</button>
                     </div>
                   )}
-                  {isActionable && !isInherited && f.officerAction && <span style={{ fontSize:9, color:C.textMuted, flexShrink:0 }}>{f.officerAction}</span>}
+                  {isActionable && !isInherited && f.officerAction && <span style={{ fontSize:10, color:C.textMuted, flexShrink:0 }}>{f.officerAction}</span>}
                   {/* Doc-level approve/reject — only for non-inherited items */}
-                  {doc && !isInherited && isUW && doc.status!=="Verified" && canDo("documents","approve") && <button onClick={()=>approveDocument(doc.id,a.id)} style={{ padding:"1px 5px", fontSize:9, border:`1px solid ${C.border}`, background:"transparent", color:C.green, cursor:"pointer", fontFamily:"inherit" }}>Approve Doc</button>}
-                  {doc && !isInherited && isUW && doc.status!=="Rejected" && canDo("documents","update") && <button onClick={()=>rejectDocument(doc.id,"Re-submission required.")} style={{ padding:"1px 5px", fontSize:9, border:`1px solid ${C.border}`, background:"transparent", color:C.red, cursor:"pointer", fontFamily:"inherit" }}>Reject Doc</button>}
+                  {doc && !isInherited && isUW && doc.status!=="Verified" && canDo("documents","approve") && <button onClick={()=>approveDocument(doc.id,a.id)} style={{ padding:"1px 5px", fontSize:10, border:`1px solid ${C.border}`, background:"transparent", color:C.green, cursor:"pointer", fontFamily:"inherit" }}>Approve Doc</button>}
+                  {doc && !isInherited && isUW && doc.status!=="Rejected" && canDo("documents","update") && <button onClick={()=>rejectDocument(doc.id,"Re-submission required.")} style={{ padding:"1px 5px", fontSize:10, border:`1px solid ${C.border}`, background:"transparent", color:C.red, cursor:"pointer", fontFamily:"inherit" }}>Reject Doc</button>}
                 </div>
                 {/* Expanded document detail panel */}
                 {isExpanded && doc && (
-                  <div style={{ padding:"6px 8px 8px 46px", background:C.surface2, borderTop:`1px solid ${C.border}` }}>
-                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:6, fontSize:10 }}>
+                  <div style={{ padding:"8px 8px 8px 46px", background:C.surface2, borderTop:`1px solid ${C.border}` }}>
+                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8, fontSize:10 }}>
                       <div><span style={{ color:C.textMuted }}>Document ID:</span> <span style={{ fontFamily:"monospace", fontWeight:500 }}>{doc.id}</span></div>
                       <div><span style={{ color:C.textMuted }}>Name:</span> <span style={{ fontWeight:500 }}>{doc.name}</span></div>
                       <div><span style={{ color:C.textMuted }}>Category:</span> {doc.category}</div>
@@ -3487,7 +3487,7 @@ export default function App() {
                       <div><span style={{ color:C.textMuted }}>Verified By:</span> {doc.verifiedBy||"—"}</div>
                       <div><span style={{ color:C.textMuted }}>Verified:</span> {fmt.date(doc.verifiedAt)}</div>
                       <div><span style={{ color:C.textMuted }}>Expiry:</span> {doc.expiryDate ? <span style={{ color: doc.expiryDate < now + 90*day ? C.red : C.textDim }}>{fmt.date(doc.expiryDate)}</span> : "None"}</div>
-                      <div style={{ gridColumn:"1/4" }}><span style={{ color:C.textMuted }}>File:</span> <span style={{ fontFamily:"monospace", fontSize:9 }}>{doc.fileRef||"—"}</span></div>
+                      <div style={{ gridColumn:"1/4" }}><span style={{ color:C.textMuted }}>File:</span> <span style={{ fontFamily:"monospace", fontSize:10 }}>{doc.fileRef||"—"}</span></div>
                       {doc.notes && <div style={{ gridColumn:"1/4" }}><span style={{ color:C.textMuted }}>Notes:</span> {doc.notes}</div>}
                     </div>
                   </div>
@@ -3502,7 +3502,7 @@ export default function App() {
               );
             })}
           </div>
-          {isActionable && <div style={{ marginTop:6, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+          {isActionable && <div style={{ marginTop:8, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
             <span style={{ fontSize:10, color:C.textMuted }}>{allActioned?"Ready for sign-off.":`${reqItems.filter(f=>f.officerAction).length}/${reqItems.length} reviewed.`}</span>
             <Btn size="sm" onClick={()=>signOffStep(a.id,stepKey)} disabled={!allActioned}>Sign Off</Btn>
           </div>}
@@ -3513,7 +3513,7 @@ export default function App() {
         if (!findings || !Array.isArray(findings)) return null;
         return (<div style={{ border:`1px solid ${C.border}` }}>
           {findings.map((f,i) => (
-            <div key={i} style={{ display:"flex", gap:6, padding:"5px 8px", fontSize:11, borderBottom:i<findings.length-1?`1px solid ${C.border}`:"none" }}>
+            <div key={i} style={{ display:"flex", gap:8, padding:"4px 8px", fontSize:11, borderBottom:i<findings.length-1?`1px solid ${C.border}`:"none" }}>
               <span style={{ width:140, flexShrink:0, fontWeight:500, color:C.text }}>{f.item}</span>
               <span style={{ flex:1, color:C.textDim, lineHeight:1.5 }}>{f.detail}</span>
             </div>
@@ -3528,7 +3528,7 @@ export default function App() {
             <div style={{ fontSize:11, fontWeight:600, color:C.text, marginBottom:4 }}>QA Document Check</div>
             <div style={{ border:`1px solid ${C.border}` }}>
               {(a.qaFindings.mandatoryDocs||[]).map((d,i) => (
-                <div key={i} style={{ display:"flex", gap:6, padding:"4px 8px", fontSize:11, borderBottom:i<(a.qaFindings.mandatoryDocs.length-1)?`1px solid ${C.border}`:"none" }}>
+                <div key={i} style={{ display:"flex", gap:8, padding:"4px 8px", fontSize:11, borderBottom:i<(a.qaFindings.mandatoryDocs.length-1)?`1px solid ${C.border}`:"none" }}>
                   <span style={{ width:40, fontWeight:500, color:d.onFile && d.status!=="Pending" && d.status!=="Rejected" ? C.green : C.red }}>{d.onFile && d.status!=="Pending" && d.status!=="Rejected" ? "OK" : d.status}</span>
                   <span style={{ width:140, fontWeight:500 }}>{d.type}</span>
                   <span style={{ color:C.textDim }}>{d.docId || "Not on file"}{d.status ? ` — ${d.status}` : ""}</span>
@@ -3541,22 +3541,22 @@ export default function App() {
               QA Result: {a.qaFindings.result}{a.qaFindings.officer ? ` — ${a.qaFindings.officer} on ${fmt.date(a.qaFindings.passedAt)}` : ""}
             </div>
           </div>}
-          {a.expiresAt && a.status === "Draft" && <div style={{ fontSize:10, color: a.expiresAt < Date.now() ? C.red : C.amber, marginTop:6 }}>
+          {a.expiresAt && a.status === "Draft" && <div style={{ fontSize:10, color: a.expiresAt < Date.now() ? C.red : C.amber, marginTop:8 }}>
             {a.expiresAt < Date.now() ? `EXPIRED on ${fmt.date(a.expiresAt)}` : `Expires: ${fmt.date(a.expiresAt)} (${Math.ceil((a.expiresAt - Date.now())/day)} days remaining)`}
           </div>}
         </div>);
         if (s.key==="kyc") return (<div>
-          {!w.kycDate && <div style={{ fontSize:11, color:C.textMuted, marginBottom:6 }}>Verify applicant identity and regulatory compliance: ID against Home Affairs, company registration against CIPC, bank account confirmation, address verification, sanctions screening (OFAC/UN/SA), and PEP check. Each item requires your review and sign-off.</div>}
+          {!w.kycDate && <div style={{ fontSize:11, color:C.textMuted, marginBottom:8 }}>Verify applicant identity and regulatory compliance: ID against Home Affairs, company registration against CIPC, bank account confirmation, address verification, sanctions screening (OFAC/UN/SA), and PEP check. Each item requires your review and sign-off.</div>}
           {w.kycFindings && renderChecklist(w.kycFindings, "kyc")}
           {w.kycComplete && <div style={{ marginTop:4, fontSize:10, color:C.green }}>Signed off by {w.kycOfficer}</div>}
         </div>);
         if (s.key==="docs") return (<div>
-          {!w.docsDate && <div style={{ fontSize:11, color:C.textMuted, marginBottom:6 }}>Check application document completeness. KYC documents (ID, PoA, Bank, Registration) carry forward from Step 2. This step verifies financial statements, business plan, and any industry-specific documents are on file and adequate for underwriting.</div>}
+          {!w.docsDate && <div style={{ fontSize:11, color:C.textMuted, marginBottom:8 }}>Check application document completeness. KYC documents (ID, PoA, Bank, Registration) carry forward from Step 2. This step verifies financial statements, business plan, and any industry-specific documents are on file and adequate for underwriting.</div>}
           {w.docsFindings && renderChecklist(w.docsFindings, "docs")}
-          {isUW && <div style={{ marginTop:8, padding:"6px 8px", border:`1px solid ${C.border}` }}>
+          {isUW && <div style={{ marginTop:8, padding:"8px 8px", border:`1px solid ${C.border}` }}>
             <div style={{ fontSize:10, fontWeight:600, color:C.text, marginBottom:3 }}>Request Document from Applicant</div>
             <div style={{ display:"flex", gap:4 }}>
-              <input value={reqDocType} onChange={e=>setReqDocType(e.target.value)} placeholder="Document type..." style={{ flex:1, padding:"3px 5px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:10, fontFamily:"inherit", outline:"none", boxSizing:"border-box" }} />
+              <input value={reqDocType} onChange={e=>setReqDocType(e.target.value)} placeholder="Document type..." style={{ flex:1, padding:"4px 5px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:10, fontFamily:"inherit", outline:"none", boxSizing:"border-box" }} />
               <Btn size="sm" variant="secondary" onClick={()=>{if(reqDocType){requestDocFromApplicant(a.id,reqDocType,"");setReqDocType("")}}}>Send</Btn>
             </div>
           </div>}
@@ -3568,19 +3568,19 @@ export default function App() {
           const filledCount = findings.filter(f => f.value && f.value.trim().length > 10).length;
           const allFilled = findings.length > 0 && !isOldFormat && findings.every(f => f.value && f.value.trim().length > 5);
           return (<div>
-          {!w.siteVisitDate && <div style={{ fontSize:11, color:C.textMuted, marginBottom:6 }}>Click "Generate Findings" to create the site visit assessment form. Complete each field after the physical visit, then sign off.</div>}
-          {isOldFormat && <div style={{ padding:10, background:"#fff8e1", border:`1px solid ${C.amber}`, marginBottom:8, fontSize:11 }}>
+          {!w.siteVisitDate && <div style={{ fontSize:11, color:C.textMuted, marginBottom:8 }}>Click "Generate Findings" to create the site visit assessment form. Complete each field after the physical visit, then sign off.</div>}
+          {isOldFormat && <div style={{ padding:12, background:"#fff8e1", border:`1px solid ${C.amber}`, marginBottom:8, fontSize:11 }}>
             <div style={{ fontWeight:600, marginBottom:4 }}>Site visit data is in a legacy format (static/read-only).</div>
             <div style={{ color:C.textDim }}>Click "Re-generate" above to create the interactive assessment form. You will need to re-enter your observations.</div>
           </div>}
           {findings.length > 0 && !isOldFormat && <div>
-            <div style={{ fontSize:10, color:C.textMuted, marginBottom:6 }}>{filledCount}/{findings.length} sections completed{allFilled ? " — ready for sign-off" : ""}</div>
+            <div style={{ fontSize:10, color:C.textMuted, marginBottom:8 }}>{filledCount}/{findings.length} sections completed{allFilled ? " — ready for sign-off" : ""}</div>
             <div style={{ border:`1px solid ${C.border}` }}>
               {findings.map((f, i) => (
-                <div key={i} style={{ padding:"8px 10px", borderBottom:i<findings.length-1?`1px solid ${C.border}`:"none" }}>
+                <div key={i} style={{ padding:"8px 12px", borderBottom:i<findings.length-1?`1px solid ${C.border}`:"none" }}>
                   <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
                     <span style={{ fontSize:11, fontWeight:600, color:C.text }}>{f.item}</span>
-                    {f.value && f.value.trim().length > 5 ? <span style={{ fontSize:9, color:C.green }}>Completed</span> : <span style={{ fontSize:9, color:C.amber }}>Required</span>}
+                    {f.value && f.value.trim().length > 5 ? <span style={{ fontSize:10, color:C.green }}>Completed</span> : <span style={{ fontSize:10, color:C.amber }}>Required</span>}
                   </div>
                   {isUW && !w.siteVisitComplete ? (
                     <textarea value={f.value||""} onChange={e=>saveSiteVisitField(a.id,i,e.target.value)} placeholder={f.placeholder||""} rows={2} style={{ width:"100%", padding:"4px 6px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:11, fontFamily:"inherit", outline:"none", resize:"vertical", boxSizing:"border-box", lineHeight:1.5 }} />
@@ -3588,7 +3588,7 @@ export default function App() {
                     <div style={{ fontSize:11, color:f.value ? C.textDim : C.textMuted, lineHeight:1.5, fontStyle:f.value?"normal":"italic" }}>{f.value || "Not completed"}</div>
                   )}
                   {f.item === "Overall Assessment" && isUW && !w.siteVisitComplete && (
-                    <div style={{ display:"flex", gap:6, marginTop:4 }}>
+                    <div style={{ display:"flex", gap:8, marginTop:4 }}>
                       {["Satisfactory","Concerns Noted","Unsatisfactory"].map(r => (
                         <button key={r} onClick={()=>saveSiteVisitRating(a.id,i,r)} style={{ padding:"2px 8px", fontSize:10, border:`1px solid ${f.rating===r?C.text:C.border}`, background:f.rating===r?C.text:"transparent", color:f.rating===r?"#fff":C.textDim, cursor:"pointer", fontFamily:"inherit" }}>{r}</button>
                       ))}
@@ -3603,10 +3603,10 @@ export default function App() {
           </div>}
           {isUW && <div style={{ marginTop:8 }}>
             <div style={{ fontSize:10, fontWeight:600, color:C.text, marginBottom:3 }}>Additional Notes</div>
-            <textarea value={w.siteVisitNotes||""} onChange={e=>saveSiteVisitNotes(a.id,e.target.value)} placeholder="Any additional observations not covered above..." rows={2} style={{ width:"100%", padding:"5px 6px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:11, fontFamily:"inherit", outline:"none", resize:"vertical", boxSizing:"border-box", lineHeight:1.5 }} />
+            <textarea value={w.siteVisitNotes||""} onChange={e=>saveSiteVisitNotes(a.id,e.target.value)} placeholder="Any additional observations not covered above..." rows={2} style={{ width:"100%", padding:"4px 6px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:11, fontFamily:"inherit", outline:"none", resize:"vertical", boxSizing:"border-box", lineHeight:1.5 }} />
           </div>}
           {isUW && w.siteVisitDate && !w.siteVisitComplete && !isOldFormat && (
-            <div style={{ marginTop:6, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+            <div style={{ marginTop:8, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
               <span style={{ fontSize:10, color:allFilled?C.green:C.amber }}>{allFilled ? "All sections completed. Ready for sign-off." : `${filledCount}/${findings.length} completed. Complete all sections to sign off.`}</span>
               <Btn size="sm" onClick={()=>signOffStep(a.id,"sitevisit")} disabled={!allFilled}>Sign Off</Btn>
             </div>
@@ -3624,20 +3624,20 @@ export default function App() {
           const riskFinding = findings.find(f => f.item === "Risk Score & Recommendation");
           const canSignOff = hasNewFormat && riskFinding?.analystNote && riskFinding.analystNote.trim().length > 10;
           return (<div>
-          {!w.creditDate && <div style={{ fontSize:11, color:C.textMuted, marginBottom:6 }}>Pull credit bureau report and run automated financial analysis. System computes key ratios from submitted financials. Review each finding, add your professional assessment, flag concerns, then confirm.</div>}
-          {isOldCreditFormat && <div style={{ padding:10, background:"#fff8e1", border:`1px solid ${C.amber}`, marginBottom:8, fontSize:11 }}>
+          {!w.creditDate && <div style={{ fontSize:11, color:C.textMuted, marginBottom:8 }}>Pull credit bureau report and run automated financial analysis. System computes key ratios from submitted financials. Review each finding, add your professional assessment, flag concerns, then confirm.</div>}
+          {isOldCreditFormat && <div style={{ padding:12, background:"#fff8e1", border:`1px solid ${C.amber}`, marginBottom:8, fontSize:11 }}>
             <div style={{ fontWeight:600, marginBottom:4 }}>Credit analysis data is in a legacy format (static/read-only).</div>
             <div style={{ color:C.textDim }}>Click "Re-analyse" above to generate the interactive analyst review form.</div>
           </div>}
           {isOldCreditFormat && renderReadOnly(findings)}
           {hasNewFormat && findings.length > 0 && <div>
-            <div style={{ fontSize:10, color:C.textMuted, marginBottom:6 }}>{notedCount}/{findings.length} findings reviewed by analyst{canSignOff ? " — ready for confirmation" : ""}</div>
+            <div style={{ fontSize:10, color:C.textMuted, marginBottom:8 }}>{notedCount}/{findings.length} findings reviewed by analyst{canSignOff ? " — ready for confirmation" : ""}</div>
             <div style={{ border:`1px solid ${C.border}` }}>
               {findings.map((f, i) => (
-                <div key={i} style={{ padding:"8px 10px", borderBottom:i<findings.length-1?`1px solid ${C.border}`:"none" }}>
+                <div key={i} style={{ padding:"8px 12px", borderBottom:i<findings.length-1?`1px solid ${C.border}`:"none" }}>
                   <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:3 }}>
                     <span style={{ fontSize:11, fontWeight:600, color:C.text }}>{f.item}</span>
-                    {f.flag && <span style={{ fontSize:9, padding:"1px 6px", background:f.flag==="Accept"?C.green:f.flag==="Override"?C.purple:C.red, color:"#fff" }}>{f.flag}</span>}
+                    {f.flag && <span style={{ fontSize:10, padding:"1px 6px", background:f.flag==="Accept"?C.green:f.flag==="Override"?C.purple:C.red, color:"#fff" }}>{f.flag}</span>}
                   </div>
                   {/* System-computed value — always visible as reference */}
                   <div style={{ fontSize:11, color:C.accent, fontWeight:500, marginBottom:2 }}>{f.systemValue}</div>
@@ -3648,7 +3648,7 @@ export default function App() {
                       <textarea value={f.analystNote||""} onChange={e=>saveCreditFinding(a.id,i,"analystNote",e.target.value)} placeholder={f.placeholder || "Analyst assessment — confirm, qualify, or override the system finding..."} rows={2} style={{ width:"100%", padding:"4px 6px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:11, fontFamily:"inherit", outline:"none", resize:"vertical", boxSizing:"border-box", lineHeight:1.5, marginBottom:4 }} />
                       <div style={{ display:"flex", gap:4 }}>
                         {["Accept","Override","Concern"].map(fl => (
-                          <button key={fl} onClick={()=>saveCreditFinding(a.id,i,"flag",f.flag===fl?"":fl)} style={{ padding:"1px 7px", fontSize:9, border:`1px solid ${f.flag===fl?(fl==="Accept"?C.green:fl==="Override"?C.purple:C.red):C.border}`, background:f.flag===fl?(fl==="Accept"?C.green:fl==="Override"?C.purple:C.red):"transparent", color:f.flag===fl?"#fff":(fl==="Accept"?C.green:fl==="Override"?C.purple:C.red), cursor:"pointer", fontFamily:"inherit" }}>{fl}</button>
+                          <button key={fl} onClick={()=>saveCreditFinding(a.id,i,"flag",f.flag===fl?"":fl)} style={{ padding:"1px 7px", fontSize:10, border:`1px solid ${f.flag===fl?(fl==="Accept"?C.green:fl==="Override"?C.purple:C.red):C.border}`, background:f.flag===fl?(fl==="Accept"?C.green:fl==="Override"?C.purple:C.red):"transparent", color:f.flag===fl?"#fff":(fl==="Accept"?C.green:fl==="Override"?C.purple:C.red), cursor:"pointer", fontFamily:"inherit" }}>{fl}</button>
                         ))}
                       </div>
                     </div>
@@ -3660,7 +3660,7 @@ export default function App() {
             </div>
           </div>}
           {isUW && w.creditDate && !w.financialAnalysisComplete && (
-            <div style={{ marginTop:6, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+            <div style={{ marginTop:8, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
               <span style={{ fontSize:10, color:canSignOff?C.green:C.amber }}>{canSignOff ? "Risk assessment complete. Ready for confirmation." : "Provide analyst assessment on 'Risk Score & Recommendation' to confirm."}</span>
               <Btn size="sm" onClick={()=>signOffStep(a.id,"credit")} disabled={!canSignOff}>Confirm Analysis</Btn>
             </div>
@@ -3669,13 +3669,13 @@ export default function App() {
         </div>);
         }
         if (s.key==="collateral") return (<div>
-          {!w.collateralDate && <div style={{ fontSize:11, color:C.textMuted, marginBottom:6 }}>Assess collateral and security linked to the customer. Computes LTV.</div>}
+          {!w.collateralDate && <div style={{ fontSize:11, color:C.textMuted, marginBottom:8 }}>Assess collateral and security linked to the customer. Computes LTV.</div>}
           {w.collateralFindings && renderReadOnly(w.collateralFindings)}
           {isUW && w.collateralDate && !w.collateralAssessed && <div style={{ marginTop:4, display:"flex", justifyContent:"flex-end" }}><Btn size="sm" onClick={()=>signOffStep(a.id,"collateral")}>Confirm</Btn></div>}
           {w.collateralAssessed && <div style={{ marginTop:4, fontSize:10, color:C.green }}>Assessment confirmed</div>}
         </div>);
         if (s.key==="social") return (<div>
-          {!w.socialDate && <div style={{ fontSize:11, color:C.textMuted, marginBottom:6 }}>Verify BEE status, employment impact, and development alignment.</div>}
+          {!w.socialDate && <div style={{ fontSize:11, color:C.textMuted, marginBottom:8 }}>Verify BEE status, employment impact, and development alignment.</div>}
           {w.socialFindings && renderReadOnly(w.socialFindings)}
           {isUW && w.socialDate && !w.socialVerified && <div style={{ marginTop:4, display:"flex", justifyContent:"flex-end" }}><Btn size="sm" onClick={()=>signOffStep(a.id,"social")}>Confirm</Btn></div>}
           {w.socialVerified && <div style={{ marginTop:4, fontSize:10, color:C.green }}>Verified by {w.socialOfficer}</div>}
@@ -3685,14 +3685,14 @@ export default function App() {
       };
 
       return (<div><BackBtn />
-        <div style={{ display:"flex", justifyContent:"space-between", marginBottom:10 }}>
+        <div style={{ display:"flex", justifyContent:"space-between", marginBottom:12 }}>
           <div><h2 style={{ margin:0, fontSize:20, fontWeight:700, color:C.text }}>{a.id}</h2><p style={{ margin:"2px 0 0", fontSize:12, color:C.textMuted }}>{c?.name} \u00b7 {p?.name} \u00b7 {fmt.cur(a.amount)} over {a.term}m</p></div>
           <div style={{ display:"flex", gap:8, alignItems:"center" }}>{statusBadge(a.status)}<span style={{ fontSize:11, color:C.textMuted }}>{doneCount}/7</span></div>
         </div>
-        <div style={{ display:"flex", gap:10, flexWrap:"wrap", marginBottom:10 }}>
+        <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:12 }}>
           <KPI label="Amount" value={fmt.cur(a.amount)} /><KPI label="Term" value={`${a.term}m`} /><KPI label="Bureau" value={w.creditBureauScore??"-"} /><KPI label="Risk" value={a.riskScore??"-"} /><KPI label="DSCR" value={a.dscr?`${a.dscr}x`:"-"} /><KPI label="Social" value={a.socialScore??"-"} /><KPI label="LTV" value={w.collateralTotal?`${(a.amount/w.collateralTotal*100).toFixed(0)}%`:"-"} />
         </div>
-        {isSub && <div style={{ border:`1px solid ${C.border}`, padding:"10px 14px", marginBottom:8, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+        {isSub && <div style={{ border:`1px solid ${C.border}`, padding:"12px 16px", marginBottom:8, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
           <div><div style={{ fontSize:12, fontWeight:600, color:C.text }}>Application awaiting due diligence</div><div style={{ fontSize:11, color:C.textMuted }}>Initiate underwriting to begin step-by-step verification.</div></div>
           <Btn onClick={()=>moveToUnderwriting(a.id)}>Start Due Diligence</Btn>
         </div>}
@@ -3709,10 +3709,10 @@ export default function App() {
               ["Rate", a.rate ? `${a.rate}%` : "—"],
             ]} />
           </SectionCard>
-          {a.creditMemo && <SectionCard title="Credit Memorandum"><div style={{ fontSize:12, color:C.textDim, lineHeight:1.7, whiteSpace:"pre-line" }}>{a.creditMemo}</div></SectionCard>}
-          {a.conditions?.length>0 && <SectionCard title={`Conditions (${a.conditions.length})`}>{a.conditions.map((cond,i)=><div key={i} style={{ display:"flex", alignItems:"flex-start", gap:5, padding:"3px 0", fontSize:12 }}><span style={{ color:C.green, flexShrink:0, marginTop:1 }}>{I.check}</span><span>{cond}</span></div>)}</SectionCard>}
+          {a.creditMemo && <SectionCard title="Credit Memorandum"><div style={{ fontSize:12, color:C.textDim, lineHeight:1.5, whiteSpace:"pre-line" }}>{a.creditMemo}</div></SectionCard>}
+          {a.conditions?.length>0 && <SectionCard title={`Conditions (${a.conditions.length})`}>{a.conditions.map((cond,i)=><div key={i} style={{ display:"flex", alignItems:"flex-start", gap:4, padding:"4px 0", fontSize:12 }}><span style={{ color:C.green, flexShrink:0, marginTop:1 }}>{I.check}</span><span>{cond}</span></div>)}</SectionCard>}
           {a.status === "Approved" && canDo("loans","update") && !loanForApp(a.id) && (
-            <div style={{ border:`1px solid ${C.border}`, padding:"10px 14px", marginTop:4 }}>
+            <div style={{ border:`1px solid ${C.border}`, padding:"12px 16px", marginTop:4 }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                 <div>
                   <div style={{ fontSize:12, fontWeight:600, color:C.text }}>Loan Booking</div>
@@ -3724,7 +3724,7 @@ export default function App() {
           )}
           {/* Underwriting Record — read-only expandable for audit/review */}
           {Object.keys(w).length > 0 && <div style={{ marginTop:8 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 10px", border:`1px solid ${C.border}`, cursor:"pointer", background:C.surface2 }} onClick={()=>setExpandedStep(expandedStep==="uwRecord"?null:"uwRecord")}>
+            <div style={{ display:"flex", alignItems:"center", gap:8, padding:"8px 12px", border:`1px solid ${C.border}`, cursor:"pointer", background:C.surface2 }} onClick={()=>setExpandedStep(expandedStep==="uwRecord"?null:"uwRecord")}>
               <span style={{ fontSize:12, fontWeight:600, color:C.textDim }}>Underwriting Record</span>
               <span style={{ fontSize:10, color:C.textMuted }}>(click to {expandedStep==="uwRecord"?"collapse":"expand"})</span>
               <span style={{ marginLeft:"auto", color:C.textMuted, transform:expandedStep==="uwRecord"?"rotate(90deg)":"none", transition:"transform .15s" }}>{I.chev}</span>
@@ -3732,25 +3732,25 @@ export default function App() {
             {expandedStep==="uwRecord" && <div style={{ border:`1px solid ${C.border}`, borderTop:"none" }}>
               {steps.filter(s=>s.key!=="decision").map((s,i) => (
                 <div key={i} style={{ borderBottom:`1px solid ${C.border}` }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:8, padding:"6px 10px" }}>
-                    <div style={{ width:14, height:14, borderRadius:7, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, background:s.done?C.green:"transparent", color:s.done?"#fff":C.textMuted, fontSize:7, fontWeight:600, border:`1px solid ${s.done?C.green:C.border}` }}>{s.done?I.check:""}</div>
+                  <div style={{ display:"flex", alignItems:"center", gap:8, padding:"8px 12px" }}>
+                    <div style={{ width:14, height:14, borderRadius:7, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, background:s.done?C.green:"transparent", color:s.done?"#fff":C.textMuted, fontSize:10, fontWeight:600, border:`1px solid ${s.done?C.green:C.border}` }}>{s.done?I.check:""}</div>
                     <span style={{ fontSize:11, fontWeight:s.done?500:400, color:s.done?C.text:C.textMuted }}>{s.label}</span>
-                    {s.done && <span style={{ fontSize:9, color:C.green, marginLeft:4 }}>Complete</span>}
-                    {!s.done && s.hasData && <span style={{ fontSize:9, color:C.amber, marginLeft:4 }}>Incomplete</span>}
-                    {!s.done && !s.hasData && <span style={{ fontSize:9, color:C.textMuted, marginLeft:4 }}>Not performed</span>}
+                    {s.done && <span style={{ fontSize:10, color:C.green, marginLeft:4 }}>Complete</span>}
+                    {!s.done && s.hasData && <span style={{ fontSize:10, color:C.amber, marginLeft:4 }}>Incomplete</span>}
+                    {!s.done && !s.hasData && <span style={{ fontSize:10, color:C.textMuted, marginLeft:4 }}>Not performed</span>}
                   </div>
                   {s.hasData && <div style={{ padding:"4px 10px 8px 32px", fontSize:11, color:C.textDim }}>
                     {s.key==="submitted" && s.detail && <div>{s.detail}</div>}
                     {s.key==="kyc" && w.kycFindings && <div>{w.kycFindings.filter(f=>f.officerAction).map((f,j)=><div key={j} style={{ padding:"2px 0" }}><span style={{ color:f.status==="Pass"?C.green:C.amber, fontWeight:500 }}>{f.status}</span> {f.item}{f.officerNote?` — ${f.officerNote}`:""}</div>)}{w.kycOfficer && <div style={{ fontSize:10, color:C.textMuted, marginTop:2 }}>Signed off by {w.kycOfficer}</div>}</div>}
                     {s.key==="docs" && w.docsFindings && <div>{w.docsFindings.filter(f=>!f.inherited&&f.officerAction).map((f,j)=><div key={j} style={{ padding:"2px 0" }}><span style={{ color:C.green, fontWeight:500 }}>{f.status}</span> {f.item}{f.officerNote?` — ${f.officerNote}`:""}</div>)}{w.docsOfficer && <div style={{ fontSize:10, color:C.textMuted, marginTop:2 }}>Signed off by {w.docsOfficer}</div>}</div>}
                     {s.key==="sitevisit" && w.siteVisitFindings && <div>{w.siteVisitFindings.filter(f=>f.value).map((f,j)=><div key={j} style={{ padding:"2px 0" }}><span style={{ fontWeight:500 }}>{f.item}:</span> {f.value?.substring(0,120)}{f.value?.length>120?"...":""}{f.rating?` [${f.rating}]`:""}</div>)}{w.siteVisitOfficer && <div style={{ fontSize:10, color:C.textMuted, marginTop:2 }}>Signed off by {w.siteVisitOfficer}</div>}</div>}
-                    {s.key==="credit" && w.creditFindings && <div>{w.creditFindings.map((f,j)=><div key={j} style={{ padding:"2px 0" }}><span style={{ fontWeight:500 }}>{f.item}:</span> {f.systemValue||""}{f.flag?<span style={{ fontSize:9, marginLeft:4, padding:"0 4px", background:f.flag==="Accept"?C.green:f.flag==="Concern"?C.red:C.purple, color:"#fff" }}>{f.flag}</span>:""}{f.analystNote?<div style={{ paddingLeft:8, color:C.textDim, fontSize:10, marginTop:1 }}>{f.analystNote.substring(0,150)}{f.analystNote.length>150?"...":""}</div>:""}</div>)}</div>}
+                    {s.key==="credit" && w.creditFindings && <div>{w.creditFindings.map((f,j)=><div key={j} style={{ padding:"2px 0" }}><span style={{ fontWeight:500 }}>{f.item}:</span> {f.systemValue||""}{f.flag?<span style={{ fontSize:10, marginLeft:4, padding:"0 4px", background:f.flag==="Accept"?C.green:f.flag==="Concern"?C.red:C.purple, color:"#fff" }}>{f.flag}</span>:""}{f.analystNote?<div style={{ paddingLeft:8, color:C.textDim, fontSize:10, marginTop:1 }}>{f.analystNote.substring(0,150)}{f.analystNote.length>150?"...":""}</div>:""}</div>)}</div>}
                     {s.key==="collateral" && w.collateralFindings && <div>{w.collateralFindings.map((f,j)=><div key={j} style={{ padding:"2px 0" }}><span style={{ fontWeight:500 }}>{f.item}:</span> {fmt.cur(f.value)} — {f.detail?.substring(0,100)}</div>)}<div style={{ fontWeight:500, marginTop:2 }}>Total: {fmt.cur(w.collateralTotal)}</div></div>}
                     {s.key==="social" && w.socialFindings && renderReadOnly(w.socialFindings)}
                   </div>}
                 </div>
               ))}
-              {w.analystNotes && <div style={{ padding:"6px 10px", borderTop:`1px solid ${C.border}` }}><span style={{ fontSize:10, fontWeight:600, color:C.textDim }}>Analyst Notes:</span><div style={{ fontSize:11, color:C.textDim, marginTop:2 }}>{w.analystNotes}</div></div>}
+              {w.analystNotes && <div style={{ padding:"8px 12px", borderTop:`1px solid ${C.border}` }}><span style={{ fontSize:10, fontWeight:600, color:C.textDim }}>Analyst Notes:</span><div style={{ fontSize:11, color:C.textDim, marginTop:2 }}>{w.analystNotes}</div></div>}
             </div>}
           </div>}
         </div>}
@@ -3759,8 +3759,8 @@ export default function App() {
         {(isUW || a.status === "Draft") && steps.map((s,i) => {
           const isOpen = expandedStep===s.key;
           return (<div key={i} style={{ border:`1px solid ${C.border}`, marginBottom:1, background:C.surface }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8, padding:"7px 10px", cursor:"pointer", background:isOpen?C.surface2:"transparent" }} onClick={()=>setExpandedStep(isOpen?null:s.key)}>
-              <div style={{ width:16, height:16, borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, background:s.done?C.text:"transparent", color:s.done?"#fff":C.textMuted, fontSize:8, fontWeight:600, border:`1px solid ${s.done?C.text:s.hasData&&!s.done?C.amber:C.border}` }}>{s.done?I.check:i}</div>
+            <div style={{ display:"flex", alignItems:"center", gap:8, padding:"8px 10px", cursor:"pointer", background:isOpen?C.surface2:"transparent" }} onClick={()=>setExpandedStep(isOpen?null:s.key)}>
+              <div style={{ width:16, height:16, borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, background:s.done?C.text:"transparent", color:s.done?"#fff":C.textMuted, fontSize:10, fontWeight:600, border:`1px solid ${s.done?C.text:s.hasData&&!s.done?C.amber:C.border}` }}>{s.done?I.check:i}</div>
               <div style={{ flex:1 }}>
                 <span style={{ fontSize:12, fontWeight:s.done?600:400, color:s.done?C.text:C.textDim }}>{s.label}</span>
                 {s.done && <span style={{ fontSize:10, color:C.textMuted, marginLeft:6 }}>Complete</span>}
@@ -3773,28 +3773,28 @@ export default function App() {
           </div>);
         })}
         {/* Analyst Notes */}
-        {isUW && <div style={{ border:`1px solid ${C.border}`, marginTop:6, padding:"8px 10px" }}>
+        {isUW && <div style={{ border:`1px solid ${C.border}`, marginTop:8, padding:"8px 12px" }}>
           <div style={{ fontSize:10, fontWeight:600, color:C.text, marginBottom:3 }}>Analyst Notes</div>
-          <textarea value={w.analystNotes||""} onChange={e=>saveAnalystNotes(a.id,e.target.value)} placeholder="Observations, concerns, conditions to propose..." rows={2} style={{ width:"100%", padding:"5px 6px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:11, fontFamily:"inherit", outline:"none", resize:"vertical", boxSizing:"border-box", lineHeight:1.5 }} />
+          <textarea value={w.analystNotes||""} onChange={e=>saveAnalystNotes(a.id,e.target.value)} placeholder="Observations, concerns, conditions to propose..." rows={2} style={{ width:"100%", padding:"4px 6px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:11, fontFamily:"inherit", outline:"none", resize:"vertical", boxSizing:"border-box", lineHeight:1.5 }} />
         </div>}
         {/* Notify applicant */}
-        {isUW && <div style={{ border:`1px solid ${C.border}`, marginTop:1, padding:"8px 10px" }}>
+        {isUW && <div style={{ border:`1px solid ${C.border}`, marginTop:1, padding:"8px 12px" }}>
           <div style={{ fontSize:10, fontWeight:600, color:C.text, marginBottom:3 }}>Notify Applicant</div>
-          <input value={notifForm.subject} onChange={e=>setNotifForm({...notifForm,subject:e.target.value})} placeholder="Subject" style={{ width:"100%", padding:"3px 5px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:10, fontFamily:"inherit", outline:"none", boxSizing:"border-box", marginBottom:3 }} />
-          <textarea value={notifForm.body} onChange={e=>setNotifForm({...notifForm,body:e.target.value})} placeholder="Message..." rows={2} style={{ width:"100%", padding:"3px 5px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:10, fontFamily:"inherit", outline:"none", resize:"vertical", boxSizing:"border-box", lineHeight:1.4 }} />
+          <input value={notifForm.subject} onChange={e=>setNotifForm({...notifForm,subject:e.target.value})} placeholder="Subject" style={{ width:"100%", padding:"4px 5px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:10, fontFamily:"inherit", outline:"none", boxSizing:"border-box", marginBottom:3 }} />
+          <textarea value={notifForm.body} onChange={e=>setNotifForm({...notifForm,body:e.target.value})} placeholder="Message..." rows={2} style={{ width:"100%", padding:"4px 5px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:10, fontFamily:"inherit", outline:"none", resize:"vertical", boxSizing:"border-box", lineHeight:1.4 }} />
           <div style={{ display:"flex", justifyContent:"flex-end", marginTop:3 }}>
             <Btn size="sm" variant="secondary" onClick={()=>{if(notifForm.subject&&notifForm.body){sendNotification(a.id,notifForm.subject,notifForm.body);setNotifForm({subject:"",body:""})}}}>Send</Btn>
           </div>
         </div>}
-        {a.creditMemo && isUW && <SectionCard title="Credit Memorandum"><div style={{ fontSize:12, color:C.textDim, lineHeight:1.7, whiteSpace:"pre-line" }}>{a.creditMemo}</div></SectionCard>}
-        {isUW && <div style={{ border:`1px solid ${C.border}`, padding:"10px 14px", marginTop:4 }}>
+        {a.creditMemo && isUW && <SectionCard title="Credit Memorandum"><div style={{ fontSize:12, color:C.textDim, lineHeight:1.5, whiteSpace:"pre-line" }}>{a.creditMemo}</div></SectionCard>}
+        {isUW && <div style={{ border:`1px solid ${C.border}`, padding:"12px 16px", marginTop:4 }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
             <div><div style={{ fontSize:12, fontWeight:600, color:C.text }}>Credit Decision</div><div style={{ fontSize:11, color:C.textMuted }}>{allDDComplete?"All steps signed off. Ready for decision.":`${doneCount}/7 steps completed.`}</div></div>
-            <div style={{ display:"flex", gap:6 }}><Btn onClick={()=>decideLoan(a.id,"Approved")} disabled={!allDDComplete}>Approve</Btn><Btn variant="danger" onClick={()=>decideLoan(a.id,"Declined")} disabled={!allDDComplete}>Decline</Btn></div>
+            <div style={{ display:"flex", gap:8 }}><Btn onClick={()=>decideLoan(a.id,"Approved")} disabled={!allDDComplete}>Approve</Btn><Btn variant="danger" onClick={()=>decideLoan(a.id,"Declined")} disabled={!allDDComplete}>Decline</Btn></div>
           </div>
         </div>}
         {a.status === "Booked" && (
-          <div style={{ border:`1px solid ${C.border}`, padding:"10px 14px", marginTop:4, background:C.surface2 }}>
+          <div style={{ border:`1px solid ${C.border}`, padding:"12px 16px", marginTop:4, background:C.surface2 }}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
               <div>
                 <div style={{ fontSize:12, fontWeight:600, color:C.text }}>Loan Booked — Awaiting Disbursement</div>
@@ -3815,7 +3815,7 @@ export default function App() {
       const isBooked = l.status === "Booked";
       return (<div><BackBtn />
         <div style={{ display:"flex", justifyContent:"space-between", marginBottom:24 }}>
-          <div><h2 style={{ margin:0, fontSize:22, fontWeight:700, color:C.text }}>{l.id}</h2><p style={{ margin:"4px 0 0", fontSize:13, color:C.textMuted }}>{c?.name}</p></div>
+          <div><h2 style={{ margin:0, fontSize:24, fontWeight:700, color:C.text }}>{l.id}</h2><p style={{ margin:"4px 0 0", fontSize:13, color:C.textMuted }}>{c?.name}</p></div>
           <div style={{ display:"flex", gap:8 }}>
             {statusBadge(l.status)}
             {l.status==="Active"&&<Badge color={l.dpd===0?"green":l.dpd<=30?"amber":"red"}>{l.dpd} DPD</Badge>}
@@ -3878,7 +3878,7 @@ export default function App() {
         {prov && <SectionCard title="IFRS 9 Provisioning">
           <div style={{ display:"flex", gap:24 }}>
             {[["Stage",`Stage ${prov.stage}`],["PD",fmt.pct(prov.pd)],["LGD",fmt.pct(prov.lgd,0)],["EAD",fmt.cur(prov.ead)],["ECL",fmt.cur(prov.ecl)],["Method",prov.method]].map(([l,v],i)=>(
-              <div key={i}><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase" }}>{l}</div><div style={{ fontSize:15, fontWeight:700, color:l==="ECL"?C.purple:C.text }}>{v}</div></div>
+              <div key={i}><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase" }}>{l}</div><div style={{ fontSize:14, fontWeight:700, color:l==="ECL"?C.purple:C.text }}>{v}</div></div>
             ))}
           </div>
         </SectionCard>}
@@ -4000,7 +4000,7 @@ export default function App() {
     const dbSize = (customers.length*2 + applications.length*5 + loans.length*3 + documents.length + audit.length*0.5).toFixed(1);
 
     return (<div>
-      <h2 style={{ margin:"0 0 4px", fontSize:22, fontWeight:700, color:C.text }}>Administration</h2>
+      <h2 style={{ margin:"0 0 4px", fontSize:24, fontWeight:700, color:C.text }}>Administration</h2>
       <p style={{ margin:"0 0 16px", fontSize:13, color:C.textMuted }}>Product catalog, user management, system configuration & business rules</p>
       <Tab tabs={[
         { key:"products", label:"Product Management", count:products.length },
@@ -4016,34 +4016,34 @@ export default function App() {
         </div>
         {prodForm && (
           <SectionCard title={prodEditing === "new" ? "Create New Product" : `Edit: ${prodForm.name}`}>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:10 }}>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:12 }}>
               <Field label="Product Name"><Input value={prodForm.name} onChange={e=>setProdForm({...prodForm,name:e.target.value})} /></Field>
               <Field label="Repayment Type"><Select value={prodForm.repaymentType} onChange={e=>setProdForm({...prodForm,repaymentType:e.target.value})} options={["Amortising","Bullet","Balloon","Seasonal"].map(v=>({value:v,label:v}))} /></Field>
               <Field label="Status"><Select value={prodForm.status} onChange={e=>setProdForm({...prodForm,status:e.target.value})} options={["Active","Suspended","Retired"].map(v=>({value:v,label:v}))} /></Field>
             </div>
             <Field label="Description"><Textarea value={prodForm.description} onChange={e=>setProdForm({...prodForm,description:e.target.value})} rows={2} /></Field>
             <Field label="Ideal For"><Input value={prodForm.idealFor||""} onChange={e=>setProdForm({...prodForm,idealFor:e.target.value})} placeholder="Target market description" /></Field>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:10, marginBottom:10 }}>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:12, marginBottom:12 }}>
               <Field label="Min Amount (R)"><Input type="number" value={prodForm.minAmount} onChange={e=>setProdForm({...prodForm,minAmount:+e.target.value})} /></Field>
               <Field label="Max Amount (R)"><Input type="number" value={prodForm.maxAmount} onChange={e=>setProdForm({...prodForm,maxAmount:+e.target.value})} /></Field>
               <Field label="Min Term (m)"><Input type="number" value={prodForm.minTerm} onChange={e=>setProdForm({...prodForm,minTerm:+e.target.value})} /></Field>
               <Field label="Max Term (m)"><Input type="number" value={prodForm.maxTerm} onChange={e=>setProdForm({...prodForm,maxTerm:+e.target.value})} /></Field>
             </div>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr 1fr", gap:10, marginBottom:10 }}>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr 1fr", gap:12, marginBottom:12 }}>
               <Field label="Base Rate % (ann.)"><Input type="number" value={prodForm.baseRate} onChange={e=>setProdForm({...prodForm,baseRate:+e.target.value})} /></Field>
               <Field label="Monthly Rate %"><Input type="number" value={prodForm.monthlyRate||""} onChange={e=>setProdForm({...prodForm,monthlyRate:+e.target.value})} /></Field>
               <Field label="Arrangement Fee %"><Input type="number" value={prodForm.arrangementFee} onChange={e=>setProdForm({...prodForm,arrangementFee:+e.target.value})} /></Field>
               <Field label="Commitment Fee %"><Input type="number" value={prodForm.commitmentFee} onChange={e=>setProdForm({...prodForm,commitmentFee:+e.target.value})} /></Field>
               <Field label="Grace Period (m)"><Input type="number" value={prodForm.gracePeriod} onChange={e=>setProdForm({...prodForm,gracePeriod:+e.target.value})} /></Field>
             </div>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr 1fr", gap:10, marginBottom:10 }}>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr 1fr", gap:12, marginBottom:12 }}>
               <Field label="Max LTV %"><Input type="number" value={prodForm.maxLTV} onChange={e=>setProdForm({...prodForm,maxLTV:+e.target.value})} /></Field>
               <Field label="Min DSCR"><Input type="number" value={prodForm.minDSCR} onChange={e=>setProdForm({...prodForm,minDSCR:+e.target.value})} step="0.05" /></Field>
               <Field label="Risk Class"><Select value={prodForm.riskClass||"A"} onChange={e=>setProdForm({...prodForm,riskClass:e.target.value})} options={["A","B","C","D"].map(v=>({value:v,label:`Class ${v}`}))} /></Field>
               <Field label="ECL Rate %"><Input type="number" value={prodForm.ecl||""} onChange={e=>setProdForm({...prodForm,ecl:+e.target.value})} step="0.01" /></Field>
               <Field label="S1 PD"><Input type="number" value={prodForm.s1PD||""} onChange={e=>setProdForm({...prodForm,s1PD:+e.target.value})} step="0.001" /></Field>
             </div>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:12 }}>
               <Field label="LGD"><Input type="number" value={prodForm.lgd||""} onChange={e=>setProdForm({...prodForm,lgd:+e.target.value})} step="0.01" /></Field>
               <Field label="Eligible BEE Levels (comma-sep)"><Input value={(prodForm.eligibleBEE||[]).join(",")} onChange={e=>setProdForm({...prodForm,eligibleBEE:e.target.value.split(",").map(Number).filter(Boolean)})} /></Field>
             </div>
@@ -4073,12 +4073,12 @@ export default function App() {
         </div>
         {userForm && (
           <SectionCard title={userEditing==="new"?"Create New User":`Edit: ${userForm.name}`}>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:10 }}>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:12 }}>
               <Field label="Full Name *"><Input value={userForm.name} onChange={e=>setUserForm({...userForm,name:e.target.value})} placeholder="e.g. Jane Doe" /></Field>
               <Field label="Email *"><Input value={userForm.email} onChange={e=>setUserForm({...userForm,email:e.target.value})} placeholder="jane@tqacapital.co.za" /></Field>
               <Field label="Role"><Select value={userForm.role} onChange={e=>setUserForm({...userForm,role:e.target.value})} options={Object.entries(ROLES).map(([k,v])=>({value:k,label:v.label}))} /></Field>
             </div>
-            {userEditing==="new" && <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
+            {userEditing==="new" && <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:12 }}>
               <Field label="Temporary Password"><Input type="password" value={userForm.password||""} onChange={e=>setUserForm({...userForm,password:e.target.value})} placeholder="Min 8 characters" /></Field>
               <Field label="Status"><Select value={userForm.status||"Active"} onChange={e=>setUserForm({...userForm,status:e.target.value})} options={["Active","Suspended"].map(v=>({value:v,label:v}))} /></Field>
             </div>}
@@ -4086,12 +4086,12 @@ export default function App() {
           </SectionCard>
         )}
         <Table columns={[
-          { label:"User", render:r=><div style={{ display:"flex", alignItems:"center", gap:6 }}><div style={{ width:24, height:24, borderRadius:3, background:r.status==="Active"?C.surface2:C.red+"20", border:`1px solid ${r.status==="Active"?C.border:C.red}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:9, fontWeight:600, color:r.status==="Active"?C.textDim:C.red }}>{r.initials}</div><div><div style={{ fontWeight:500, fontSize:12 }}>{r.name}</div><div style={{ fontSize:10, color:C.textMuted }}>{r.email}</div></div></div> },
+          { label:"User", render:r=><div style={{ display:"flex", alignItems:"center", gap:8 }}><div style={{ width:24, height:24, borderRadius:3, background:r.status==="Active"?C.surface2:C.red+"20", border:`1px solid ${r.status==="Active"?C.border:C.red}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, fontWeight:600, color:r.status==="Active"?C.textDim:C.red }}>{r.initials}</div><div><div style={{ fontWeight:500, fontSize:12 }}>{r.name}</div><div style={{ fontSize:10, color:C.textMuted }}>{r.email}</div></div></div> },
           { label:"Role", render:r=><Badge color={r.role==="ADMIN"?"purple":r.role==="EXEC"?"blue":"gray"}>{ROLES[r.role]?.label||r.role}</Badge> },
           { label:"Tier", render:r=><span style={{ fontSize:11 }}>{ROLES[r.role]?.tier}</span> },
           { label:"Approval Limit", render:r=>APPROVAL_LIMITS[r.role]?(APPROVAL_LIMITS[r.role]===Infinity?"Unlimited":fmt.cur(APPROVAL_LIMITS[r.role])):<span style={{ color:C.textMuted }}>—</span> },
           { label:"Status", render:r=><Badge color={r.status==="Active"?"green":r.status==="Suspended"?"amber":"red"}>{r.status||"Active"}</Badge> },
-          { label:"Actions", render:r=>canDo("settings","update") && r.id!==currentUser.id ? <div style={{ display:"flex", gap:3, flexWrap:"wrap" }}>
+          { label:"Actions", render:r=>canDo("settings","update") && r.id!==currentUser.id ? <div style={{ display:"flex", gap:4, flexWrap:"wrap" }}>
             <Btn size="sm" variant="ghost" onClick={()=>startEditUser(r)}>Edit</Btn>
             <Btn size="sm" variant="ghost" onClick={()=>resetPassword(r.id)}>Reset Pwd</Btn>
             <Btn size="sm" variant={r.status==="Active"?"ghost":"secondary"} onClick={()=>toggleUserStatus(r.id)}>{r.status==="Active"?"Suspend":"Activate"}</Btn>
@@ -4115,7 +4115,7 @@ export default function App() {
             <InfoGrid items={[["Company Name", settings?.companyName],["NCR Registration", settings?.ncrReg],["NCR Expiry", settings?.ncrExpiry],["Branch", settings?.branch],["Financial Year-End", settings?.yearEnd],["Address", settings?.address || "East London, Nahoon Valley"]]} />
           ) : (
             <div>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:12 }}>
                 <Field label="Company Name"><Input value={settingsForm.companyName||""} onChange={e=>setSettingsForm({...settingsForm,companyName:e.target.value})} /></Field>
                 <Field label="NCR Registration"><Input value={settingsForm.ncrReg||""} onChange={e=>setSettingsForm({...settingsForm,ncrReg:e.target.value})} /></Field>
                 <Field label="NCR Expiry"><Input value={settingsForm.ncrExpiry||""} onChange={e=>setSettingsForm({...settingsForm,ncrExpiry:e.target.value})} /></Field>
@@ -4130,7 +4130,7 @@ export default function App() {
         <SectionCard title="System Health">
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:12, marginBottom:12 }}>
             {[["Status","Operational",C.green],["Uptime",`${uptime}h`,C.accent],["DB Size",`~${dbSize} KB`,C.blue],["Active Sessions",sysUsers.filter(u=>(u.status||"Active")==="Active").length,C.purple]].map(([l,v,c],i)=>(
-              <div key={i} style={{ background:C.surface2, padding:"10px 12px", border:`1px solid ${C.border}` }}>
+              <div key={i} style={{ background:C.surface2, padding:"12px 12px", border:`1px solid ${C.border}` }}>
                 <div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase", letterSpacing:0.5 }}>{l}</div>
                 <div style={{ fontSize:18, fontWeight:700, color:c, marginTop:2 }}>{v}</div>
               </div>
@@ -4145,7 +4145,7 @@ export default function App() {
             ["Auto-Backup", backupSchedule.autoEnabled ? "Enabled" : "Disabled"],
             ["Storage", "Supabase PostgreSQL + localStorage fallback"],
           ]} />
-          {canDo("settings","update") && <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginTop:10 }}>
+          {canDo("settings","update") && <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginTop:10 }}>
             <Field label="Frequency"><Select value={backupSchedule.frequency} onChange={e=>setBackupSchedule({...backupSchedule,frequency:e.target.value})} options={["Hourly","Daily","Weekly"].map(v=>({value:v,label:v}))} /></Field>
             <Field label="Time"><Input type="time" value={backupSchedule.time} onChange={e=>setBackupSchedule({...backupSchedule,time:e.target.value})} /></Field>
             <Field label="Retention (days)"><Input type="number" value={backupSchedule.retention} onChange={e=>setBackupSchedule({...backupSchedule,retention:+e.target.value})} /></Field>
@@ -4173,7 +4173,7 @@ export default function App() {
         </div>
         {policyForm && (
           <SectionCard title={policyEditing==="new"?"Create Business Rule":`Edit: ${policyForm.name}`}>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:10 }}>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:12 }}>
               <Field label="Rule Name *"><Input value={policyForm.name} onChange={e=>setPolicyForm({...policyForm,name:e.target.value})} /></Field>
               <Field label="Category"><Select value={policyForm.category} onChange={e=>setPolicyForm({...policyForm,category:e.target.value})} options={["Credit","Collections","Finance","Compliance","Operations","Governance"].map(v=>({value:v,label:v}))} /></Field>
               <Field label="Value *"><Input value={policyForm.value} onChange={e=>setPolicyForm({...policyForm,value:e.target.value})} placeholder="e.g. 1.25x, 30 days, R500,000" /></Field>
@@ -4187,8 +4187,8 @@ export default function App() {
           { label:"Category", render:r=><Badge color={r.category==="Credit"?"blue":r.category==="Collections"?"amber":r.category==="Compliance"?"purple":"gray"}>{r.category}</Badge> },
           { label:"Value", render:r=><span style={{ fontSize:13, fontWeight:700, color:C.accent }}>{r.value}</span> },
           { label:"Status", render:r=><Badge color={r.status==="Active"?"green":"red"}>{r.status}</Badge> },
-          { label:"Updated", render:r=><div><div style={{ fontSize:10 }}>{fmt.date(r.lastUpdated)}</div><div style={{ fontSize:9, color:C.textMuted }}>{r.updatedBy}</div></div> },
-          { label:"Actions", render:r=>canDo("settings","update") ? <div style={{ display:"flex", gap:3 }}>
+          { label:"Updated", render:r=><div><div style={{ fontSize:10 }}>{fmt.date(r.lastUpdated)}</div><div style={{ fontSize:10, color:C.textMuted }}>{r.updatedBy}</div></div> },
+          { label:"Actions", render:r=>canDo("settings","update") ? <div style={{ display:"flex", gap:4 }}>
             <Btn size="sm" variant="ghost" onClick={()=>startEditRule(r)}>Edit</Btn>
             <Btn size="sm" variant={r.status==="Active"?"ghost":"secondary"} onClick={()=>toggleRule(r.id)}>{r.status==="Active"?"Suspend":"Activate"}</Btn>
           </div> : null },
@@ -4198,25 +4198,25 @@ export default function App() {
             <table style={{ width:"100%", borderCollapse:"collapse", fontSize:10 }}>
               <thead><tr style={{ borderBottom:`2px solid ${C.border}` }}>
                 <th style={{ textAlign:"left", padding:"4px 6px", fontWeight:600, color:C.text }}>Module</th>
-                {Object.keys(ROLES).map(r=><th key={r} style={{ textAlign:"center", padding:"4px 3px", fontWeight:500, color:C.textDim, fontSize:9 }}>{r.replace("_"," ")}</th>)}
+                {Object.keys(ROLES).map(r=><th key={r} style={{ textAlign:"center", padding:"4px 3px", fontWeight:500, color:C.textDim, fontSize:10 }}>{r.replace("_"," ")}</th>)}
               </tr></thead>
               <tbody>{Object.keys(PERMS).map(mod=>(
                 <tr key={mod} style={{ borderBottom:`1px solid ${C.border}` }}>
-                  <td style={{ padding:"3px 6px", fontWeight:500, color:C.text }}>{mod}</td>
-                  {Object.keys(ROLES).map(r=><td key={r} style={{ textAlign:"center", padding:"3px 2px", color:PERMS[mod]?.[r]?C.textDim:C.border, fontSize:9 }}>{PERMS[mod]?.[r]||"—"}</td>)}
+                  <td style={{ padding:"4px 6px", fontWeight:500, color:C.text }}>{mod}</td>
+                  {Object.keys(ROLES).map(r=><td key={r} style={{ textAlign:"center", padding:"4px 2px", color:PERMS[mod]?.[r]?C.textDim:C.border, fontSize:10 }}>{PERMS[mod]?.[r]||"—"}</td>)}
                 </tr>
               ))}</tbody>
             </table>
           </div>
         </SectionCard>
         <SectionCard title="Regulatory Framework">
-          <div style={{ fontSize:12, color:C.textDim, lineHeight:1.8 }}>
+          <div style={{ fontSize:12, color:C.textDim, lineHeight:1.5 }}>
             {[["National Credit Act (NCA)","Affordability assessments, pre-agreement disclosure, debt collection standards"],
               ["FICA / AML","KYC verification, sanctions screening, suspicious transaction reporting to FIC"],
               ["POPIA","Data minimisation, privacy notices, customer rights, secure processing"],
               ["BB-BEE Act","Empowerment verification, ownership tracking, development impact reporting"],
               ["IFRS 9","Expected credit loss provisioning, 3-stage impairment model"]
-            ].map(([title,desc],i)=><div key={i} style={{ padding:"6px 0", borderBottom:`1px solid ${C.border}` }}><span style={{ fontWeight:600, color:C.text }}>{title}:</span> {desc}</div>)}
+            ].map(([title,desc],i)=><div key={i} style={{ padding:"8px 0", borderBottom:`1px solid ${C.border}` }}><span style={{ fontWeight:600, color:C.text }}>{title}:</span> {desc}</div>)}
           </div>
         </SectionCard>
       </div>}
@@ -4251,7 +4251,7 @@ export default function App() {
       <Modal open={modal === "newApp"} onClose={() => setModal(null)} title="New Loan Application" width={560}>
         <Field label="Customer"><Select value={form.custId} onChange={e=>setForm({...form,custId:e.target.value})} options={customers.map(c=>({value:c.id,label:`${c.name} (BEE ${c.beeLevel})`}))} /></Field>
         <Field label="Loan Product"><Select value={form.product} onChange={e=>setForm({...form,product:e.target.value})} options={activeProducts.map(p=>({value:p.id,label:`${p.name} (${p.baseRate}%, ${p.repaymentType||"Amortising"})`}))} /></Field>
-        {p && <div style={{ background:C.surface2, padding:10, marginBottom:12, fontSize:11, color:C.textDim, border:`1px solid ${C.border}`, lineHeight:1.6 }}>
+        {p && <div style={{ background:C.surface2, padding:12, marginBottom:12, fontSize:11, color:C.textDim, border:`1px solid ${C.border}`, lineHeight:1.6 }}>
           {p.description}<br/>
           Range: {fmt.cur(p.minAmount)} – {fmt.cur(p.maxAmount)} · Term: {p.minTerm}–{p.maxTerm}m · Grace: {p.gracePeriod||0}m<br/>
           Fees: Arrangement {p.arrangementFee||0}% · Commitment {p.commitmentFee||0}% · Max LTV: {p.maxLTV||80}% · Min DSCR: {p.minDSCR||1.2}x<br/>
@@ -4261,7 +4261,7 @@ export default function App() {
           <Field label="Amount (R)"><Input type="number" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} placeholder={p?`${fmt.cur(p.minAmount)} – ${fmt.cur(p.maxAmount)}`:"e.g. 500000"} /></Field>
           <Field label="Term (months)"><Input type="number" value={form.term} onChange={e=>setForm({...form,term:e.target.value})} placeholder={p?`${p.minTerm} – ${p.maxTerm}`:"e.g. 36"} /></Field>
         </div>
-        {errors.length > 0 && <div style={{ background:"#fff5f5", border:`1px solid ${C.red}`, padding:"6px 10px", marginBottom:12, fontSize:11, color:C.red }}>{errors.map((e,i)=><div key={i}>{e}</div>)}</div>}
+        {errors.length > 0 && <div style={{ background:"#fff5f5", border:`1px solid ${C.red}`, padding:"8px 12px", marginBottom:12, fontSize:11, color:C.red }}>{errors.map((e,i)=><div key={i}>{e}</div>)}</div>}
         <Field label="Purpose of Loan"><Textarea value={form.purpose} onChange={e=>setForm({...form,purpose:e.target.value})} placeholder="Describe the purpose..." rows={3} /></Field>
         <div style={{ display:"flex", gap:12, marginTop:16 }}>
           <Btn variant="ghost" onClick={()=>setModal(null)} style={{ flex:1 }}>Cancel</Btn>
@@ -4290,6 +4290,21 @@ export default function App() {
         button{cursor:pointer}
         .kb-table-row:nth-child(even){background:rgba(0,0,0,0.015)}
         .kb-table-row:hover{background:rgba(0,0,0,0.03) !important}
+        
+        /* Typography Scale — 4px baseline grid */
+        .kb-h1{font-size:32px;font-weight:700;line-height:1.2;letter-spacing:-0.5px;color:${C.text}}
+        .kb-h2{font-size:22px;font-weight:700;line-height:1.2;letter-spacing:-0.3px;color:${C.text}}
+        .kb-h3{font-size:16px;font-weight:600;line-height:1.3;color:${C.text}}
+        .kb-h4{font-size:14px;font-weight:600;line-height:1.4;color:${C.text}}
+        .kb-body{font-size:13px;font-weight:400;line-height:1.5;color:${C.text}}
+        .kb-small{font-size:12px;font-weight:400;line-height:1.4;color:${C.textDim}}
+        .kb-caption{font-size:10px;font-weight:500;line-height:1.4;color:${C.textMuted};text-transform:uppercase;letter-spacing:0.6px}
+        .kb-label{font-size:11px;font-weight:600;line-height:1.3;color:${C.textDim};text-transform:uppercase;letter-spacing:0.5px}
+        .kb-mono{font-family:"SF Mono","Fira Code",monospace;font-size:12px}
+        /* Spacing utilities */
+        .kb-gap-4{gap:4px}.kb-gap-8{gap:8px}.kb-gap-12{gap:12px}.kb-gap-16{gap:16px}.kb-gap-20{gap:20px}.kb-gap-24{gap:24px}
+        .kb-p-8{padding:8px}.kb-p-12{padding:12px}.kb-p-16{padding:16px}.kb-p-20{padding:20px}.kb-p-24{padding:24px}
+        .kb-mb-4{margin-bottom:4px}.kb-mb-8{margin-bottom:8px}.kb-mb-12{margin-bottom:12px}.kb-mb-16{margin-bottom:16px}.kb-mb-20{margin-bottom:20px}.kb-mb-24{margin-bottom:24px}
         ::-webkit-scrollbar{width:5px;height:5px}
         ::-webkit-scrollbar-track{background:transparent}
         ::-webkit-scrollbar-thumb{background:#d4d4d4;border-radius:0}
@@ -4325,9 +4340,9 @@ export default function App() {
 {/* Sidebar */}
       <aside className="kb-sidebar" style={{ width:sideCollapsed?52:210, background:C.surface, borderRight:`1px solid ${C.border}`, transition:"width .15s", flexShrink:0, display:"flex", flexDirection:"column", overflow:"hidden" }}>
         <div style={{ padding:sideCollapsed?"12px 8px":"14px 14px 10px", borderBottom:`1px solid ${C.border}`, display:"flex", alignItems:"center", gap:8, cursor:"pointer" }} onClick={()=>setSideCollapsed(!sideCollapsed)}>
-          {!sideCollapsed && <div><div style={{ fontSize:13, fontWeight:600, color:C.text, letterSpacing:-0.2 }}>KwikBridge</div><div style={{ fontSize:9, color:C.textMuted, letterSpacing:0.5 }}>LOAN MANAGEMENT</div></div>}
+          {!sideCollapsed && <div><div style={{ fontSize:13, fontWeight:600, color:C.text, letterSpacing:-0.2 }}>KwikBridge</div><div style={{ fontSize:10, color:C.textMuted, letterSpacing:0.5 }}>LOAN MANAGEMENT</div></div>}
         </div>
-        <nav style={{ flex:1, padding:"6px 4px", overflowY:"auto" }}>
+        <nav style={{ flex:1, padding:"8px 4px", overflowY:"auto" }}>
           {staffNavItems.map(n => {
             const active = page === n.key && !detail;
             return (<button key={n.key} onClick={()=>{navTo(n.key)}} style={{ display:"flex", alignItems:"center", gap:8, width:"100%", padding:sideCollapsed?"7px 0":"6px 10px", justifyContent:sideCollapsed?"center":"flex-start", background:active?C.surface2:"transparent", color:active?C.text:C.textDim, border:"none", borderLeft:active?`2px solid ${C.text}`:"2px solid transparent", fontSize:12, fontWeight:active?600:400, cursor:"pointer", marginBottom:0, fontFamily:"inherit" }}>
@@ -4339,11 +4354,11 @@ export default function App() {
         </nav>
         {!sideCollapsed && <div style={{ padding:"8px 12px 12px", borderTop:`1px solid ${C.border}` }}>
           <div style={{ fontSize:10, fontWeight:500, color:C.text, marginBottom:2 }}>{currentUser.name}</div>
-          <div style={{ fontSize:9, color:C.textMuted, marginBottom:4 }}>{ROLES[role]?.label}</div>
-          <div style={{ fontSize:9, color:C.textMuted, lineHeight:1.5, letterSpacing:0.2 }}>TQA Capital<br/>NCR: {settings?.ncrReg||"—"}<br/>Valid: {settings?.ncrExpiry||"—"}</div>
-          <div style={{ display:"flex", gap:4, marginTop:6 }}>
-            <button onClick={reset} style={{ background:"none", border:`1px solid ${C.border}`, color:C.textMuted, borderRadius:2, padding:"2px 6px", fontSize:9, cursor:"pointer", fontFamily:"inherit" }}>Reset Demo</button>
-            <button onClick={handleSignOut} style={{ background:"none", border:`1px solid ${C.border}`, color:C.red, borderRadius:2, padding:"2px 6px", fontSize:9, cursor:"pointer", fontFamily:"inherit" }}>Sign Out</button>
+          <div style={{ fontSize:10, color:C.textMuted, marginBottom:4 }}>{ROLES[role]?.label}</div>
+          <div style={{ fontSize:10, color:C.textMuted, lineHeight:1.5, letterSpacing:0.2 }}>TQA Capital<br/>NCR: {settings?.ncrReg||"—"}<br/>Valid: {settings?.ncrExpiry||"—"}</div>
+          <div style={{ display:"flex", gap:4, marginTop:8 }}>
+            <button onClick={reset} style={{ background:"none", border:`1px solid ${C.border}`, color:C.textMuted, borderRadius:2, padding:"2px 6px", fontSize:10, cursor:"pointer", fontFamily:"inherit" }}>Reset Demo</button>
+            <button onClick={handleSignOut} style={{ background:"none", border:`1px solid ${C.border}`, color:C.red, borderRadius:2, padding:"2px 6px", fontSize:10, cursor:"pointer", fontFamily:"inherit" }}>Sign Out</button>
           </div>
         </div>}
       </aside>
@@ -4353,7 +4368,7 @@ export default function App() {
         <header style={{ background:C.surface, borderBottom:`1px solid ${C.border}`, padding:"0 16px", height:48, display:"flex", alignItems:"center", justifyContent:"space-between", flexShrink:0, position:"sticky", top:0, zIndex:10 }}>
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
             {(pageHistory.length > 0 || detail) && <button onClick={()=>{if(detail){setDetail(null)}else{goBack()}}} style={{ background:"none", border:"none", cursor:"pointer", color:C.textDim, padding:"4px 2px", display:"flex", alignItems:"center" }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>}
-            <div className="kb-header-search" style={{ display:"flex", alignItems:"center", gap:6, background:C.surface2, padding:"5px 10px", width:250, border:`1px solid ${C.border}` }}>
+            <div className="kb-header-search" style={{ display:"flex", alignItems:"center", gap:8, background:C.surface2, padding:"4px 10px", width:250, border:`1px solid ${C.border}` }}>
               {I.search}
               <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search…" style={{ border:"none", background:"transparent", outline:"none", fontSize:12, color:C.text, width:"100%", fontFamily:"inherit" }} />
             </div>
@@ -4362,10 +4377,10 @@ export default function App() {
             <div style={{ position:"relative" }}>
               <button onClick={()=>setNotifOpen(!notifOpen)} style={{ background:"none", border:"none", cursor:"pointer", color:C.textDim, position:"relative", padding:4 }}>
                 {I.bell}
-                {unread>0 && <span style={{ position:"absolute", top:-2, right:-2, width:14, height:14, borderRadius:7, background:C.red, color:C.white, fontSize:8, fontWeight:600, display:"flex", alignItems:"center", justifyContent:"center" }}>{unread}</span>}
+                {unread>0 && <span style={{ position:"absolute", top:-2, right:-2, width:14, height:14, borderRadius:7, background:C.red, color:C.white, fontSize:10, fontWeight:600, display:"flex", alignItems:"center", justifyContent:"center" }}>{unread}</span>}
               </button>
               {notifOpen && <div style={{ position:"absolute", right:0, top:34, width:340, background:C.surface, border:`1px solid ${C.border}`, boxShadow:"0 4px 16px rgba(0,0,0,0.06)", zIndex:100, maxHeight:380, overflow:"auto" }}>
-                <div style={{ padding:"10px 14px", borderBottom:`1px solid ${C.border}`, fontSize:12, fontWeight:600, color:C.text }}>Notifications ({unread})</div>
+                <div style={{ padding:"12px 16px", borderBottom:`1px solid ${C.border}`, fontSize:12, fontWeight:600, color:C.text }}>Notifications ({unread})</div>
                 {alerts.slice(0,8).map(a => (
                   <div key={a.id} style={{ padding:"8px 14px", borderBottom:`1px solid ${C.border}`, opacity:a.read?0.35:1, cursor:"pointer" }} onClick={()=>{markRead(a.id)}}>
                     <div style={{ fontSize:11, fontWeight:500, color:C.text }}>{a.title}</div>
@@ -4375,13 +4390,13 @@ export default function App() {
               </div>}
             </div>
             <div style={{ width:1, height:20, background:C.border }} />
-            <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
               <div style={{ width:26, height:26, borderRadius:2, background:C.surface2, border:`1px solid ${C.border}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, fontWeight:600, color:C.textDim }}>{currentUser.initials}</div>
               <div>
                 <select value={currentUser.id} onChange={e=>{const u=sysUsers.find(u=>u.id===e.target.value);if(u){setCurrentUser(u);setDetail(null)}}} style={{ border:"none", background:"transparent", fontSize:11, fontWeight:500, color:C.text, fontFamily:"inherit", outline:"none", cursor:"pointer", maxWidth:160 }}>
                   {sysUsers.filter(u=>(u.status||"Active")==="Active").map(u=><option key={u.id} value={u.id}>{u.name} ({ROLES[u.role]?.label})</option>)}
                 </select>
-                {authSession?.user?.email && <div style={{ fontSize:9, color:C.textMuted }}>{authSession.user.email}</div>}
+                {authSession?.user?.email && <div style={{ fontSize:10, color:C.textMuted }}>{authSession.user.email}</div>}
               </div>
             </div>
           </div>
