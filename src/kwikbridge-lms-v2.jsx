@@ -424,6 +424,7 @@ export default function App() {
   const [notifOpen, setNotifOpen] = useState(false);
   const [modal, setModal] = useState(null);
   const [sideCollapsed, setSideCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(SYSTEM_USERS[0]);
   const [detailEditing, setDetailEditing] = useState(false);
   const [detailForm, setDetailForm] = useState({});
@@ -4305,6 +4306,24 @@ export default function App() {
         .kb-gap-4{gap:4px}.kb-gap-8{gap:8px}.kb-gap-12{gap:12px}.kb-gap-16{gap:16px}.kb-gap-20{gap:20px}.kb-gap-24{gap:24px}
         .kb-p-8{padding:8px}.kb-p-12{padding:12px}.kb-p-16{padding:16px}.kb-p-20{padding:20px}.kb-p-24{padding:24px}
         .kb-mb-4{margin-bottom:4px}.kb-mb-8{margin-bottom:8px}.kb-mb-12{margin-bottom:12px}.kb-mb-16{margin-bottom:16px}.kb-mb-20{margin-bottom:20px}.kb-mb-24{margin-bottom:24px}
+        
+        /* Touch-friendly targets (WCAG 2.5.5) */
+        @media(pointer:coarse){
+          button,a,[role="button"]{min-height:44px;min-width:44px}
+          input,select,textarea{min-height:44px;font-size:16px !important}
+          .kb-sidebar button{min-height:44px}
+          .kb-nav-item{padding:12px !important}
+        }
+        
+        .kb-table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+        .kb-table-scroll::-webkit-scrollbar{height:4px}
+        .kb-table-scroll::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.15);border-radius:2px}
+        
+        /* Safe area for notch devices */
+        @supports(padding:env(safe-area-inset-bottom)){
+          .kb-mobile-fab{padding-bottom:calc(8px + env(safe-area-inset-bottom)) !important}
+          .kb-mobile-sidebar{padding-top:env(safe-area-inset-top)}
+        }
         ::-webkit-scrollbar{width:5px;height:5px}
         ::-webkit-scrollbar-track{background:transparent}
         ::-webkit-scrollbar-thumb{background:#d4d4d4;border-radius:0}
@@ -4313,31 +4332,70 @@ export default function App() {
           .kb-sidebar{display:none !important}
           .kb-main{width:100% !important;padding:12px !important}
           .kb-header-search{display:none !important}
+          .kb-hamburger{display:flex !important}
+          .kb-mobile-fab{display:block !important}
           .kb-grid-2{grid-template-columns:1fr !important}
           .kb-grid-3{grid-template-columns:1fr !important}
           .kb-grid-4{grid-template-columns:1fr 1fr !important}
           .kb-kpi-row{flex-wrap:wrap !important}
-          .kb-kpi-row>div{min-width:120px !important}
-          .kb-mobile-menu{display:flex !important}
+          .kb-kpi-row>div{min-width:calc(50% - 8px) !important;flex:0 0 calc(50% - 8px) !important}
           .kb-detail-grid{grid-template-columns:1fr !important}
-          .kb-header-user{font-size:11px !important}
-          h2{font-size:18px !important}
+          .kb-header-user span:not(:first-child){display:none !important}
+          .kb-section-grid{grid-template-columns:1fr !important}
+          h2{font-size:20px !important}
+          .kb-pub-hero h1{font-size:26px !important}
+          .kb-pub-hero{padding:32px 16px 24px !important}
+          .kb-trust-badges{flex-wrap:wrap !important;gap:12px !important}
+          .kb-form-row{flex-direction:column !important}
+          .kb-form-row>div{width:100% !important}
         }
         @media(max-width:480px){
+          .kb-grid-2{grid-template-columns:1fr !important}
+          .kb-grid-3{grid-template-columns:1fr !important}
           .kb-grid-4{grid-template-columns:1fr !important}
           .kb-kpi-row>div{flex:1 1 100% !important}
-          .kb-modal{width:95vw !important;max-height:90vh !important;margin:5vh auto}
+          .kb-modal{width:95vw !important;max-height:90vh !important;margin:5vh auto;border-radius:8px !important}
           .kb-table-responsive{overflow-x:auto;-webkit-overflow-scrolling:touch}
+          .kb-main{padding:8px !important}
+          .kb-pub-nav{flex-wrap:wrap;justify-content:center !important}
+          .kb-pub-cta{flex-direction:column !important}
+          .kb-pub-cta button{width:100% !important}
+          .kb-toast{left:12px !important;right:12px !important;max-width:none !important}
+          .kb-section-grid{gap:8px !important}
         }
       `}</style>
 
       
+      {/* Mobile Bottom Action Bar */}
+      <div className="kb-mobile-fab" style={{ display:"none", position:"fixed", bottom:0, left:0, right:0, background:C.surface, borderTop:`1px solid ${C.border}`, padding:"8px 12px", zIndex:50, boxShadow:"0 -2px 8px rgba(0,0,0,0.06)" }}>
+        <div style={{ display:"flex", justifyContent:"space-around", alignItems:"center" }}>
+          {[["dashboard","Dashboard",I.grid],["customers","Customers",I.users],["origination","Apps",I.file],["loanbook","Loans",I.book],["collections","Collect",I.alert]].map(([key,label,icon])=>(
+            <button key={key} onClick={()=>navTo(key)} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:2, background:"none", border:"none", cursor:"pointer", color:page===key?C.accent:C.textDim, padding:"4px 8px", fontFamily:"inherit", fontSize:10, fontWeight:page===key?600:400 }}>
+              <span style={{ fontSize:16 }}>{icon}</span>
+              <span>{label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
       {/* Toast Notification */}
       {toast && <div className="kb-toast" style={{ background: toast.type === "error" ? C.red : toast.type === "warning" ? C.amber : C.green, color:"#fff", padding:"10px 20px", borderRadius:6, fontSize:12, fontWeight:500, boxShadow:"0 4px 16px rgba(0,0,0,0.15)", display:"flex", alignItems:"center", gap:8, maxWidth:400 }}>
         <span>{toast.type === "error" ? "✕" : toast.type === "warning" ? "⚠" : "✓"}</span>
         <span>{toast.msg}</span>
       </div>}
 {/* Sidebar */}
+      <div className="kb-mobile-overlay" onClick={()=>setMobileMenuOpen(false)} style={{ display:mobileMenuOpen?"block":"none", position:"fixed", inset:0, background:"rgba(0,0,0,0.4)", zIndex:998, backdropFilter:"blur(2px)" }} />
+      <aside className="kb-mobile-sidebar" style={{ display:mobileMenuOpen?"flex":"none", position:"fixed", top:0, left:0, bottom:0, width:260, background:C.surface, zIndex:999, flexDirection:"column", boxShadow:"4px 0 16px rgba(0,0,0,0.1)", overflow:"hidden" }}>
+        <div style={{ padding:"16px", borderBottom:`1px solid ${C.border}`, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+          <div><div style={{ fontSize:14, fontWeight:600, color:C.text }}>KwikBridge</div><div style={{ fontSize:10, color:C.textMuted, letterSpacing:0.5 }}>LOAN MANAGEMENT</div></div>
+          <button onClick={()=>setMobileMenuOpen(false)} style={{ background:"none", border:"none", cursor:"pointer", color:C.textDim, padding:4 }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+        </div>
+        <nav style={{ flex:1, padding:"8px", overflowY:"auto" }}>
+          {staffNavItems.map(n => {
+            const active = page === n.key && !detail;
+            return (<button key={n.key} onClick={()=>{navTo(n.key);setMobileMenuOpen(false)}} style={{ display:"flex", alignItems:"center", gap:12, width:"100%", padding:"10px 12px", border:"none", background:active?C.accent+"11":"transparent", color:active?C.accent:C.textDim, fontSize:13, fontWeight:active?600:400, cursor:"pointer", textAlign:"left", fontFamily:"inherit", borderRadius:4, marginBottom:2 }}>{n.icon}<span>{n.label}</span>{n.badge > 0 && <span style={{ marginLeft:"auto", fontSize:10, background:C.red, color:"#fff", padding:"1px 6px", borderRadius:8 }}>{n.badge}</span>}</button>);
+          })}
+        </nav>
+      </aside>
       <aside className="kb-sidebar" style={{ width:sideCollapsed?52:210, background:C.surface, borderRight:`1px solid ${C.border}`, transition:"width .15s", flexShrink:0, display:"flex", flexDirection:"column", overflow:"hidden" }}>
         <div style={{ padding:sideCollapsed?"12px 8px":"14px 14px 10px", borderBottom:`1px solid ${C.border}`, display:"flex", alignItems:"center", gap:8, cursor:"pointer" }} onClick={()=>setSideCollapsed(!sideCollapsed)}>
           {!sideCollapsed && <div><div style={{ fontSize:13, fontWeight:600, color:C.text, letterSpacing:-0.2 }}>KwikBridge</div><div style={{ fontSize:10, color:C.textMuted, letterSpacing:0.5 }}>LOAN MANAGEMENT</div></div>}
@@ -4367,6 +4425,7 @@ export default function App() {
       <div className="kb-main" style={{ flex:1, display:"flex", flexDirection:"column", minWidth:0 }}>
         <header style={{ background:C.surface, borderBottom:`1px solid ${C.border}`, padding:"0 16px", height:48, display:"flex", alignItems:"center", justifyContent:"space-between", flexShrink:0, position:"sticky", top:0, zIndex:10 }}>
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            <button className="kb-hamburger" onClick={()=>setMobileMenuOpen(!mobileMenuOpen)} style={{ background:"none", border:"none", cursor:"pointer", color:C.text, padding:"4px", display:"none", alignItems:"center" }}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
             {(pageHistory.length > 0 || detail) && <button onClick={()=>{if(detail){setDetail(null)}else{goBack()}}} style={{ background:"none", border:"none", cursor:"pointer", color:C.textDim, padding:"4px 2px", display:"flex", alignItems:"center" }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>}
             <div className="kb-header-search" style={{ display:"flex", alignItems:"center", gap:8, background:C.surface2, padding:"4px 10px", width:250, border:`1px solid ${C.border}` }}>
               {I.search}
