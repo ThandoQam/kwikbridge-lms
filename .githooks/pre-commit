@@ -1,0 +1,34 @@
+#!/bin/sh
+# KwikBridge LMS — Pre-commit Hook
+# Runs integrity check, type check, and lint before allowing commit.
+# Install: cp .githooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+
+echo "Running KwikBridge pre-commit checks..."
+echo ""
+
+# 1. Monolith integrity check
+echo "→ Integrity check..."
+python3 check.py src/kwikbridge-lms-v2.jsx
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "COMMIT BLOCKED: Integrity check failed."
+  exit 1
+fi
+
+# 2. TypeScript type check
+echo ""
+echo "→ TypeScript check..."
+npx tsc --noEmit 2>&1
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "COMMIT BLOCKED: TypeScript errors found."
+  exit 1
+fi
+
+# 3. ESLint (warning only — don't block on lint issues)
+echo ""
+echo "→ ESLint..."
+npx eslint src/ --ext .ts,.tsx --max-warnings 0 2>&1 || true
+
+echo ""
+echo "✓ Pre-commit checks passed. Proceeding with commit."

@@ -1,0 +1,56 @@
+# KwikBridge LMS — Pull Request Checks
+# Runs only on PRs — lighter weight than full CI.
+# Required status check for branch protection.
+
+name: PR Checks
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  pr-checks:
+    name: PR Quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Build check
+        run: npm run build
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Integrity check
+        run: python3 check.py src/kwikbridge-lms-v2.jsx
+
+      - name: Core tests
+        run: |
+          for f in test_suite.py smoke_test.py data_validation_test.py; do
+            [ -f "$f" ] && python3 "$f"
+          done
+
+      - name: PR Summary
+        run: |
+          echo "## PR Check Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ TypeScript: zero errors" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Build: successful" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Integrity: check.py passed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Core tests: passed" >> $GITHUB_STEP_SUMMARY
