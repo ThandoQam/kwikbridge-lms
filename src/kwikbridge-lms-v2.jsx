@@ -385,7 +385,7 @@ function StepTracker({ steps, current }) {
         return (
           <div key={i} style={{ display: "flex", gap:12, alignItems: "flex-start" }}>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-              <div style={{ width: 22, height: 22, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, background: done ? C.text : "transparent", color: done ? "#fff" : active ? C.text : C.textMuted, fontSize: 10, fontWeight: 600, border: `1px solid ${done ? C.text : C.border}` }}>
+              <div style={{ width: 22, height: 22, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, background: done ? C.accent : "transparent", color: done ? "#fff" : active ? C.text : C.textMuted, fontSize: 10, fontWeight: 600, border: `1px solid ${done ? C.accent : C.border}` }}>
                 {done ? I.check : i + 1}
               </div>
               {i < steps.length - 1 && <div style={{ width: 1, height: 20, background: C.border }} />}
@@ -771,7 +771,7 @@ export default function App() {
                 Upon pre-approval, you will be asked to upload KYB/FICA documentation to proceed with formal origination.
               </div>
               <div style={{ display:"flex", gap:12, justifyContent:"center" }}>
-                <button onClick={()=>{setAuthMode("login");setZone("auth");setAuthForm({email:f.email,password:"",name:"",error:""})}} style={{ background:C.text, color:"#fff", border:"none", padding:"10px 24px", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Sign In to Track Progress</button>
+                <button onClick={()=>{setAuthMode("login");setZone("auth");setAuthForm({email:f.email,password:"",name:"",error:""})}} style={{ background:C.accent, color:"#fff", border:"none", padding:"10px 24px", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Sign In to Track Progress</button>
                 <button onClick={()=>{setPublicAppForm({...publicAppForm,step:1,submitted:false,preApprovalResult:null,trackingRef:null,error:""});setPage("public_home")}} style={{ background:"none", border:`1px solid ${C.border}`, padding:"10px 24px", fontSize:13, fontWeight:500, color:C.text, cursor:"pointer", fontFamily:"inherit" }}>Back to Home</button>
               </div>
             </div>
@@ -784,7 +784,7 @@ export default function App() {
             {/* Step indicators */}
             <div style={{ display:"flex", gap:0, marginBottom:24 }}>
               {[1,2,3,4].map(s=>(
-                <div key={s} style={{ flex:1, padding:"8px 0", textAlign:"center", background:f.step===s?C.text:f.step>s?C.surface:C.surface2, color:f.step===s?"#fff":f.step>s?C.green:C.textMuted, fontSize:11, fontWeight:f.step===s?600:400, cursor:"pointer", border:`1px solid ${f.step===s?C.text:C.border}`, borderRight:s<4?"none":"" }} onClick={()=>{if(s<f.step||(s===2&&v1)||(s===3&&v1&&v2)||(s===4&&v1&&v2&&v3)) sf("step",s)}}>
+                <div key={s} style={{ flex:1, padding:"8px 0", textAlign:"center", background:f.step===s?C.accent:f.step>s?C.surface:C.surface2, color:f.step===s?"#fff":f.step>s?C.green:C.textMuted, fontSize:11, fontWeight:f.step===s?600:400, cursor:"pointer", border:`1px solid ${f.step===s?C.text:C.border}`, borderRight:s<4?"none":"" }} onClick={()=>{if(s<f.step||(s===2&&v1)||(s===3&&v1&&v2)||(s===4&&v1&&v2&&v3)) sf("step",s)}}>
                   {f.step>s?"✓ ":""}{I2["s"+s]}
                 </div>
               ))}
@@ -803,7 +803,7 @@ export default function App() {
               </div>
               <div style={{ fontSize:10, color:C.textMuted, marginTop:10 }}>Your login credentials will be created automatically. You can sign in to track your application after submission.</div>
               <div style={{ display:"flex", justifyContent:"flex-end", marginTop:16 }}>
-                <button disabled={!v1} onClick={()=>sf("step",2)} style={{ background:v1?C.text:C.border, color:v1?"#fff":C.textMuted, border:"none", padding:"10px 28px", fontSize:13, fontWeight:600, cursor:v1?"pointer":"not-allowed", fontFamily:"inherit" }}>Next: Business Information →</button>
+                <button disabled={!v1} onClick={()=>sf("step",2)} style={{ background:v1?C.accent:C.border, color:v1?"#fff":C.textMuted, border:"none", padding:"10px 28px", fontSize:13, fontWeight:600, cursor:v1?"pointer":"not-allowed", fontFamily:"inherit" }}>Next: Business Information →</button>
               </div>
             </div>}
 
@@ -823,7 +823,7 @@ export default function App() {
               </div>
               <div style={{ display:"flex", justifyContent:"space-between", marginTop:16 }}>
                 <button onClick={()=>sf("step",1)} style={{ background:"none", border:`1px solid ${C.border}`, padding:"10px 24px", fontSize:13, color:C.textDim, cursor:"pointer", fontFamily:"inherit" }}>← Back</button>
-                <button disabled={!v2} onClick={()=>sf("step",3)} style={{ background:v2?C.text:C.border, color:v2?"#fff":C.textMuted, border:"none", padding:"10px 28px", fontSize:13, fontWeight:600, cursor:v2?"pointer":"not-allowed", fontFamily:"inherit" }}>Next: Financing Request →</button>
+                <button disabled={!v2} onClick={()=>sf("step",3)} style={{ background:v2?C.accent:C.border, color:v2?"#fff":C.textMuted, border:"none", padding:"10px 28px", fontSize:13, fontWeight:600, cursor:v2?"pointer":"not-allowed", fontFamily:"inherit" }}>Next: Financing Request →</button>
               </div>
             </div>}
 
@@ -839,7 +839,7 @@ export default function App() {
               </div>
               <div style={{ display:"flex", justifyContent:"space-between", marginTop:16 }}>
                 <button onClick={()=>sf("step",2)} style={{ background:"none", border:`1px solid ${C.border}`, padding:"10px 24px", fontSize:13, color:C.textDim, cursor:"pointer", fontFamily:"inherit" }}>← Back</button>
-                <button disabled={!v3} onClick={()=>sf("step",4)} style={{ background:v3?C.text:C.border, color:v3?"#fff":C.textMuted, border:"none", padding:"10px 28px", fontSize:13, fontWeight:600, cursor:v3?"pointer":"not-allowed", fontFamily:"inherit" }}>Next: Review & Submit →</button>
+                <button disabled={!v3} onClick={()=>sf("step",4)} style={{ background:v3?C.accent:C.border, color:v3?"#fff":C.textMuted, border:"none", padding:"10px 28px", fontSize:13, fontWeight:600, cursor:v3?"pointer":"not-allowed", fontFamily:"inherit" }}>Next: Review & Submit →</button>
               </div>
             </div>}
 
@@ -866,7 +866,7 @@ export default function App() {
               </div>
               <div style={{ display:"flex", justifyContent:"space-between" }}>
                 <button onClick={()=>sf("step",3)} style={{ background:"none", border:`1px solid ${C.border}`, padding:"10px 24px", fontSize:13, color:C.textDim, cursor:"pointer", fontFamily:"inherit" }}>← Back</button>
-                <button onClick={handleSubmitApplication} style={{ background:C.text, color:"#fff", border:"none", padding:"12px 32px", fontSize:14, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>Submit Application</button>
+                <button onClick={handleSubmitApplication} style={{ background:C.accent, color:"#fff", border:"none", padding:"12px 32px", fontSize:14, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>Submit Application</button>
               </div>
             </div>}
           </div>);
@@ -874,7 +874,7 @@ export default function App() {
         {page === "public_track" && <div>
           <h2 style={{ fontSize:24, fontWeight:700, margin:"0 0 8px" }}>Track Your Application</h2>
           <p style={{ fontSize:13, color:C.textDim, margin:"0 0 20px" }}>Sign in to your borrower portal to view application status, upload documents, and see notifications.</p>
-          <button onClick={()=>{setAuthMode("login");setZone("auth")}} style={{ background:C.text, color:"#fff", border:"none", padding:"10px 24px", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Sign In to Portal</button>
+          <button onClick={()=>{setAuthMode("login");setZone("auth")}} style={{ background:C.accent, color:"#fff", border:"none", padding:"10px 24px", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Sign In to Portal</button>
         </div>}
       </main>
       <footer style={{ borderTop:`1px solid ${C.border}`, padding:"20px 24px", textAlign:"center", fontSize:10, color:C.textMuted, lineHeight:1.5 }}>
@@ -921,7 +921,7 @@ export default function App() {
           <input type="password" value={authForm.password} onChange={e=>setAuthForm({...authForm,password:e.target.value})} placeholder={authMode==="signup"?"Min 6 characters":"Enter password"} onKeyDown={e=>e.key==="Enter"&&(authMode==="login"?handleSignIn():handleSignUp())} style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:13, fontFamily:"inherit" }} />
         </div>
 
-        <button onClick={authMode==="login"?handleSignIn:handleSignUp} style={{ width:"100%", padding:"10px", background:C.text, color:"#fff", border:"none", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit", letterSpacing:0.3 }}>
+        <button onClick={authMode==="login"?handleSignIn:handleSignUp} style={{ width:"100%", padding:"10px", background:C.accent, color:"#fff", border:"none", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit", letterSpacing:0.3 }}>
           {authMode === "login" ? "Sign In" : "Create Account"}
         </button>
 
@@ -1100,7 +1100,7 @@ export default function App() {
                   {(l.payments||[]).slice(-3).reverse().map((p,i)=><div key={i} style={{ fontSize:11, color:C.textDim, padding:"4px 0", display:"flex", justifyContent:"space-between" }}><span>{fmt.date(p.date)} · {p.method} · {p.ref}</span><span style={{ fontWeight:600 }}>{fmt.cur(p.amount)}</span></div>)}
                 </div>}
                 <div style={{ display:"flex", gap:8, borderTop:`1px solid ${C.border}`, paddingTop:12 }}>
-                  <button onClick={()=>setPortalPayment({loanId:l.id,amount:"",method:"EFT",ref:""})} style={{ background:C.text, color:"#fff", border:"none", padding:"8px 16px", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Make Payment</button>
+                  <button onClick={()=>setPortalPayment({loanId:l.id,amount:"",method:"EFT",ref:""})} style={{ background:C.accent, color:"#fff", border:"none", padding:"8px 16px", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Make Payment</button>
                   {l.dpd>0 && <button onClick={()=>setPortalPtp({loanId:l.id,date:"",amount:"",notes:""})} style={{ background:"none", border:`1px solid ${C.border}`, padding:"8px 16px", fontSize:12, fontWeight:500, color:C.text, cursor:"pointer", fontFamily:"inherit" }}>Promise to Pay</button>}
                 </div>
               </div>
@@ -1190,7 +1190,7 @@ export default function App() {
                       </div>
                     </div>
                     {(st.status==="Not Uploaded"||st.status.includes("Re-upload")) && (
-                      <button onClick={()=>handleDocUpload(doc)} style={{ background:C.text, color:"#fff", border:"none", padding:"8px 14px", fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Upload</button>
+                      <button onClick={()=>handleDocUpload(doc)} style={{ background:C.accent, color:"#fff", border:"none", padding:"8px 14px", fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Upload</button>
                     )}
                     {st.status==="Under Review" && <span style={{ fontSize:10, color:C.blue, fontWeight:500 }}>Pending verification</span>}
                   </div>
@@ -1206,13 +1206,13 @@ export default function App() {
                   <div style={{ fontSize:12, fontWeight:600, marginBottom:4 }}>Bank Account Verification</div>
                   <div style={{ fontSize:11, color:C.textDim, marginBottom:8 }}>Verify your bank account details via API integration.</div>
                   {portalVerify.bankStatus==="verified" ? <Badge color="green">Verified</Badge> :
-                   <button onClick={runBankVerification} disabled={portalVerify.running} style={{ background:portalVerify.running?C.border:C.text, color:portalVerify.running?C.textMuted:"#fff", border:"none", padding:"8px 16px", fontSize:11, fontWeight:600, cursor:portalVerify.running?"not-allowed":"pointer", fontFamily:"inherit" }}>{portalVerify.running?"Verifying...":"Verify Bank Account"}</button>}
+                   <button onClick={runBankVerification} disabled={portalVerify.running} style={{ background:portalVerify.running?C.border:C.accent, color:portalVerify.running?C.textMuted:"#fff", border:"none", padding:"8px 16px", fontSize:11, fontWeight:600, cursor:portalVerify.running?"not-allowed":"pointer", fontFamily:"inherit" }}>{portalVerify.running?"Verifying...":"Verify Bank Account"}</button>}
                 </div>
                 <div style={{ border:`1px solid ${C.border}`, padding:"14px" }}>
                   <div style={{ fontSize:12, fontWeight:600, marginBottom:4 }}>Credit Bureau Check</div>
                   <div style={{ fontSize:11, color:C.textDim, marginBottom:8 }}>Run a credit vetting check (TransUnion/Experian).</div>
                   {portalVerify.creditStatus ? <Badge color="blue">{portalVerify.creditStatus}</Badge> :
-                   <button onClick={runCreditCheck} disabled={portalVerify.running} style={{ background:portalVerify.running?C.border:C.text, color:portalVerify.running?C.textMuted:"#fff", border:"none", padding:"8px 16px", fontSize:11, fontWeight:600, cursor:portalVerify.running?"not-allowed":"pointer", fontFamily:"inherit" }}>{portalVerify.running?"Running check...":"Run Credit Check"}</button>}
+                   <button onClick={runCreditCheck} disabled={portalVerify.running} style={{ background:portalVerify.running?C.border:C.accent, color:portalVerify.running?C.textMuted:"#fff", border:"none", padding:"8px 16px", fontSize:11, fontWeight:600, cursor:portalVerify.running?"not-allowed":"pointer", fontFamily:"inherit" }}>{portalVerify.running?"Running check...":"Run Credit Check"}</button>}
                 </div>
               </div>
             </div>
@@ -2359,8 +2359,8 @@ export default function App() {
       <p style={{ margin:"0 0 16px", fontSize:13, color:C.textMuted }}>Booking, disbursement, portfolio monitoring & covenant tracking</p>
 
       <div style={{ display:"flex", gap:8, marginBottom:16 }}>
-        <button onClick={()=>setView("book")} style={{ background:view==="book"?C.text:"none", color:view==="book"?"#fff":C.textDim, border:`1px solid ${view==="book"?C.text:C.border}`, padding:"8px 14px", fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Loan Book</button>
-        <button onClick={()=>setView("analytics")} style={{ background:view==="analytics"?C.text:"none", color:view==="analytics"?"#fff":C.textDim, border:`1px solid ${view==="analytics"?C.text:C.border}`, padding:"8px 14px", fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Portfolio Analytics</button>
+        <button onClick={()=>setView("book")} style={{ background:view==="book"?C.accent:"none", color:view==="book"?"#fff":C.textDim, border:`1px solid ${view==="book"?C.text:C.border}`, padding:"8px 14px", fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Loan Book</button>
+        <button onClick={()=>setView("analytics")} style={{ background:view==="analytics"?C.accent:"none", color:view==="analytics"?"#fff":C.textDim, border:`1px solid ${view==="analytics"?C.text:C.border}`, padding:"8px 14px", fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Portfolio Analytics</button>
       </div>
 
       {view === "book" && <div>
@@ -3591,7 +3591,7 @@ export default function App() {
                   {f.item === "Overall Assessment" && isUW && !w.siteVisitComplete && (
                     <div style={{ display:"flex", gap:8, marginTop:4 }}>
                       {["Satisfactory","Concerns Noted","Unsatisfactory"].map(r => (
-                        <button key={r} onClick={()=>saveSiteVisitRating(a.id,i,r)} style={{ padding:"2px 8px", fontSize:10, border:`1px solid ${f.rating===r?C.text:C.border}`, background:f.rating===r?C.text:"transparent", color:f.rating===r?"#fff":C.textDim, cursor:"pointer", fontFamily:"inherit" }}>{r}</button>
+                        <button key={r} onClick={()=>saveSiteVisitRating(a.id,i,r)} style={{ padding:"2px 8px", fontSize:10, border:`1px solid ${f.rating===r?C.accent:C.border}`, background:f.rating===r?C.accent:"transparent", color:f.rating===r?"#fff":C.textDim, cursor:"pointer", fontFamily:"inherit" }}>{r}</button>
                       ))}
                     </div>
                   )}
@@ -3761,7 +3761,7 @@ export default function App() {
           const isOpen = expandedStep===s.key;
           return (<div key={i} style={{ border:`1px solid ${C.border}`, marginBottom:1, background:C.surface }}>
             <div style={{ display:"flex", alignItems:"center", gap:8, padding:"8px 10px", cursor:"pointer", background:isOpen?C.surface2:"transparent" }} onClick={()=>setExpandedStep(isOpen?null:s.key)}>
-              <div style={{ width:16, height:16, borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, background:s.done?C.text:"transparent", color:s.done?"#fff":C.textMuted, fontSize:10, fontWeight:600, border:`1px solid ${s.done?C.text:s.hasData&&!s.done?C.amber:C.border}` }}>{s.done?I.check:i}</div>
+              <div style={{ width:16, height:16, borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, background:s.done?C.accent:"transparent", color:s.done?"#fff":C.textMuted, fontSize:10, fontWeight:600, border:`1px solid ${s.done?C.text:s.hasData&&!s.done?C.amber:C.border}` }}>{s.done?I.check:i}</div>
               <div style={{ flex:1 }}>
                 <span style={{ fontSize:12, fontWeight:s.done?600:400, color:s.done?C.text:C.textDim }}>{s.label}</span>
                 {s.done && <span style={{ fontSize:10, color:C.textMuted, marginLeft:6 }}>Complete</span>}
