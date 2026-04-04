@@ -251,12 +251,20 @@ function statusBadge(s) {
   return <Badge color={m[s] || "slate"}>{s}</Badge>;
 }
 
-function KPI({ label, value, sub }) {
+function KPI({ label, value, sub, trend, color, sparkData }) {
+  const trendColor = trend === "up" ? C.green : trend === "down" ? C.red : C.textDim;
+  const trendIcon = trend === "up" ? "↑" : trend === "down" ? "↓" : "";
+  const accentColor = color || C.accent;
   return (
-    <div style={{ background: C.surface, borderRadius: 4, padding: "16px 20px", border: `1px solid ${C.border}`, flex: "1 1 200px", minWidth: 170 }}>
-      <div style={{ fontSize: 11, fontWeight: 500, color: C.textMuted, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 6 }}>{label}</div>
-      <div style={{ fontSize: 24, fontWeight: 700, color: C.text, letterSpacing: -0.5, lineHeight: 1 }}>{value}</div>
-      {sub && <div style={{ fontSize: 11, color: C.textDim, marginTop: 6 }}>{sub}</div>}
+    <div className="kb-kpi" style={{ background: C.surface, borderRadius: 6, padding: "16px 20px", border: `1px solid ${C.border}`, flex: "1 1 200px", minWidth: 170, position: "relative", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.04)", transition: "box-shadow .15s, transform .15s" }}>
+      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: accentColor, opacity: 0.8 }} />
+      <div style={{ fontSize: 10, fontWeight: 600, color: C.textMuted, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 8 }}>{label}</div>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+        <div style={{ fontSize: 26, fontWeight: 700, color: C.text, letterSpacing: -0.5, lineHeight: 1 }}>{value}</div>
+        {trendIcon && <span style={{ fontSize: 13, fontWeight: 600, color: trendColor }}>{trendIcon}</span>}
+      </div>
+      {sub && <div style={{ fontSize: 11, color: C.textDim, marginTop: 8 }}>{sub}</div>}
+      {sparkData && sparkData.length > 1 && <svg viewBox={`0 0 ${sparkData.length * 12} 24`} style={{ width: "100%", height: 24, marginTop: 8, opacity: 0.5 }}><polyline fill="none" stroke={accentColor} strokeWidth="1.5" points={sparkData.map((v,i)=>`${i*12},${24-v/Math.max(...sparkData)*22}`).join(" ")} /></svg>}
     </div>
   );
 }
@@ -358,9 +366,9 @@ function InfoGrid({ items }) {
 
 function SectionCard({ title, children, actions }) {
   return (
-    <div style={{ background: C.surface, border: `1px solid ${C.border}`, marginBottom: 16, overflow: "hidden" }}>
+    <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, marginBottom: 16, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
       {title && <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 16px", borderBottom: `1px solid ${C.border}`, background: C.surface2 }}>
-        <h3 style={{ margin: 0, fontSize: 12, fontWeight: 600, color: C.textDim, textTransform: "uppercase", letterSpacing: 0.5 }}>{title}</h3>
+        <h3 style={{ margin: 0, fontSize: 11, fontWeight: 600, color: C.textDim, textTransform: "uppercase", letterSpacing: 0.6 }}>{title}</h3>
         {actions && <div style={{ display: "flex", gap: 8 }}>{actions}</div>}
       </div>}
       <div style={{ padding: 16 }}>{children}</div>
@@ -1972,15 +1980,15 @@ export default function App() {
       {/* KPIs — tiered by role */}
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 20 }}>
         {/* Everyone sees portfolio total and loan count */}
-        <KPI label="Total Loan Book" value={fmt.cur(totalBook)} sub={`${loans.length} active loans`} />
+        <KPI label="Total Loan Book" value={fmt.cur(totalBook)} sub={`${loans.length} active loans`} color={C.accent} trend={loans.length > 0 ? "up" : null} />
         {/* Tier 0-3: see full financial KPIs */}
-        {tier <= 3 && <KPI label="Total Disbursed" value={fmt.cur(totalDisbursed)} />}
+        {tier <= 3 && <KPI label="Total Disbursed" value={fmt.cur(totalDisbursed)} color="#2563eb" />}
         {/* Origination roles see pipeline */}
-        {canDo("origination","view") && <KPI label="Pipeline" value={fmt.cur(pipeAmt)} sub={`${pipeline.length} pending`} />}
+        {canDo("origination","view") && <KPI label="Pipeline" value={fmt.cur(pipeAmt)} sub={`${pipeline.length} pending`} color="#7c3aed" />}
         {/* Collections and above see arrears */}
-        {canDo("collections","view") && <KPI label="Arrears" value={fmt.cur(arrAmt)} sub={`${arrLoans.length} accounts`} />}
+        {canDo("collections","view") && <KPI label="Arrears" value={fmt.cur(arrAmt)} sub={`${arrLoans.length} accounts`} color={C.red} trend={arrLoans.length > 0 ? "down" : null} />}
         {/* Finance, Credit Head, Exec, Admin see ECL */}
-        {canDo("provisioning","view") && <KPI label="ECL Provision" value={fmt.cur(ecl)} sub="IFRS 9" />}
+        {canDo("provisioning","view") && <KPI label="ECL Provision" value={fmt.cur(ecl)} sub="IFRS 9" color={C.amber} />}
         {/* Tier 0-2 see rate */}
         {tier <= 2 && <KPI label="Weighted Avg Rate" value={`${avgRate}%`} />}
       </div>
@@ -4235,6 +4243,17 @@ export default function App() {
     <div style={{ fontFamily:"'Outfit','Segoe UI',system-ui,sans-serif", background:C.bg, minHeight:"100vh", display:"flex", color:C.text }}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
       <style>{`
+        .kb-kpi:hover{box-shadow:0 4px 12px rgba(0,0,0,0.08) !important;transform:translateY(-1px)}
+        .kb-btn:hover{opacity:0.88;transform:translateY(-0.5px)}
+        .kb-row:hover{background:${C.surface2} !important}
+        .kb-link:hover{text-decoration:underline !important}
+        .kb-card:hover{box-shadow:0 2px 8px rgba(0,0,0,0.06) !important}
+        @keyframes kb-fade-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes kb-pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+        @keyframes kb-slide-in{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+        .kb-animate{animation:kb-fade-in .25s ease-out}
+        .kb-pulse{animation:kb-pulse 1.5s ease-in-out infinite}
+        .kb-toast{position:fixed;top:16px;right:16px;z-index:9999;animation:kb-slide-in .3s ease-out}
         ::-webkit-scrollbar{width:5px;height:5px}
         ::-webkit-scrollbar-track{background:transparent}
         ::-webkit-scrollbar-thumb{background:#d4d4d4;border-radius:0}
