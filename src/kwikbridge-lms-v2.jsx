@@ -401,8 +401,21 @@ function StepTracker({ steps, current }) {
   );
 }
 
+function EmptyState({ icon, title, message, action, onAction }) {
+  return (
+    <div className="kb-animate" style={{ textAlign:"center", padding:"48px 24px" }}>
+      <div style={{ fontSize:36, marginBottom:12, opacity:0.3 }}>{icon || "📋"}</div>
+      <div style={{ fontSize:14, fontWeight:600, color:C.text, marginBottom:6 }}>{title || "Nothing here yet"}</div>
+      <div style={{ fontSize:12, color:C.textMuted, maxWidth:300, margin:"0 auto", lineHeight:1.5, marginBottom:16 }}>{message || ""}</div>
+      {action && onAction && <Btn onClick={onAction} size="sm">{action}</Btn>}
+    </div>
+  );
+}
+
 export default function App() {
   const [data, setData] = useState(null);
+  const [toast, setToast] = useState(null);
+  const showToast = useCallback((msg, type = "success") => { setToast({ msg, type, id: Date.now() }); setTimeout(() => setToast(null), 3500); }, []);
   const [page, setPage] = useState("public_home");
   const [zone, setZone] = useState("public"); // public | portal | staff
   const [pageHistory, setPageHistory] = useState([]);
@@ -970,7 +983,16 @@ export default function App() {
   const prod = id => data?.products?.find(p => p.id === id);
   const loanForApp = appId => data?.loans?.find(l => l.appId === appId);
 
-  if (!data) return <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100vh", background:C.bg, color:C.textMuted, fontFamily:"'Outfit',sans-serif", fontSize:13 }}>Loading…</div>;
+  if (!data) return <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100vh", background:C.bg, fontFamily:"'Outfit',sans-serif" }}>
+      <div style={{ textAlign:"center" }}>
+        <div style={{ fontSize:18, fontWeight:700, color:C.text, letterSpacing:-0.3, marginBottom:4 }}>KwikBridge</div>
+        <div style={{ fontSize:9, color:C.textMuted, letterSpacing:1.5, textTransform:"uppercase", marginBottom:24 }}>Loan Management</div>
+        <div style={{ display:"flex", gap:6, justifyContent:"center", marginBottom:16 }}>
+          {[0,1,2].map(i => <div key={i} className="kb-pulse" style={{ width:8, height:8, borderRadius:4, background:C.accent, animationDelay:`${i*0.2}s` }} />)}
+        </div>
+        <div style={{ fontSize:11, color:C.textMuted }}>Connecting to database…</div>
+      </div>
+    </div>;
 
   const { customers, products, applications, loans, collections, alerts, audit, provisions, comms, documents, statutoryReports, settings } = data;
   const unread = alerts.filter(a => !a.read).length;
@@ -1319,6 +1341,7 @@ export default function App() {
     const expiresAt = Date.now() + 30 * day; // 30-day expiry for Draft applications
     const app = { id:`APP-${String(applications.length+1).padStart(3,"0")}`, custId:form.custId, status:"Draft", product:form.product, amount:+form.amount, term:+form.term, purpose:form.purpose, rate:null, riskScore:null, dscr:null, currentRatio:null, debtEquity:null, socialScore:null, recommendation:null, approver:null, creditMemo:null, submitted:null, decided:null, conditions:[], assignedTo:null, createdBy:currentUser.id, createdAt:Date.now(), expiresAt, sanctionsFlag:false, sanctionsDate:null, withdrawnAt:null, withdrawnBy:null, qaSignedOff:false, qaOfficer:null, qaDate:null, qaFindings:null };
 
+    showToast("Application submitted successfully");
     save({ ...data,
       applications: [...applications, app],
       audit: [...audit, addAudit("Application Created (Draft)", app.id, currentUser.name, `Draft ${p?.name} application for ${fmt.cur(form.amount)} by ${c?.name}. Expires: ${fmt.date(expiresAt)}. Requires QA sign-off.`, "Origination")],
@@ -1815,6 +1838,7 @@ export default function App() {
     const monthlyPmt = Math.round(a.amount * (rate / 100 / 12) / (1 - Math.pow(1 + rate / 100 / 12, -a.term)));
     const loan = { id:`LN-${String(loans.length+1).padStart(3,"0")}`, appId, custId:a.custId, status:"Booked", amount:a.amount, balance:a.amount, rate, term:a.term, monthlyPmt, disbursed:null, nextDue:null, lastPmt:null, lastPmtAmt:null, totalPaid:0, dpd:0, stage:1, payments:[], bookedAt:Date.now(), bookedBy:currentUser.id, disbursedBy:null, disbursementAuth2:null, preDisbursementAML:null, covenants:(a.conditions||[]).map(c=>({name:c,status:"Compliant",value:"—",checked:Date.now()})), collateral:w.collateralFindings?.filter(f=>f.item!=="Security Coverage").map(f=>({type:f.item,value:0,description:f.detail}))||[], arrangementFee: Math.round(a.amount * ((p?.arrangementFee||1)/100)) };
     const updatedApp = { ...a, status:"Booked" };
+    showToast("Loan booked and activated");
     save({ ...data,
       applications: applications.map(x => x.id === appId ? updatedApp : x),
       loans: [...loans, loan],
@@ -1858,6 +1882,7 @@ export default function App() {
     const updated = { ...l, payments: [...l.payments, pmt], balance: newBalance, totalPaid: l.totalPaid + +amount, lastPmt: Date.now(), lastPmtAmt: +amount, dpd: 0, nextDue: Date.now() + 30 * day };
     updated.stage = stage(updated.dpd);
     if (newBalance === 0) updated.status = "Settled";
+    showToast(`Payment of ${fmt.cur(amount)} recorded successfully`);
     save({ ...data,
       loans: loans.map(x => x.id === loanId ? updated : x),
       audit: [...audit, addAudit("Payment Received", loanId, currentUser.name, `${fmt.cur(amount)} received. Interest: ${fmt.cur(interestPortion)}. Principal: ${fmt.cur(principalPortion)}. Balance: ${fmt.cur(newBalance)}.${newBalance===0?" LOAN SETTLED.":""}`, "Servicing")],
@@ -4254,6 +4279,8 @@ export default function App() {
         .kb-animate{animation:kb-fade-in .25s ease-out}
         .kb-pulse{animation:kb-pulse 1.5s ease-in-out infinite}
         .kb-toast{position:fixed;top:16px;right:16px;z-index:9999;animation:kb-slide-in .3s ease-out}
+        *:focus-visible{outline:2px solid ${C.accent};outline-offset:2px;border-radius:2px}
+        button{cursor:pointer}
         ::-webkit-scrollbar{width:5px;height:5px}
         ::-webkit-scrollbar-track{background:transparent}
         ::-webkit-scrollbar-thumb{background:#d4d4d4;border-radius:0}
@@ -4273,7 +4300,13 @@ export default function App() {
         }
       `}</style>
 
-      {/* Sidebar */}
+      
+      {/* Toast Notification */}
+      {toast && <div className="kb-toast" style={{ background: toast.type === "error" ? C.red : toast.type === "warning" ? C.amber : C.green, color:"#fff", padding:"10px 20px", borderRadius:6, fontSize:12, fontWeight:500, boxShadow:"0 4px 16px rgba(0,0,0,0.15)", display:"flex", alignItems:"center", gap:8, maxWidth:400 }}>
+        <span>{toast.type === "error" ? "✕" : toast.type === "warning" ? "⚠" : "✓"}</span>
+        <span>{toast.msg}</span>
+      </div>}
+{/* Sidebar */}
       <aside className="kb-sidebar" style={{ width:sideCollapsed?52:210, background:C.surface, borderRight:`1px solid ${C.border}`, transition:"width .15s", flexShrink:0, display:"flex", flexDirection:"column", overflow:"hidden" }}>
         <div style={{ padding:sideCollapsed?"12px 8px":"14px 14px 10px", borderBottom:`1px solid ${C.border}`, display:"flex", alignItems:"center", gap:8, cursor:"pointer" }} onClick={()=>setSideCollapsed(!sideCollapsed)}>
           {!sideCollapsed && <div><div style={{ fontSize:13, fontWeight:600, color:C.text, letterSpacing:-0.2 }}>KwikBridge</div><div style={{ fontSize:9, color:C.textMuted, letterSpacing:0.5 }}>LOAN MANAGEMENT</div></div>}
