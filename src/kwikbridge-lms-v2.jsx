@@ -700,12 +700,19 @@ export default function App() {
       {/* Public Content */}
       <main style={{ maxWidth:960, margin:"0 auto", padding:"32px 24px" }}>
         {page === "public_home" && <div>
-          <div className="kb-pub-hero" style={{ textAlign:"center", padding:"48px 0 32px" }}>
-            <h1 style={{ fontSize:36, fontWeight:700, color:C.text, margin:"0 0 12px", letterSpacing:-1 }}>Business Finance for Growth</h1>
+          <div className="kb-pub-hero" style={{ textAlign:"center", padding:"56px 0 36px", background:`linear-gradient(135deg, ${C.bg} 0%, #f0f4ff 100%)`, borderRadius:8, margin:"-20px -20px 20px", padding:"56px 20px 36px" }}>
+            <div style={{ fontSize:10, fontWeight:600, color:C.accent, textTransform:"uppercase", letterSpacing:2, marginBottom:12 }}>NCR-Registered Credit Provider</div>
+            <h1 style={{ fontSize:38, fontWeight:700, color:C.text, margin:"0 0 14px", letterSpacing:-1.2, lineHeight:1.15 }}>Business Finance for Growth</h1>
             <p style={{ fontSize:16, color:C.textDim, maxWidth:560, margin:"0 auto 28px", lineHeight:1.6 }}>Government-backed PO and invoice financing, working capital for micro-traders, and agricultural finance. NCR-registered credit provider (NCRCP22396).</p>
             <div className="kb-pub-cta" style={{ display:"flex", gap:12, justifyContent:"center" }}>
               <button onClick={()=>setPage("public_apply")} style={{ background:C.text, color:"#fff", border:"none", padding:"12px 28px", fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Apply for Financing</button>
               <button onClick={()=>setPage("public_track")} style={{ background:"none", border:`1px solid ${C.border}`, padding:"12px 28px", fontSize:14, fontWeight:500, color:C.text, cursor:"pointer", fontFamily:"inherit" }}>Track Application</button>
+            </div>
+            <div style={{ display:"flex", gap:24, justifyContent:"center", marginTop:24, opacity:0.5 }}>
+              <span style={{ fontSize:10, color:C.textDim, fontWeight:500 }}>✓ SEDFA Partner</span>
+              <span style={{ fontSize:10, color:C.textDim, fontWeight:500 }}>✓ NCA Compliant</span>
+              <span style={{ fontSize:10, color:C.textDim, fontWeight:500 }}>✓ POPIA Certified</span>
+              <span style={{ fontSize:10, color:C.textDim, fontWeight:500 }}>✓ FICA Registered</span>
             </div>
           </div>
           <div className="kb-pub-grid2" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginTop:24 }}>
@@ -1023,9 +1030,9 @@ export default function App() {
             <div style={{ fontSize:13, fontWeight:600, color:C.amber }}>Complete Your Profile</div>
             <div style={{ fontSize:12, color:C.textDim, marginTop:4 }}>Your email ({myEmail}) is not linked to a customer record. Please contact TQA Capital to complete your onboarding.</div>
           </div>}
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12 }}>
-            <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:20 }}><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase" }}>Applications</div><div style={{ fontSize:28, fontWeight:700, color:C.accent, marginTop:4 }}>{myApps.length}</div></div>
-            <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:20 }}><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase" }}>Active Loans</div><div style={{ fontSize:28, fontWeight:700, color:C.green, marginTop:4 }}>{myLoans.filter(l=>l.status==="Active").length}</div></div>
+          <div className="kb-grid-3" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12 }}>
+            <div className="kb-kpi" style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding:20, position:"relative", overflow:"hidden", boxShadow:"0 1px 3px rgba(0,0,0,0.04)" }}><div style={{ position:"absolute", top:0, left:0, right:0, height:3, background:C.accent }} /><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase", letterSpacing:0.8 }}>Applications</div><div style={{ fontSize:28, fontWeight:700, color:C.accent, marginTop:6 }}>{myApps.length}</div><div style={{ fontSize:10, color:C.textDim, marginTop:4 }}>{myApps.filter(a=>a.status==="Approved").length} approved</div></div>
+            <div className="kb-kpi" style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding:20, position:"relative", overflow:"hidden", boxShadow:"0 1px 3px rgba(0,0,0,0.04)" }}><div style={{ position:"absolute", top:0, left:0, right:0, height:3, background:C.green }} /><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase", letterSpacing:0.8 }}>Active Loans</div><div style={{ fontSize:28, fontWeight:700, color:C.green, marginTop:6 }}>{myLoans.filter(l=>l.status==="Active").length}</div><div style={{ fontSize:10, color:C.textDim, marginTop:4 }}>{myLoans.filter(l=>l.dpd===0).length} current</div></div>
             <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:20 }}><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase" }}>Total Balance</div><div style={{ fontSize:28, fontWeight:700, color:C.blue, marginTop:4 }}>{fmt.cur(myLoans.reduce((s,l)=>s+l.balance,0))}</div></div>
           </div>
           {myApps.length > 0 && <div style={{ marginTop:16 }}><h3 style={{ fontSize:14, fontWeight:600, margin:"0 0 8px" }}>Recent Applications</h3>
@@ -4281,22 +4288,31 @@ export default function App() {
         .kb-toast{position:fixed;top:16px;right:16px;z-index:9999;animation:kb-slide-in .3s ease-out}
         *:focus-visible{outline:2px solid ${C.accent};outline-offset:2px;border-radius:2px}
         button{cursor:pointer}
+        .kb-table-row:nth-child(even){background:rgba(0,0,0,0.015)}
+        .kb-table-row:hover{background:rgba(0,0,0,0.03) !important}
         ::-webkit-scrollbar{width:5px;height:5px}
         ::-webkit-scrollbar-track{background:transparent}
         ::-webkit-scrollbar-thumb{background:#d4d4d4;border-radius:0}
         *{box-sizing:border-box}
         @media(max-width:768px){
           .kb-sidebar{display:none !important}
-          .kb-main{width:100% !important}
+          .kb-main{width:100% !important;padding:12px !important}
           .kb-header-search{display:none !important}
           .kb-grid-2{grid-template-columns:1fr !important}
           .kb-grid-3{grid-template-columns:1fr !important}
           .kb-grid-4{grid-template-columns:1fr 1fr !important}
           .kb-kpi-row{flex-wrap:wrap !important}
           .kb-kpi-row>div{min-width:120px !important}
+          .kb-mobile-menu{display:flex !important}
+          .kb-detail-grid{grid-template-columns:1fr !important}
+          .kb-header-user{font-size:11px !important}
+          h2{font-size:18px !important}
         }
         @media(max-width:480px){
           .kb-grid-4{grid-template-columns:1fr !important}
+          .kb-kpi-row>div{flex:1 1 100% !important}
+          .kb-modal{width:95vw !important;max-height:90vh !important;margin:5vh auto}
+          .kb-table-responsive{overflow-x:auto;-webkit-overflow-scrolling:touch}
         }
       `}</style>
 
