@@ -583,7 +583,7 @@ export default function App() {
         // Then try Supabase with 3-second timeout
         try {
           const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), 3000);
+          const timeout = setTimeout(() => controller.abort(), 10000);
           const sbGetWithTimeout = async (table) => {
             const r = await fetch(sb(table) + "?order=id", { headers: sbHeaders, signal: controller.signal });
             return r.ok ? r.json() : [];
