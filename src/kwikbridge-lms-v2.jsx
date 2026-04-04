@@ -88,15 +88,15 @@ const now = Date.now();
 const day = 864e5;
 
 const C = {
-  bg: "#f5f5f7", surface: "#ffffff", surface2: "#fafafa", surface3: "#f5f5f7",
-  border: "#e5e5e5", borderLight: "#d4d4d4",
-  text: "#1a1a2e", textDim: "#52525b", textMuted: "#a1a1aa",
-  accent: "#1a1a2e", accentDim: "#3f3f46", accentGlow: "#f5f5f7",
-  green: "#15803d", greenDim: "#166534", greenBg: "#f0fdf4",
-  amber: "#a16207", amberDim: "#854d0e", amberBg: "#fefce8",
-  red: "#b91c1c", redDim: "#991b1b", redBg: "#fef2f2",
-  purple: "#6d28d9", purpleBg: "#faf5ff",
-  blue: "#1d4ed8", blueBg: "#eff6ff",
+  bg: "#f7f8fa", surface: "#ffffff", surface2: "#f9fafb", surface3: "#f3f4f6",
+  border: "#e5e7eb", borderLight: "#d1d5db",
+  text: "#111827", textDim: "#4b5563", textMuted: "#9ca3af",
+  accent: "#1e3a5f", accentDim: "#2d5487", accentGlow: "#eef2f7",
+  green: "#059669", greenDim: "#047857", greenBg: "#ecfdf5",
+  amber: "#d97706", amberDim: "#b45309", amberBg: "#fffbeb",
+  red: "#dc2626", redDim: "#b91c1c", redBg: "#fef2f2",
+  purple: "#7c3aed", purpleBg: "#f5f3ff",
+  blue: "#2563eb", blueBg: "#eff6ff",
   white: "#ffffff",
 };
 
@@ -680,12 +680,12 @@ export default function App() {
   if (!authSession && zone === "public") return (
     <div style={{ fontFamily:"'Outfit','Segoe UI',system-ui,sans-serif", background:C.bg, minHeight:"100vh", color:C.text }}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-      <style>{`*{box-sizing:border-box} input:focus,select:focus,textarea:focus{outline:none;border-color:#1a1a2e !important}
+      <style>{`*{box-sizing:border-box;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale} input:focus,select:focus,textarea:focus{outline:none;border-color:#1a1a2e !important}
         @media(max-width:768px){.kb-pub-nav{gap:8px !important}.kb-pub-nav button{font-size:11px !important;padding:3px 0 !important}.kb-pub-hero h1{font-size:24px !important}.kb-pub-grid2{grid-template-columns:1fr !important}}
         @media(max-width:480px){.kb-pub-nav{flex-wrap:wrap}.kb-pub-cta{flex-direction:column !important}}
       `}</style>
       {/* Public Header */}
-      <header style={{ background:C.surface, borderBottom:`1px solid ${C.border}`, padding:"0 24px", height:56, display:"flex", alignItems:"center", justifyContent:"space-between", position:"sticky", top:0, zIndex:10 }}>
+      <header style={{ background:"rgba(255,255,255,0.92)", backdropFilter:"blur(12px)", WebkitBackdropFilter:"blur(12px)", borderBottom:`1px solid ${C.surface3}`, padding:"0 24px", height:56, display:"flex", alignItems:"center", justifyContent:"space-between", position:"sticky", top:0, zIndex:10 }}>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
           <div style={{ fontSize:18, fontWeight:700, color:C.text, letterSpacing:-0.5 }}>KwikBridge</div>
           <div style={{ fontSize:10, color:C.textMuted, letterSpacing:1, textTransform:"uppercase" }}>Loan Management</div>
@@ -706,7 +706,7 @@ export default function App() {
             <h1 style={{ fontSize:38, fontWeight:700, color:C.text, margin:"0 0 14px", letterSpacing:-1.2, lineHeight:1.15 }}>Business Finance for Growth</h1>
             <p style={{ fontSize:16, color:C.textDim, maxWidth:560, margin:"0 auto 28px", lineHeight:1.6 }}>Government-backed PO and invoice financing, working capital for micro-traders, and agricultural finance. NCR-registered credit provider (NCRCP22396).</p>
             <div className="kb-pub-cta" style={{ display:"flex", gap:12, justifyContent:"center" }}>
-              <button onClick={()=>setPage("public_apply")} style={{ background:C.text, color:"#fff", border:"none", padding:"12px 28px", fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Apply for Financing</button>
+              <button onClick={()=>setPage("public_apply")} style={{ background:C.accent, color:"#fff", borderRadius:6, border:"none", padding:"12px 28px", fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Apply for Financing</button>
               <button onClick={()=>setPage("public_track")} style={{ background:"none", border:`1px solid ${C.border}`, padding:"12px 28px", fontSize:14, fontWeight:500, color:C.text, cursor:"pointer", fontFamily:"inherit" }}>Track Application</button>
             </div>
             <div style={{ display:"flex", gap:24, justifyContent:"center", marginTop:24, opacity:0.5 }}>
@@ -1034,7 +1034,7 @@ export default function App() {
           <div className="kb-grid-3" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12 }}>
             <div className="kb-kpi" style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding:20, position:"relative", overflow:"hidden", boxShadow:"0 1px 3px rgba(0,0,0,0.04)" }}><div style={{ position:"absolute", top:0, left:0, right:0, height:3, background:C.accent }} /><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase", letterSpacing:0.8 }}>Applications</div><div style={{ fontSize:28, fontWeight:700, color:C.accent, marginTop:8 }}>{myApps.length}</div><div style={{ fontSize:10, color:C.textDim, marginTop:4 }}>{myApps.filter(a=>a.status==="Approved").length} approved</div></div>
             <div className="kb-kpi" style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding:20, position:"relative", overflow:"hidden", boxShadow:"0 1px 3px rgba(0,0,0,0.04)" }}><div style={{ position:"absolute", top:0, left:0, right:0, height:3, background:C.green }} /><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase", letterSpacing:0.8 }}>Active Loans</div><div style={{ fontSize:28, fontWeight:700, color:C.green, marginTop:8 }}>{myLoans.filter(l=>l.status==="Active").length}</div><div style={{ fontSize:10, color:C.textDim, marginTop:4 }}>{myLoans.filter(l=>l.dpd===0).length} current</div></div>
-            <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:20 }}><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase" }}>Total Balance</div><div style={{ fontSize:28, fontWeight:700, color:C.blue, marginTop:4 }}>{fmt.cur(myLoans.reduce((s,l)=>s+l.balance,0))}</div></div>
+            <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:20, borderRadius:8, transition:"box-shadow .2s, transform .2s" }}><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase" }}>Total Balance</div><div style={{ fontSize:28, fontWeight:700, color:C.blue, marginTop:4 }}>{fmt.cur(myLoans.reduce((s,l)=>s+l.balance,0))}</div></div>
           </div>
           {myApps.length > 0 && <div style={{ marginTop:16 }}><h3 style={{ fontSize:14, fontWeight:600, margin:"0 0 8px" }}>Recent Applications</h3>
             {myApps.slice(0,3).map(a=><div key={a.id} style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"12px 16px", marginBottom:8, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
@@ -1243,7 +1243,7 @@ export default function App() {
         <style>{`::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:#d4d4d4}*{box-sizing:border-box}`}</style>
         {/* Portal Sidebar */}
         <aside style={{ width:200, background:C.surface, borderRight:`1px solid ${C.border}`, display:"flex", flexDirection:"column" }}>
-          <div style={{ padding:"14px", borderBottom:`1px solid ${C.border}` }}>
+          <div style={{ padding:"14px", borderBottom:`1px solid ${C.surface3}` }}>
             <div style={{ fontSize:14, fontWeight:700, color:C.text }}>KwikBridge</div>
             <div style={{ fontSize:10, color:C.textMuted, letterSpacing:0.8, textTransform:"uppercase" }}>Borrower Portal</div>
           </div>
@@ -1263,7 +1263,7 @@ export default function App() {
         </aside>
         {/* Portal Main */}
         <div style={{ flex:1, display:"flex", flexDirection:"column" }}>
-          <header style={{ background:C.surface, borderBottom:`1px solid ${C.border}`, padding:"0 16px", height:48, display:"flex", alignItems:"center", justifyContent:"space-between", position:"sticky", top:0, zIndex:10 }}>
+          <header style={{ background:C.surface, borderBottom:`1px solid ${C.surface3}`, padding:"0 16px", height:48, display:"flex", alignItems:"center", justifyContent:"space-between", position:"sticky", top:0, zIndex:10 }}>
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
               {pageHistory.length > 0 && <button onClick={goBack} style={{ background:"none", border:"none", cursor:"pointer", color:C.textDim, padding:"4px 2px", display:"flex", alignItems:"center" }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>}
               <div style={{ fontSize:14, fontWeight:600, color:C.text }}>{portalNav.find(n=>n.key===page)?.label || "Portal"}</div>
@@ -2051,7 +2051,7 @@ export default function App() {
             {["Submitted","Underwriting","Approved","Declined"].map(s => {
               const count = applications.filter(a => a.status === s).length;
               const amt = applications.filter(a => a.status === s).reduce((sum, a) => sum + a.amount, 0);
-              return (<div key={s} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 0", borderBottom:`1px solid ${C.border}` }}>
+              return (<div key={s} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 0", borderBottom:`1px solid ${C.surface3}` }}>
                 {statusBadge(s)}<div style={{ textAlign:"right" }}><div style={{ fontSize:18, fontWeight:700, color:C.text }}>{count}</div><div style={{ fontSize:10, color:C.textMuted }}>{fmt.cur(amt)}</div></div>
               </div>);
             })}
@@ -2060,7 +2060,7 @@ export default function App() {
         {/* Impact — everyone */}
         <SectionCard title="Development Impact">
           {[["Jobs Supported", fmt.num(jobs)], ["BEE Level 1-2 Clients", customers.filter(c => c.beeLevel <= 2).length], ["Women-Owned (>50%)", customers.filter(c => (c.womenOwned||0) > 50).length], ["Youth-Owned (>50%)", customers.filter(c => (c.youthOwned||0) > 50).length], ["Disability-Owned (>50%)", customers.filter(c => (c.disabilityOwned||0) > 50).length], ["Avg Social Impact Score", applications.filter(a => a.socialScore).length > 0 ? Math.round(applications.filter(a => a.socialScore).reduce((s, a) => s + a.socialScore, 0) / applications.filter(a => a.socialScore).length) : "—"]].map(([l, v], i) => (
-            <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 0", borderBottom:`1px solid ${C.border}` }}>
+            <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 0", borderBottom:`1px solid ${C.surface3}` }}>
               <span style={{ fontSize:12, color:C.textDim }}>{l}</span><span style={{ fontSize:18, fontWeight:700, color:C.text }}>{v}</span>
             </div>
           ))}
@@ -4324,6 +4324,18 @@ export default function App() {
           .kb-mobile-fab{padding-bottom:calc(8px + env(safe-area-inset-bottom)) !important}
           .kb-mobile-sidebar{padding-top:env(safe-area-inset-top)}
         }
+        
+        .kb-sidebar::after{content:"";position:absolute;bottom:0;left:0;right:0;height:24px;background:linear-gradient(transparent,rgba(249,250,251,0.9));pointer-events:none}
+        .kb-sidebar{position:relative}
+        
+        .kb-badge-approved{background:#ecfdf5;color:#059669}
+        .kb-badge-declined{background:#fef2f2;color:#dc2626}
+        .kb-badge-submitted{background:#eff6ff;color:#2563eb}
+        .kb-badge-underwriting{background:#fffbeb;color:#d97706}
+        .kb-badge-booked{background:#f5f3ff;color:#7c3aed}
+        .kb-badge-draft{background:#f3f4f6;color:#6b7280}
+        
+        input:focus,select:focus,textarea:focus{border-color:${C.accent} !important;box-shadow:0 0 0 3px rgba(30,58,95,0.08)}
         ::-webkit-scrollbar{width:5px;height:5px}
         ::-webkit-scrollbar-track{background:transparent}
         ::-webkit-scrollbar-thumb{background:#d4d4d4;border-radius:0}
@@ -4396,14 +4408,14 @@ export default function App() {
           })}
         </nav>
       </aside>
-      <aside className="kb-sidebar" style={{ width:sideCollapsed?52:210, background:C.surface, borderRight:`1px solid ${C.border}`, transition:"width .15s", flexShrink:0, display:"flex", flexDirection:"column", overflow:"hidden" }}>
+      <aside className="kb-sidebar" style={{ width:sideCollapsed?56:220, background:`linear-gradient(180deg, ${C.surface} 0%, ${C.surface2} 100%)`, borderRight:`1px solid ${C.border}`, transition:"width .2s ease", flexShrink:0, display:"flex", flexDirection:"column", overflow:"hidden" }}>
         <div style={{ padding:sideCollapsed?"12px 8px":"14px 14px 10px", borderBottom:`1px solid ${C.border}`, display:"flex", alignItems:"center", gap:8, cursor:"pointer" }} onClick={()=>setSideCollapsed(!sideCollapsed)}>
-          {!sideCollapsed && <div><div style={{ fontSize:13, fontWeight:600, color:C.text, letterSpacing:-0.2 }}>KwikBridge</div><div style={{ fontSize:10, color:C.textMuted, letterSpacing:0.5 }}>LOAN MANAGEMENT</div></div>}
+          {!sideCollapsed && <div><div style={{ fontSize:14, fontWeight:700, color:C.accent, letterSpacing:-0.3 }}>KwikBridge</div><div style={{ fontSize:10, color:C.textMuted, letterSpacing:0.5 }}>LOAN MANAGEMENT</div></div>}
         </div>
         <nav style={{ flex:1, padding:"8px 4px", overflowY:"auto" }}>
           {staffNavItems.map(n => {
             const active = page === n.key && !detail;
-            return (<button key={n.key} onClick={()=>{navTo(n.key)}} style={{ display:"flex", alignItems:"center", gap:8, width:"100%", padding:sideCollapsed?"7px 0":"6px 10px", justifyContent:sideCollapsed?"center":"flex-start", background:active?C.surface2:"transparent", color:active?C.text:C.textDim, border:"none", borderLeft:active?`2px solid ${C.text}`:"2px solid transparent", fontSize:12, fontWeight:active?600:400, cursor:"pointer", marginBottom:0, fontFamily:"inherit" }}>
+            return (<button key={n.key} onClick={()=>{navTo(n.key)}} style={{ display:"flex", alignItems:"center", gap:8, width:"100%", padding:sideCollapsed?"7px 0":"6px 10px", justifyContent:sideCollapsed?"center":"flex-start", background:active?C.accent+"0d":"transparent", color:active?C.accent:C.textDim, border:"none", borderLeft:active?`3px solid ${C.accent}`:"3px solid transparent", fontSize:12, fontWeight:active?600:400, cursor:"pointer", marginBottom:1, fontFamily:"inherit", borderRadius:"0 6px 6px 0", transition:"all .15s ease" }}>
               {n.icon}
               {!sideCollapsed && <span style={{ flex:1, textAlign:"left" }}>{n.label}</span>}
               {!sideCollapsed && n.count != null && n.count > 0 && <span style={{ fontSize:10, color:C.textMuted }}>{n.count}</span>}
@@ -4423,7 +4435,7 @@ export default function App() {
 
       {/* Main */}
       <div className="kb-main" style={{ flex:1, display:"flex", flexDirection:"column", minWidth:0 }}>
-        <header style={{ background:C.surface, borderBottom:`1px solid ${C.border}`, padding:"0 16px", height:48, display:"flex", alignItems:"center", justifyContent:"space-between", flexShrink:0, position:"sticky", top:0, zIndex:10 }}>
+        <header style={{ background:C.surface, borderBottom:`1px solid ${C.border}`, padding:"0 20px", height:52, display:"flex", alignItems:"center", justifyContent:"space-between", flexShrink:0, position:"sticky", top:0, zIndex:10, boxShadow:"0 1px 3px rgba(0,0,0,0.04)" }}>
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
             <button className="kb-hamburger" onClick={()=>setMobileMenuOpen(!mobileMenuOpen)} style={{ background:"none", border:"none", cursor:"pointer", color:C.text, padding:"4px", display:"none", alignItems:"center" }}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
             {(pageHistory.length > 0 || detail) && <button onClick={()=>{if(detail){setDetail(null)}else{goBack()}}} style={{ background:"none", border:"none", cursor:"pointer", color:C.textDim, padding:"4px 2px", display:"flex", alignItems:"center" }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>}
