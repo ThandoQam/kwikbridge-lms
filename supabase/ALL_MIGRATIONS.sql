@@ -292,12 +292,14 @@ BEGIN
     'statutory_reports','settings'
   ]) LOOP
     EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', tbl);
+    EXECUTE format('DROP POLICY IF EXISTS "%s_authenticated" ON %I', tbl, tbl);
     EXECUTE format(
-      'CREATE POLICY IF NOT EXISTS "%s_authenticated" ON %I FOR ALL TO authenticated USING (true) WITH CHECK (true)',
+      'CREATE POLICY "%s_authenticated" ON %I FOR ALL TO authenticated USING (true) WITH CHECK (true)',
       tbl, tbl
     );
+    EXECUTE format('DROP POLICY IF EXISTS "%s_anon_read" ON %I', tbl, tbl);
     EXECUTE format(
-      'CREATE POLICY IF NOT EXISTS "%s_anon_read" ON %I FOR SELECT TO anon USING (true)',
+      'CREATE POLICY "%s_anon_read" ON %I FOR SELECT TO anon USING (true)',
       tbl, tbl
     );
   END LOOP;
