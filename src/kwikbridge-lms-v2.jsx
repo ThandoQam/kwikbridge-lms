@@ -706,8 +706,8 @@ export default function App() {
             <h1 style={{ fontSize:38, fontWeight:700, color:C.text, margin:"0 0 14px", letterSpacing:-1.2, lineHeight:1.15 }}>Business Finance for Growth</h1>
             <p style={{ fontSize:16, color:C.textDim, maxWidth:560, margin:"0 auto 28px", lineHeight:1.6 }}>Government-backed PO and invoice financing, working capital for micro-traders, and agricultural finance. NCR-registered credit provider (NCRCP22396).</p>
             <div className="kb-pub-cta" style={{ display:"flex", gap:12, justifyContent:"center" }}>
-              <button onClick={()=>setPage("public_apply")} style={{ background:C.accent, color:"#fff", borderRadius:6, border:"none", padding:"12px 28px", fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Apply for Financing</button>
-              <button onClick={()=>setPage("public_track")} style={{ background:"none", border:`1px solid ${C.border}`, padding:"12px 28px", fontSize:14, fontWeight:500, color:C.text, cursor:"pointer", fontFamily:"inherit" }}>Track Application</button>
+              <button className="kb-cta" onClick={()=>setPage("public_apply")} className="kb-cta" style={{ background:C.accent, color:"#fff", borderRadius:6, border:"none", padding:"12px 28px", fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Apply for Financing</button>
+              <button className="kb-cta-outline" onClick={()=>setPage("public_track")} style={{ background:"none", border:`1px solid ${C.border}`, padding:"12px 28px", borderRadius:6, fontSize:14, fontWeight:500, color:C.text, cursor:"pointer", fontFamily:"inherit" }}>Track Application</button>
             </div>
             <div style={{ display:"flex", gap:24, justifyContent:"center", marginTop:24, opacity:0.5 }}>
               <span style={{ fontSize:10, color:C.textDim, fontWeight:500 }}>✓ SEDFA Partner</span>
@@ -803,7 +803,7 @@ export default function App() {
               </div>
               <div style={{ fontSize:10, color:C.textMuted, marginTop:10 }}>Your login credentials will be created automatically. You can sign in to track your application after submission.</div>
               <div style={{ display:"flex", justifyContent:"flex-end", marginTop:16 }}>
-                <button disabled={!v1} onClick={()=>sf("step",2)} style={{ background:v1?C.accent:C.border, color:v1?"#fff":C.textMuted, border:"none", padding:"10px 28px", fontSize:13, fontWeight:600, cursor:v1?"pointer":"not-allowed", fontFamily:"inherit" }}>Next: Business Information →</button>
+                <button className="kb-cta" disabled={!v1} onClick={()=>sf("step",2)} style={{ background:v1?C.accent:C.border, color:v1?"#fff":C.textMuted, border:"none", borderRadius:6, padding:"10px 28px", fontSize:13, fontWeight:600, cursor:v1?"pointer":"not-allowed", fontFamily:"inherit" }}>Next: Business Information →</button>
               </div>
             </div>}
 
@@ -823,7 +823,7 @@ export default function App() {
               </div>
               <div style={{ display:"flex", justifyContent:"space-between", marginTop:16 }}>
                 <button onClick={()=>sf("step",1)} style={{ background:"none", border:`1px solid ${C.border}`, padding:"10px 24px", fontSize:13, color:C.textDim, cursor:"pointer", fontFamily:"inherit" }}>← Back</button>
-                <button disabled={!v2} onClick={()=>sf("step",3)} style={{ background:v2?C.accent:C.border, color:v2?"#fff":C.textMuted, border:"none", padding:"10px 28px", fontSize:13, fontWeight:600, cursor:v2?"pointer":"not-allowed", fontFamily:"inherit" }}>Next: Financing Request →</button>
+                  <button className="kb-cta" disabled={!v2} onClick={()=>sf("step",3)} style={{ background:v2?C.accent:C.border, color:v2?"#fff":C.textMuted, border:"none", borderRadius:6, padding:"10px 28px", fontSize:13, fontWeight:600, cursor:v2?"pointer":"not-allowed", fontFamily:"inherit" }}>Next: Financing Request →</button>
               </div>
             </div>}
 
@@ -839,7 +839,7 @@ export default function App() {
               </div>
               <div style={{ display:"flex", justifyContent:"space-between", marginTop:16 }}>
                 <button onClick={()=>sf("step",2)} style={{ background:"none", border:`1px solid ${C.border}`, padding:"10px 24px", fontSize:13, color:C.textDim, cursor:"pointer", fontFamily:"inherit" }}>← Back</button>
-                <button disabled={!v3} onClick={()=>sf("step",4)} style={{ background:v3?C.accent:C.border, color:v3?"#fff":C.textMuted, border:"none", padding:"10px 28px", fontSize:13, fontWeight:600, cursor:v3?"pointer":"not-allowed", fontFamily:"inherit" }}>Next: Review & Submit →</button>
+                <button disabled={!v3} onClick={()=>sf("step",4)} style={{ background:v3?C.accent:C.border, color:v3?"#fff":C.textMuted, border:"none", borderRadius:6, padding:"10px 28px", fontSize:13, fontWeight:600, cursor:v3?"pointer":"not-allowed", fontFamily:"inherit" }}>Next: Review & Submit →</button>
               </div>
             </div>}
 
@@ -1034,7 +1034,7 @@ export default function App() {
           <div className="kb-grid-3" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12 }}>
             <div className="kb-kpi" style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding:20, position:"relative", overflow:"hidden", boxShadow:"0 1px 3px rgba(0,0,0,0.04)" }}><div style={{ position:"absolute", top:0, left:0, right:0, height:3, background:C.accent }} /><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase", letterSpacing:0.8 }}>Applications</div><div style={{ fontSize:28, fontWeight:700, color:C.accent, marginTop:8 }}>{myApps.length}</div><div style={{ fontSize:10, color:C.textDim, marginTop:4 }}>{myApps.filter(a=>a.status==="Approved").length} approved</div></div>
             <div className="kb-kpi" style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding:20, position:"relative", overflow:"hidden", boxShadow:"0 1px 3px rgba(0,0,0,0.04)" }}><div style={{ position:"absolute", top:0, left:0, right:0, height:3, background:C.green }} /><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase", letterSpacing:0.8 }}>Active Loans</div><div style={{ fontSize:28, fontWeight:700, color:C.green, marginTop:8 }}>{myLoans.filter(l=>l.status==="Active").length}</div><div style={{ fontSize:10, color:C.textDim, marginTop:4 }}>{myLoans.filter(l=>l.dpd===0).length} current</div></div>
-            <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:20, borderRadius:8, transition:"box-shadow .2s, transform .2s" }}><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase" }}>Total Balance</div><div style={{ fontSize:28, fontWeight:700, color:C.blue, marginTop:4 }}>{fmt.cur(myLoans.reduce((s,l)=>s+l.balance,0))}</div></div>
+            <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:20, borderRadius:8 }}><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase" }}>Total Balance</div><div style={{ fontSize:28, fontWeight:700, color:C.blue, marginTop:4 }}>{fmt.cur(myLoans.reduce((s,l)=>s+l.balance,0))}</div></div>
           </div>
           {myApps.length > 0 && <div style={{ marginTop:16 }}><h3 style={{ fontSize:14, fontWeight:600, margin:"0 0 8px" }}>Recent Applications</h3>
             {myApps.slice(0,3).map(a=><div key={a.id} style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"12px 16px", marginBottom:8, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
@@ -4336,6 +4336,19 @@ export default function App() {
         .kb-badge-draft{background:#f3f4f6;color:#6b7280}
         
         input:focus,select:focus,textarea:focus{border-color:${C.accent} !important;box-shadow:0 0 0 3px rgba(30,58,95,0.08)}
+        
+        /* CTA & form button hover effects */
+        .kb-cta{transition:transform .15s ease,box-shadow .15s ease,opacity .15s ease}
+        .kb-cta:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(30,58,95,0.2);opacity:0.92}
+        .kb-cta:active{transform:translateY(0);box-shadow:0 1px 4px rgba(30,58,95,0.15)}
+        .kb-cta-outline{transition:transform .15s ease,border-color .15s ease,background .15s ease}
+        .kb-cta-outline:hover{background:rgba(30,58,95,0.04);border-color:${C.accent} !important;transform:translateY(-0.5px)}
+        .kb-cta-outline:active{transform:translateY(0)}
+        .kb-nav-link{transition:color .15s ease,border-color .15s ease}
+        .kb-nav-link:hover{color:${C.accent} !important}
+        .kb-sidebar button:hover{background:rgba(30,58,95,0.04) !important}
+        .kb-card-hover{transition:transform .2s ease,box-shadow .2s ease}
+        .kb-card-hover:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.08)}
         ::-webkit-scrollbar{width:5px;height:5px}
         ::-webkit-scrollbar-track{background:transparent}
         ::-webkit-scrollbar-thumb{background:#d4d4d4;border-radius:0}
