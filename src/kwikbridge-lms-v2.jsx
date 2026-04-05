@@ -785,6 +785,7 @@ export default function App() {
         ::-webkit-scrollbar-thumb{background:C.borderLight;border-radius:0}
         *{box-sizing:border-box}
         @media(max-width:768px){
+        .kb-main{margin-left:0 !important}
           .kb-sidebar{display:none !important}
           .kb-main{width:100% !important;padding:12px !important}
           .kb-header-search{display:none !important}
@@ -1416,7 +1417,7 @@ export default function App() {
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
         <style>{GLOBAL_CSS}</style>
         {/* Portal Sidebar */}
-        <aside style={{ width:200, background:C.surface, borderRight:`1px solid ${C.border}`, display:"flex", flexDirection:"column" }}>
+        <aside style={{ width:200, background:C.surface, borderRight:`1px solid ${C.border}`, display:"flex", flexDirection:"column", position:"fixed", top:0, left:0, bottom:0, zIndex:40 }}>
           <div style={{ padding:"14px", borderBottom:`1px solid ${C.surface3}` }}>
             <div style={{ fontSize:14, fontWeight:700, color:C.text }}>KwikBridge</div>
             <div style={{ fontSize:10, color:C.textMuted, letterSpacing:0.8, textTransform:"uppercase" }}>Borrower Portal</div>
@@ -1436,7 +1437,7 @@ export default function App() {
           </div>
         </aside>
         {/* Portal Main */}
-        <div style={{ flex:1, display:"flex", flexDirection:"column" }}>
+        <div style={{ flex:1, display:"flex", flexDirection:"column", marginLeft:200 }}>
           <header style={{ background:C.surface, borderBottom:`1px solid ${C.surface3}`, padding:"0 16px", height:48, display:"flex", alignItems:"center", justifyContent:"space-between", position:"sticky", top:0, zIndex:10 }}>
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
               {pageHistory.length > 0 && <button onClick={goBack} style={{ background:"none", border:"none", cursor:"pointer", color:C.textDim, padding:"4px 2px", display:"flex", alignItems:"center" }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>}
@@ -4787,7 +4788,7 @@ export default function App() {
           })}
         </nav>
       </aside>
-      <aside className="kb-sidebar" style={{ width:sideCollapsed?56:220, background:`linear-gradient(180deg, ${C.surface} 0%, ${C.surface2} 100%)`, borderRight:`1px solid ${C.border}`, transition:"width .2s ease", flexShrink:0, display:"flex", flexDirection:"column", overflow:"hidden" }}>
+      <aside className="kb-sidebar" style={{ width:sideCollapsed?56:220, background:`linear-gradient(180deg, ${C.surface} 0%, ${C.surface2} 100%)`, borderRight:`1px solid ${C.border}`, transition:"width .2s ease", position:"fixed", top:0, left:0, bottom:0, display:"flex", flexDirection:"column", overflow:"hidden", zIndex:40 }}>
         <div style={{ padding:sideCollapsed?"12px 8px":"14px 14px 10px", borderBottom:`1px solid ${C.border}`, display:"flex", alignItems:"center", gap:8, cursor:"pointer" }} onClick={()=>setSideCollapsed(!sideCollapsed)}>
           {!sideCollapsed && <div><div style={{ fontSize:14, fontWeight:700, color:C.accent, letterSpacing:-0.3 }}>KwikBridge</div><div style={{ fontSize:10, color:C.textMuted, letterSpacing:0.5 }}>LOAN MANAGEMENT</div></div>}
         </div>
@@ -4813,7 +4814,7 @@ export default function App() {
       </aside>
 
       {/* Main */}
-      <div className="kb-main" style={{ flex:1, display:"flex", flexDirection:"column", minWidth:0 }}>
+      <div className="kb-main" style={{ flex:1, display:"flex", flexDirection:"column", minWidth:0, marginLeft:sideCollapsed?56:220, transition:"margin-left .2s ease" }}>
         <header style={{ background:C.surface, borderBottom:`1px solid ${C.border}`, padding:"0 20px", height:52, display:"flex", alignItems:"center", justifyContent:"space-between", flexShrink:0, position:"sticky", top:0, zIndex:10, boxShadow:"0 1px 3px rgba(0,0,0,0.04)" }}>
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
             <button className="kb-hamburger" onClick={()=>setMobileMenuOpen(!mobileMenuOpen)} style={{ background:"none", border:"none", cursor:"pointer", color:C.text, padding:"4px", display:"none", alignItems:"center" }}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
