@@ -2851,7 +2851,7 @@ export default function App() {
         {canDo("origination","create") && <Btn onClick={() => setModal("newApp")} icon={I.plus}>New Application</Btn>}
       </div>
 
-      <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:16 }}>
+      <div style={{ display:"flex", gap:0, marginBottom:16, background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, overflow:"hidden" }}>
         <KPI label="Drafts (QA Pending)" value={drafts.length} sub={expiredDrafts.length > 0 ? `${expiredDrafts.length} expired` : ""} />
         <KPI label="Submitted" value={applications.filter(a=>a.status==="Submitted").length} sub="awaiting DD" />
         <KPI label="Underwriting" value={applications.filter(a=>a.status==="Underwriting").length} />
@@ -2977,7 +2977,7 @@ export default function App() {
       </div>
 
       {view === "book" && <div>
-        <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:16 }}>
+        <div style={{ display:"flex", gap:0, marginBottom:16, background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, overflow:"hidden" }}>
           <KPI label="Total Portfolio" value={fmt.cur(currentBook)} />
           <KPI label="Active" value={activeLoans.length} />
           <KPI label="Booked (Awaiting Disbursement)" value={bookedLoans.length} />
@@ -3094,7 +3094,7 @@ export default function App() {
       <h2 style={{ margin:"0 0 4px", fontSize:24, fontWeight:700, color:C.text }}>Loan Servicing</h2>
       <p style={{ margin:"0 0 16px", fontSize:13, color:C.textMuted }}>Payment processing, amortization schedules, statements & account management</p>
 
-      <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:16 }}>
+      <div style={{ display:"flex", gap:0, marginBottom:16, background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, overflow:"hidden" }}>
         <KPI label="Active Loans" value={activeLoans.length} />
         <KPI label="Total Collected" value={fmt.cur(totalCollected)} />
         <KPI label="Interest Collected" value={fmt.cur(totalInterest)} />
@@ -3192,7 +3192,7 @@ export default function App() {
     return (<div>
       <h2 style={{ margin:"0 0 4px", fontSize:24, fontWeight:700, color:C.text }}>Collections & Recovery</h2>
       <p style={{ margin:"0 0 16px", fontSize:13, color:C.textMuted }}>NCA-compliant delinquency management, PTP tracking, restructuring & legal recovery</p>
-      <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:16 }}>
+      <div style={{ display:"flex", gap:0, marginBottom:16, background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, overflow:"hidden" }}>
         <KPI label="Early (1-30)" value={early.length} sub={fmt.cur(early.reduce((s,l)=>s+l.balance,0))} />
         <KPI label="Mid (31-90)" value={mid.length} sub={fmt.cur(mid.reduce((s,l)=>s+l.balance,0))} />
         <KPI label="Late (91+)" value={late.length} sub={fmt.cur(late.reduce((s,l)=>s+l.balance,0))} />
@@ -3313,7 +3313,7 @@ export default function App() {
     return (<div>
       <h2 style={{ margin:"0 0 4px", fontSize:24, fontWeight:700, color:C.text }}>IFRS 9 Impairment & Provisioning</h2>
       <p style={{ margin:"0 0 20px", fontSize:13, color:C.textMuted }}>Expected Credit Loss calculation, staging & forward-looking ECL models</p>
-      <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:20 }}>
+      <div style={{ display:"flex", gap:0, marginBottom:16, background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, overflow:"hidden" }}>
         <KPI label="Total ECL Provision" value={fmt.cur(totalECL)} accent={C.purple} />
         <KPI label="Total EAD" value={fmt.cur(totalEAD)} accent={C.blue} />
         <KPI label="Coverage Ratio" value={fmt.pct(totalECL / totalEAD)} accent={C.amber} />
@@ -3373,7 +3373,7 @@ export default function App() {
     return (<div>
       <h2 style={{ margin:"0 0 4px", fontSize:24, fontWeight:700, color:C.text }}>Governance, Risk & Compliance</h2>
       <p style={{ margin:"0 0 16px", fontSize:13, color:C.textMuted }}>Audit trail, control points, approval authorities, regulatory compliance & alerts</p>
-      <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:16 }}>
+      <div style={{ display:"flex", gap:0, marginBottom:16, background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, overflow:"hidden" }}>
         <KPI label="Audit Entries" value={audit.length} />
         <KPI label="Controls Active" value={controlPoints.filter(c=>c.ok).length} sub={`of ${controlPoints.length}`} />
         <KPI label="Unread Alerts" value={alerts.filter(a=>!a.read).length} />
@@ -3712,7 +3712,7 @@ export default function App() {
       <h2 style={{ margin:"0 0 4px", fontSize:24, fontWeight:700, color:C.text }}>Document Management</h2>
       <p style={{ margin:"0 0 16px", fontSize:13, color:C.textMuted }}>Centralised document registry — KYC/KYB, financial, legal, collateral & compliance</p>
 
-      <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:16 }}>
+      <div style={{ display:"flex", gap:0, marginBottom:16, background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, overflow:"hidden" }}>
         <KPI label="Total Documents" value={docs.length} />
         <KPI label="Verified" value={verified.length} sub={`${Math.round(verified.length/docs.length*100)}% complete`} />
         <KPI label="Pending Action" value={pending.length} sub={pending.length > 0 ? `${pending.filter(d=>d.status==="Pending").length} outstanding` : "All received"} />
@@ -4303,7 +4303,7 @@ export default function App() {
           <div><h2 style={{ margin:0, fontSize:20, fontWeight:700, color:C.text }}>{a.id}</h2><p style={{ margin:"2px 0 0", fontSize:12, color:C.textMuted }}>{c?.name} \u00b7 {p?.name} \u00b7 {fmt.cur(a.amount)} over {a.term}m</p></div>
           <div style={{ display:"flex", gap:8, alignItems:"center" }}>{statusBadge(a.status)}<span style={{ fontSize:11, color:C.textMuted }}>{doneCount}/7</span></div>
         </div>
-        <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:12 }}>
+        <div style={{ display:"flex", gap:0, marginBottom:16, background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, overflow:"hidden" }}>
           <KPI label="Amount" value={fmt.cur(a.amount)} /><KPI label="Term" value={`${a.term}m`} /><KPI label="Bureau" value={w.creditBureauScore??"-"} /><KPI label="Risk" value={a.riskScore??"-"} /><KPI label="DSCR" value={a.dscr?`${a.dscr}x`:"-"} /><KPI label="Social" value={a.socialScore??"-"} /><KPI label="LTV" value={w.collateralTotal?`${(a.amount/w.collateralTotal*100).toFixed(0)}%`:"-"} />
         </div>
         {isSub && <div style={{ border:`1px solid ${C.border}`, padding:"12px 16px", marginBottom:8, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
@@ -4501,7 +4501,7 @@ export default function App() {
           </div>
         )}
 
-        <div style={{ display:"flex", gap:12, flexWrap:"wrap", marginBottom:20 }}>
+        <div style={{ display:"flex", gap:0, marginBottom:16, background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, overflow:"hidden" }}>
           <KPI label={isBooked?"Amount":"Disbursed"} value={fmt.cur(l.amount)} accent={C.blue} />
           <KPI label="Balance" value={fmt.cur(l.balance)} accent={C.red} />
           <KPI label="Rate" value={`${l.rate}%`} accent={C.amber} />
@@ -4552,6 +4552,21 @@ export default function App() {
           ]} rows={[...l.payments].sort((a,b)=>b.date-a.date)} />
           {canDo("servicing","create") && <div style={{ marginTop:12 }}><Btn size="sm" variant="secondary" onClick={()=>recordPayment(l.id, l.monthlyPmt)} icon={I.plus}>Record Payment</Btn></div>}
         </SectionCard>
+
+        {/* Collections Actions — visible for delinquent loans */}
+        {l.status==="Active" && l.dpd > 0 && canDo("collections","create") && <SectionCard title="Collections Actions">
+          <div style={{ fontSize:11, color:C.textDim, marginBottom:12 }}>{l.dpd <= 30 ? "Early stage (1-30 DPD) — customer engagement and payment arrangement." : l.dpd <= 90 ? "Mid stage (31-90 DPD) — formal demand and restructuring." : "Late stage (91+ DPD) — legal recovery and write-off consideration."}</div>
+          <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+            <Btn size="sm" variant="secondary" onClick={()=>addCollectionAction(l.id,"Phone Call","Outbound collection call.",{channel:"Phone"})}>Log Call</Btn>
+            <Btn size="sm" variant="secondary" onClick={()=>addCollectionAction(l.id,"SMS Reminder","Payment reminder sent.",{channel:"SMS"})}>Send Reminder</Btn>
+            <Btn size="sm" variant="secondary" onClick={()=>setActionModal({loanId:l.id,type:"ptp"})}>Promise to Pay</Btn>
+            {l.dpd>30 && <Btn size="sm" variant="danger" onClick={()=>addCollectionAction(l.id,"Letter of Demand","Formal NCA s129 demand issued.",{channel:"Letter"})}>Letter of Demand</Btn>}
+            {l.dpd>30 && <Btn size="sm" variant="secondary" onClick={()=>setActionModal({loanId:l.id,type:"restructure"})}>Restructure</Btn>}
+            {l.dpd>90 && <Btn size="sm" variant="danger" onClick={()=>addCollectionAction(l.id,"Legal Handover","Referred to Legal Department.",{channel:"Legal"})}>Legal Handover</Btn>}
+            {l.dpd>90 && <Btn size="sm" variant="secondary" onClick={()=>setActionModal({loanId:l.id,type:"writeoff"})}>Propose Write-Off</Btn>}
+          </div>
+        </SectionCard>}
+
         {lc.length>0 && <SectionCard title="Collection Activity">
           {lc.sort((a,b)=>b.created-a.created).map((col,i) => (
             <div key={i} style={{ padding:"10px 0", borderBottom:`1px solid ${C.border}` }}>
