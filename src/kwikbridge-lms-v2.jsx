@@ -819,8 +819,9 @@ export default function App() {
           .kb-pub-cta button{width:100% !important}
           .kb-toast{left:12px !important;right:12px !important;max-width:none !important}
           .kb-section-grid{gap:8px !important}
+          .kb-pub-grid2{grid-template-columns:1fr !important}
         }
-        .kb-pub-grid2{grid-template-columns:1fr !important}`;
+        `;
 
   // ═══ PUBLIC ZONE — No Login Required ═══
   if (!authSession && zone === "public") return (
@@ -866,7 +867,7 @@ export default function App() {
               ["Working Capital Financing","Fast micro-loans for informal traders and micro-enterprises. AI-scored, group guarantee, up to 12 cycles per year."],
               ["Agri & Project Financing","Seasonal finance for smallholder farmers and tailored project financing for mid-sized contracts, matched to your cash flow cycle."],
             ].map(([title,desc],i)=>(
-              <div key={i} style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"24px" }}>
+              <div key={i} className="kb-card-hover" style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:T.radius.md, padding:"24px" }}>
                 <div style={{ fontSize:16, fontWeight:700, color:C.text, letterSpacing:-0.2 }}>{title}</div>
                 <div style={{ fontSize:13, color:C.textDim, marginTop:8, lineHeight:1.6 }}>{desc}</div>
               </div>
