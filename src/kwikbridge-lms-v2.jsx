@@ -1132,16 +1132,24 @@ export default function App() {
     insurance: { id:"insurance", name:"Credit Life / Key-Person Insurance", desc:"Insurance policy ceded to lender. Covers death, disability, or key-person risk.", template:null, requiresPolicy:true },
   };
 
-  // Product-specific security requirements
-  const PRODUCT_SECURITY = {
-    P001: { required:["cession"], optional:["bankAuth","personalGuarantee","insurance"], desc:"PO Financing requires cession of the government purchase order. Three-way cession (cedent→cessionary→debtor) with ECDoE as off-taker." },
-    P002: { required:["cession"], optional:["bankAuth","personalGuarantee"], desc:"Invoice financing requires cession of the verified invoice. Short-term, high-velocity — cession is primary security." },
+  // Product-specific security requirements (dynamic from product config, with hardcoded defaults)
+  const PRODUCT_SECURITY_DEFAULTS = {
+    P001: { required:["cession"], optional:["bankAuth","personalGuarantee","insurance"], desc:"PO Financing requires cession of the government purchase order." },
+    P002: { required:["cession"], optional:["bankAuth","personalGuarantee"], desc:"Invoice financing requires cession of the verified invoice." },
     P003: { required:["cession"], optional:["bankAuth","personalGuarantee"], desc:"Road maintenance invoice cession with ECDoT as off-taker." },
-    P004: { required:["cession","bankAuth"], optional:["personalGuarantee","insurance"], desc:"Coega IDZ infrastructure — dual security required: cession of contract + bank collection authority." },
-    P005: { required:["debitMandate"], optional:["personalGuarantee"], desc:"Micro trader working capital — debit mandate for automated collection. Group guarantee model." },
-    P006: { required:["cropLien"], optional:["personalGuarantee","insurance"], desc:"Agricultural finance — crop lien over standing crops/harvest. Seasonal repayment structure." },
-    P007: { required:["cession","personalGuarantee"], optional:["bankAuth","assetPledge","insurance"], desc:"Contract-backed term loans require cession of contract proceeds + director suretyship." },
+    P004: { required:["cession","bankAuth"], optional:["personalGuarantee","insurance"], desc:"Coega IDZ infrastructure — dual security required." },
+    P005: { required:["debitMandate"], optional:["personalGuarantee"], desc:"Micro trader working capital — debit mandate for automated collection." },
+    P006: { required:["cropLien"], optional:["personalGuarantee","insurance"], desc:"Agricultural finance — crop lien over standing crops." },
+    P007: { required:["cession","personalGuarantee"], optional:["bankAuth","assetPledge","insurance"], desc:"Contract-backed term loans require cession + director suretyship." },
   };
+  const getProductSecurity = (productId) => {
+    const prod = products.find(p => p.id === productId);
+    if (prod?.requiredSecurity?.length > 0 || prod?.optionalSecurity?.length > 0) {
+      return { required: prod.requiredSecurity || [], optional: prod.optionalSecurity || [], desc: prod.description?.split(".")[0] + "." || "" };
+    }
+    return PRODUCT_SECURITY_DEFAULTS[productId] || { required:[], optional:[], desc:"" };
+  };
+  const PRODUCT_SECURITY = new Proxy({}, { get: (_, key) => getProductSecurity(key) })
 
 
   const unread = alerts.filter(a => !a.read).length;
@@ -4321,7 +4329,7 @@ export default function App() {
   function Administration() {
     const [adminTab, setAdminTab] = useState("products");
     // Product management
-    const blank = { name:"", description:"", idealFor:"", minAmount:100000, maxAmount:5000000, minTerm:3, maxTerm:12, baseRate:42.0, monthlyRate:3.5, repaymentType:"Bullet", arrangementFee:2.0, commitmentFee:0.5, gracePeriod:0, maxLTV:80, minDSCR:1.15, riskClass:"A", ecl:0.70, s1PD:0.006, lgd:0.22, eligibleBEE:[1,2,3,4], eligibleIndustries:["All"], status:"Active" };
+    const blank = { name:"", description:"", idealFor:"", minAmount:100000, maxAmount:5000000, minTerm:3, maxTerm:12, baseRate:42.0, monthlyRate:3.5, repaymentType:"Bullet", arrangementFee:2.0, commitmentFee:0.5, gracePeriod:0, maxLTV:80, minDSCR:1.15, riskClass:"A", ecl:0.70, s1PD:0.006, lgd:0.22, eligibleBEE:[1,2,3,4], eligibleIndustries:["All"], requiredSecurity:[], optionalSecurity:[], status:"Active" };
     const startEdit = (p) => { setProdForm({...p}); setProdEditing(p.id); };
     const startNew = () => { setProdForm({...blank}); setProdEditing("new"); };
     const cancelEdit = () => { setProdForm(null); setProdEditing(null); };
@@ -4438,6 +4446,52 @@ export default function App() {
               <Field label="LGD"><Input type="number" value={prodForm.lgd||""} onChange={e=>setProdForm({...prodForm,lgd:+e.target.value})} step="0.01" /></Field>
               <Field label="Eligible BEE Levels (comma-sep)"><Input value={(prodForm.eligibleBEE||[]).join(",")} onChange={e=>setProdForm({...prodForm,eligibleBEE:e.target.value.split(",").map(Number).filter(Boolean)})} /></Field>
             </div>
+
+            {/* Security Instruments */}
+            <div style={{ marginTop:12, marginBottom:12 }}>
+              <div style={{ fontSize:11, fontWeight:600, color:C.textDim, textTransform:"uppercase", letterSpacing:0.5, marginBottom:8 }}>Security Instruments</div>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
+                <div>
+                  <div style={{ fontSize:11, fontWeight:600, color:C.text, marginBottom:8 }}>Required (mandatory for this product)</div>
+                  {Object.values(SECURITY_INSTRUMENTS).map(inst => {
+                    const isChecked = (prodForm.requiredSecurity||[]).includes(inst.id);
+                    return (
+                      <label key={inst.id} style={{ display:"flex", alignItems:"flex-start", gap:8, padding:"4px 0", cursor:"pointer", fontSize:12 }}>
+                        <input type="checkbox" checked={isChecked} onChange={() => {
+                          const current = prodForm.requiredSecurity || [];
+                          const next = isChecked ? current.filter(x=>x!==inst.id) : [...current, inst.id];
+                          const optNext = (prodForm.optionalSecurity||[]).filter(x=>x!==inst.id);
+                          setProdForm({...prodForm, requiredSecurity:next, optionalSecurity:optNext});
+                        }} style={{ marginTop:2, accentColor:C.accent }} />
+                        <div>
+                          <div style={{ fontWeight:500, color:C.text }}>{inst.name}</div>
+                          <div style={{ fontSize:10, color:C.textMuted, marginTop:1 }}>{inst.desc.split(".")[0]}</div>
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+                <div>
+                  <div style={{ fontSize:11, fontWeight:600, color:C.text, marginBottom:8 }}>Optional (recommended, reduces risk)</div>
+                  {Object.values(SECURITY_INSTRUMENTS).filter(inst => !(prodForm.requiredSecurity||[]).includes(inst.id)).map(inst => {
+                    const isChecked = (prodForm.optionalSecurity||[]).includes(inst.id);
+                    return (
+                      <label key={inst.id} style={{ display:"flex", alignItems:"flex-start", gap:8, padding:"4px 0", cursor:"pointer", fontSize:12 }}>
+                        <input type="checkbox" checked={isChecked} onChange={() => {
+                          const current = prodForm.optionalSecurity || [];
+                          const next = isChecked ? current.filter(x=>x!==inst.id) : [...current, inst.id];
+                          setProdForm({...prodForm, optionalSecurity:next});
+                        }} style={{ marginTop:2, accentColor:C.accent }} />
+                        <div>
+                          <div style={{ fontWeight:500, color:C.textDim }}>{inst.name}</div>
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
             <div style={{ display:"flex", gap:8, marginTop:12 }}><Btn onClick={handleSaveProd}>Save Product</Btn><Btn variant="ghost" onClick={cancelEdit}>Cancel</Btn></div>
           </SectionCard>
         )}
@@ -4449,6 +4503,16 @@ export default function App() {
           { label:"Term", render:r=><span style={{ fontSize:11 }}>{r.minTerm<1?Math.round(r.minTerm*30)+"d":r.minTerm+"m"}–{r.maxTerm}m</span> },
           { label:"Class", render:r=><Badge color={r.riskClass==="A"?"green":r.riskClass==="B"?"amber":r.riskClass==="C"?"red":"gray"}>{r.riskClass||"—"}</Badge> },
           { label:"ECL", render:r=><span style={{ fontSize:11, fontFamily:"monospace" }}>{r.ecl!=null?`${r.ecl}%`:"—"}</span> },
+          { label:"Security", render:r => {
+            const sec = getProductSecurity(r.id);
+            const reqNames = (sec.required||[]).map(id => SECURITY_INSTRUMENTS[id]?.name?.split(" ")[0]).filter(Boolean);
+            const optCount = (sec.optional||[]).length;
+            return <div style={{ fontSize:10 }}>
+              {reqNames.length > 0 && <div style={{ color:C.text, fontWeight:500 }}>{reqNames.join(", ")}</div>}
+              {optCount > 0 && <div style={{ color:C.textMuted }}>+{optCount} optional</div>}
+              {reqNames.length === 0 && optCount === 0 && <span style={{ color:C.textMuted }}>None set</span>}
+            </div>;
+          }},
           { label:"Status", render:r=>statusBadge(r.status||"Active") },
           { label:"Actions", render:r=><div style={{ display:"flex", gap:4 }}>
             {canDo("products","update") && <Btn size="sm" variant="ghost" onClick={e=>{e.stopPropagation();startEdit(r)}}>Edit</Btn>}
