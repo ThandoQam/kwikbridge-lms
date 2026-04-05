@@ -282,11 +282,11 @@ function KPI({ label, value, sub, trend, color, accent, sparkData, alert }) {
   const trendIcon = trend === "up" ? "↑" : trend === "down" ? "↓" : "";
   const valueColor = alert ? C.red : C.text;
   return (
-    <div className="kb-kpi" style={{ background: C.surface, borderRadius: 4, padding: "20px 20px 20px 24px", border: `1px solid ${C.border}`, flex: "1 1 200px", minWidth: 180, position: "relative", overflow: "hidden", transition: "box-shadow .15s ease-out, transform .15s ease-out" }}>
-      <div style={{ position: "absolute", top: 4, left: 0, bottom: 4, width: 3, background: C.accent, borderRadius: "0 2px 2px 0", transition: "opacity .15s ease-out" }} />
+    <div className="kb-kpi" style={{ background: C.surface, borderRadius: 4, padding: "16px 16px 16px 20px", border: `1px solid ${C.border}`, position: "relative", overflow: "hidden", transition: "box-shadow .15s ease-out, transform .15s ease-out" }}>
+      <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: 3, background: C.accent, opacity: 0.85, transition: "opacity .15s ease-out" }} />
       <div style={{ fontSize: T.fontSize.xs, fontWeight: T.fontWeight.semi, color: C.textMuted, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: T.spacing.sm }}>{label}</div>
       <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-        <div style={{ fontSize: T.fontSize.h2, fontWeight: T.fontWeight.bold, color: valueColor, letterSpacing: -0.3, lineHeight: 1, whiteSpace: "nowrap" }}>{value}</div>
+        <div style={{ fontSize: 20, fontWeight: T.fontWeight.bold, color: valueColor, letterSpacing: -0.3, lineHeight: 1, whiteSpace: "nowrap" }}>{value}</div>
         {trendIcon && <span style={{ fontSize: 12, fontWeight: 600, color: trendColor }}>{trendIcon}</span>}
       </div>
       {sub && <div style={{ fontSize: T.fontSize.sm, color: C.textDim, marginTop: T.spacing.sm }}>{sub}</div>}
@@ -397,7 +397,7 @@ function SectionCard({ title, children, actions }) {
         <h3 style={{ margin: 0, fontSize: 11, fontWeight: 600, color: C.textDim, textTransform: "uppercase", letterSpacing: 0.6 }}>{title}</h3>
         {actions && <div style={{ display: "flex", gap: 8 }}>{actions}</div>}
       </div>}
-      <div style={{ padding: 20 }}>{children}</div>
+      <div style={{ padding: "16px 20px" }}>{children}</div>
     </div>
   );
 }
@@ -2335,7 +2335,7 @@ export default function App() {
       </div>
 
       {/* KPIs — tiered by role */}
-      <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 24 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12, marginBottom: 20 }}>
         {/* Everyone sees portfolio total and loan count */}
         <KPI label="Total Loan Book" value={fmt.cur(totalBook)} sub={`${loans.length} active loans`} trend={loans.length > 0 ? "up" : null} />
         {/* Tier 0-3: see full financial KPIs */}
@@ -2381,7 +2381,7 @@ export default function App() {
         </div>
       </div>}
 
-<div style={{ display: "grid", gridTemplateColumns: tier <= 2 ? "1fr 1fr" : "1fr", gap: 20, marginBottom: 24 }}>
+<div style={{ display: "grid", gridTemplateColumns: tier <= 2 ? "1fr 1fr 1fr" : tier <= 4 ? "1fr 1fr" : "1fr", gap: 16, marginBottom: 20 }}>
         {/* IFRS 9 */}
         <div data-widget="ifrs9" style={{order:widgetConfig.findIndex(w=>w.id==="ifrs9")}}>{visibleWidgets.some(w=>w.id==="ifrs9") && canDo("provisioning","view") && (
           <SectionCard title="IFRS 9 Staging">
