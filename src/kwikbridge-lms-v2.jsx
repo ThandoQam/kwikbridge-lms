@@ -316,7 +316,7 @@ function Table({ columns, rows, onRowClick, emptyMsg = "No records found" }) {
         <tbody>
           {rows.map((row, ri) => (
             <tr key={ri} onClick={() => onRowClick?.(row)} style={{ cursor: onRowClick ? "pointer" : "default", borderBottom: `1px solid ${C.border}` }}
-              onMouseEnter={e => { if (onRowClick) e.currentTarget.style.background = C.surface2; }}
+              onMouseEnter={e => { if (onRowClick) e.currentTarget.style.background = C.surface2; e.currentTarget.style.transition = 'background .12s ease-out'; }}
               onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
               {columns.map((c, ci) => <td key={ci} style={{ padding: "8px 14px", color: C.text, whiteSpace: "nowrap", fontSize: T.fontSize.base }}>{c.render ? c.render(row) : row[c.key]}</td>)}
             </tr>
@@ -703,12 +703,14 @@ export default function App() {
 
   
   const GLOBAL_CSS = `
-        *{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}.kb-kpi{flex:1;padding:16px 20px !important;border-right:1px solid ${C.surface3}}
+        *{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}.kb-kpi{flex:1;padding:16px 20px !important;border-right:1px solid ${C.surface3};transition:background .15s ease-out}
         .kb-kpi:last-child{border-right:none}
         .kb-kpi:hover{background:${C.surface2}}
+        .kb-kpi:active{background:${C.surface3};transition:background .05s ease-out}
         .kb-btn:hover{opacity:0.88;transform:translateY(-0.5px)}
         .kb-row:hover{background:${C.surface2} !important}
         .kb-link:hover{text-decoration:underline !important}
+        .kb-card{transition:box-shadow .15s ease-out}
         .kb-card:hover{box-shadow:0 2px 8px rgba(0,0,0,0.06) !important}
         @keyframes kb-fade-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
         @keyframes kb-pulse{0%,100%{opacity:1}50%{opacity:0.5}}
@@ -719,6 +721,7 @@ export default function App() {
         *:focus-visible{outline:2px solid ${C.accent};outline-offset:2px;border-radius:2px}
         button{cursor:pointer}
         .kb-table-row:nth-child(even){background:rgba(0,0,0,0.015)}
+        .kb-table-row{transition:background .12s ease-out}
         .kb-table-row:hover{background:rgba(0,0,0,0.03) !important}
         
         /* Typography Scale — 4px baseline grid */
@@ -772,12 +775,15 @@ export default function App() {
         .kb-cta:active{transform:translateY(0);box-shadow:0 1px 4px rgba(30,58,95,0.15)}
         .kb-cta-outline{transition:transform .15s ease,border-color .15s ease,background .15s ease}
         .kb-cta-outline:hover{background:rgba(30,58,95,0.04);border-color:${C.accent} !important;transform:translateY(-0.5px)}
-        .kb-cta-outline:active{transform:translateY(0)}
-        .kb-nav-link{transition:color .15s ease,border-color .15s ease}
+        .kb-cta-outline:active{transform:translateY(0);background:rgba(30,58,95,0.08) !important}
+        .kb-nav-link{transition:color .15s ease-out,border-color .15s ease-out,opacity .15s ease-out}
         .kb-nav-link:hover{color:${C.accent} !important}
-        .kb-sidebar button:hover{background:rgba(30,58,95,0.04) !important}
+        .kb-sidebar button{transition:background .12s ease-out,color .12s ease-out}
+        .kb-sidebar button:hover{background:rgba(30,58,95,0.06) !important}
+        .kb-sidebar button:active{background:rgba(30,58,95,0.10) !important}
         .kb-card-hover{transition:transform .2s ease,box-shadow .2s ease}
         .kb-card-hover:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.08)}
+        .kb-card-hover:active{transform:translateY(0);box-shadow:0 2px 8px rgba(0,0,0,0.04)}
         ::-webkit-scrollbar{width:5px;height:5px}
         ::-webkit-scrollbar-track{background:transparent}
         ::-webkit-scrollbar-thumb{background:C.borderLight;border-radius:0}
