@@ -817,8 +817,7 @@ export default function App() {
           .kb-pub-cta button{width:100% !important}
           .kb-toast{left:12px !important;right:12px !important;max-width:none !important}
           .kb-section-grid{gap:8px !important}
-          .kb-pub-grid2{grid-template-columns:1fr !important}
-        }
+                  }
         `;
 
   // ═══ PUBLIC ZONE — No Login Required ═══
@@ -858,7 +857,7 @@ export default function App() {
               <span style={{ fontSize:10, color:C.textDim, fontWeight:500 }}>✓ FICA Registered</span>
             </div>
           </div>
-          <div className="kb-pub-grid2" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginTop:24 }}>
+          <div className="kb-grid-2" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginTop:24 }}>
             {[
               ["Invoice Discounting","Turn outstanding invoices into immediate cash. Get liquidity now without waiting for clients to pay."],
               ["Purchase Order Financing","Secure funding to execute confirmed purchase orders. We cover supplier costs so you can take on larger contracts."],
