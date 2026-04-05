@@ -814,12 +814,12 @@ export default function App() {
       {/* Public Content */}
       <main style={{ maxWidth:960, margin:"0 auto", padding:"32px 24px" }}>
         {page === "public_home" && <div>
-          <div className="kb-pub-hero" style={{ textAlign:"center", padding:"56px 0 36px", background:`linear-gradient(135deg, ${C.bg} 0%, #f0f4ff 100%)`, borderRadius:8, margin:"-20px -20px 20px", padding:"56px 20px 36px" }}>
+          <div className="kb-pub-hero" style={{ textAlign:"center", background:`linear-gradient(135deg, ${C.bg} 0%, #f0f4ff 100%)`, borderRadius:8, margin:"-20px -20px 20px", padding:"56px 20px 36px" }}>
             <div style={{ fontSize:10, fontWeight:600, color:C.accent, textTransform:"uppercase", letterSpacing:2, marginBottom:12 }}>NCR-Registered Credit Provider</div>
             <h1 style={{ fontSize:38, fontWeight:700, color:C.text, margin:"0 0 14px", letterSpacing:-1.2, lineHeight:1.15 }}>Business Finance for Growth</h1>
             <p style={{ fontSize:16, color:C.textDim, maxWidth:560, margin:"0 auto 28px", lineHeight:1.6 }}>Government-backed PO and invoice financing, working capital for micro-traders, and agricultural finance. NCR-registered credit provider (NCRCP22396).</p>
             <div className="kb-pub-cta" style={{ display:"flex", gap:12, justifyContent:"center" }}>
-              <button className="kb-cta" onClick={()=>setPage("public_apply")} className="kb-cta" style={{ background:C.accent, color:"#fff", borderRadius:6, border:"none", padding:"12px 28px", fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Apply for Financing</button>
+              <button className="kb-cta" onClick={()=>setPage("public_apply")} style={{ background:C.accent, color:"#fff", borderRadius:6, border:"none", padding:"12px 28px", fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Apply for Financing</button>
               <button className="kb-cta-outline" onClick={()=>setPage("public_track")} style={{ background:"none", border:`1px solid ${C.border}`, padding:"12px 28px", borderRadius:6, fontSize:14, fontWeight:500, color:C.text, cursor:"pointer", fontFamily:"inherit" }}>Track Application</button>
             </div>
             <div style={{ display:"flex", gap:24, justifyContent:"center", marginTop:24, opacity:0.5 }}>
@@ -2232,7 +2232,7 @@ export default function App() {
               </div>);
             })}
           </SectionCard>
-        )}}</div>
+        )}</div>
         {/* DPD Distribution */}
         <div data-widget="dpd" style={{order:widgetConfig.findIndex(w=>w.id==="dpd")}}>{visibleWidgets.some(w=>w.id==="dpd") && canDo("provisioning","view") && loans.length > 0 && (
           <SectionCard title="DPD Distribution">
@@ -2249,7 +2249,7 @@ export default function App() {
               })}
             </div>
           </SectionCard>
-        )}}</div>
+        )}</div>
 
         {/* Product Mix */}
         <div data-widget="productMix" style={{order:widgetConfig.findIndex(w=>w.id==="productMix")}}>{visibleWidgets.some(w=>w.id==="productMix") && canDo("provisioning","view") && loans.length > 0 && (
@@ -2267,7 +2267,7 @@ export default function App() {
               </div>);
             }); })()}
           </SectionCard>
-        )}}</div>
+        )}</div>
 
         {/* Pipeline */}
         <div data-widget="pipeline" style={{order:widgetConfig.findIndex(w=>w.id==="pipeline")}}>{visibleWidgets.some(w=>w.id==="pipeline") && canDo("origination","view") && (
@@ -2280,7 +2280,7 @@ export default function App() {
               </div>);
             })}
           </SectionCard>
-        )}}</div>
+        )}</div>
         {/* Impact — everyone */}
         <div data-widget="impact" style={{order:widgetConfig.findIndex(w=>w.id==="impact")}}>{visibleWidgets.some(w=>w.id==="impact") && (
         <SectionCard title="Development Impact">
@@ -2290,7 +2290,7 @@ export default function App() {
             </div>
           ))}
         </SectionCard>
-        )}}</div>
+        )}</div>
       </div>
 
       {/* Statutory Deadlines — Compliance, Finance, Admin, Exec only */}
@@ -2315,7 +2315,7 @@ export default function App() {
             );
           })}
         </SectionCard>
-      )}}</div>
+      )}</div>
 
       {/* My Tasks — role-specific action items */}
       <div data-widget="tasks" style={{order:widgetConfig.findIndex(w=>w.id==="tasks")}}>{visibleWidgets.some(w=>w.id==="tasks") && (role === "LOAN_OFFICER" || role === "CREDIT" || role === "CREDIT_SNR" || role === "COLLECTIONS") && (
@@ -2342,7 +2342,7 @@ export default function App() {
           {(role === "CREDIT" || role === "CREDIT_SNR") && applications.filter(a=>a.status==="Underwriting").length===0 && <div style={{ fontSize:12, color:C.textMuted }}>No pending tasks.</div>}
           {role === "COLLECTIONS" && arrLoans.length===0 && <div style={{ fontSize:12, color:C.textMuted }}>No delinquent accounts.</div>}
         </SectionCard>
-      )}}</div>
+      )}</div>
 
       <div data-widget="alerts" style={{order:widgetConfig.findIndex(w=>w.id==="alerts")}}>{visibleWidgets.some(w=>w.id==="alerts") && (
       <SectionCard title="Recent Alerts" actions={canDo("governance","view") ? <Btn size="sm" variant="ghost" onClick={() => setPage("governance")}>View All</Btn> : null}>
@@ -2365,7 +2365,7 @@ export default function App() {
         ))}
         {alerts.length === 0 && <div style={{ fontSize:12, color:C.textMuted }}>No alerts.</div>}
       </SectionCard>
-      )}}</div>
+      )}</div>
     </div>);
   }
 
