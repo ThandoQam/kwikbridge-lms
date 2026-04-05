@@ -235,16 +235,16 @@ const I = {
 
 function Badge({ children, color = "slate" }) {
   const map = {
-    green: { text: C.green },
-    amber: { text: C.amber },
-    red: { text: C.red },
-    blue: { text: C.blue },
-    purple: { text: C.purple },
-    cyan: { text: C.textDim },
-    slate: { text: C.textMuted },
+    green: { text: C.green, bg: C.greenBg, border: C.green+"33" },
+    amber: { text: C.amber, bg: C.amberBg, border: C.amber+"33" },
+    red: { text: C.red, bg: C.redBg, border: C.red+"33" },
+    blue: { text: C.blue, bg: C.blueBg, border: C.blue+"33" },
+    purple: { text: C.purple, bg: C.purpleBg, border: C.purple+"33" },
+    cyan: { text: C.textDim, bg: C.surface3, border: C.border },
+    slate: { text: C.textMuted, bg: C.surface3, border: C.border },
   };
   const s = map[color] || map.slate;
-  return <span style={{ display:"inline-flex", alignItems:"center", padding:"2px 8px", borderRadius:3, fontSize:11, fontWeight:600, letterSpacing:0.2, background:"transparent", color:s.text, border:`1px solid ${C.border}`, whiteSpace:"nowrap", lineHeight:"16px" }}>{children}</span>;
+  return <span style={{ display:"inline-flex", alignItems:"center", padding:"2px 8px", borderRadius:10, fontSize:11, fontWeight:600, letterSpacing:0.2, background:s.bg, color:s.text, border:`1px solid ${s.border}`, whiteSpace:"nowrap", lineHeight:"16px" }}>{children}</span>;
 }
 function statusBadge(s) {
   const m = { Approved:"green", Active:"green", Disbursed:"green", Verified:"green", Compliant:"green", Cleared:"green", Submitted:"blue", Underwriting:"cyan", Pending:"amber", "Pending Review":"amber", Due:"amber", Overdue:"red", Early:"amber", Mid:"amber", Late:"red", Declined:"red", Breach:"red", Received:"blue", "Under Review":"cyan" };
@@ -677,7 +677,8 @@ export default function App() {
   const navTo = (pg) => { setPageHistory(h=>[...h.slice(-10),page]); setPage(pg); setDetail(null); };
 
   
-  const GLOBAL_CSS = `.kb-kpi:hover{box-shadow:0 4px 12px rgba(0,0,0,0.08) !important;transform:translateY(-1px)}
+  const GLOBAL_CSS = `
+        *{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.kb-kpi:hover{box-shadow:0 4px 12px rgba(0,0,0,0.08) !important;transform:translateY(-1px)}
         .kb-btn:hover{opacity:0.88;transform:translateY(-0.5px)}
         .kb-row:hover{background:${C.surface2} !important}
         .kb-link:hover{text-decoration:underline !important}
@@ -4313,7 +4314,7 @@ export default function App() {
           </SectionCard>
         )}
         <Table columns={[
-          { label:"User", render:r=><div style={{ display:"flex", alignItems:"center", gap:8 }}><div style={{ width:24, height:24, borderRadius:3, background:r.status==="Active"?C.surface2:C.red+"20", border:`1px solid ${r.status==="Active"?C.border:C.red}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, fontWeight:600, color:r.status==="Active"?C.textDim:C.red }}>{r.initials}</div><div><div style={{ fontWeight:500, fontSize:12 }}>{r.name}</div><div style={{ fontSize:10, color:C.textMuted }}>{r.email}</div></div></div> },
+          { label:"User", render:r=><div style={{ display:"flex", alignItems:"center", gap:8 }}><div style={{ width:24, height:24, borderRadius:10, background:r.status==="Active"?C.surface2:C.red+"20", border:`1px solid ${r.status==="Active"?C.border:C.red}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, fontWeight:600, color:r.status==="Active"?C.textDim:C.red }}>{r.initials}</div><div><div style={{ fontWeight:500, fontSize:12 }}>{r.name}</div><div style={{ fontSize:10, color:C.textMuted }}>{r.email}</div></div></div> },
           { label:"Role", render:r=><Badge color={r.role==="ADMIN"?"purple":r.role==="EXEC"?"blue":"gray"}>{ROLES[r.role]?.label||r.role}</Badge> },
           { label:"Tier", render:r=><span style={{ fontSize:11 }}>{ROLES[r.role]?.tier}</span> },
           { label:"Approval Limit", render:r=>APPROVAL_LIMITS[r.role]?(APPROVAL_LIMITS[r.role]===Infinity?"Unlimited":fmt.cur(APPROVAL_LIMITS[r.role])):<span style={{ color:C.textMuted }}>—</span> },
@@ -4553,8 +4554,8 @@ export default function App() {
           <div style={{ fontSize:10, color:C.textMuted, marginBottom:4 }}>{ROLES[role]?.label}</div>
           <div style={{ fontSize:10, color:C.textMuted, lineHeight:1.5, letterSpacing:0.2 }}>TQA Capital<br/>NCR: {settings?.ncrReg||"—"}<br/>Valid: {settings?.ncrExpiry||"—"}</div>
           <div style={{ display:"flex", gap:4, marginTop:8 }}>
-            <button onClick={reset} style={{ background:"none", border:`1px solid ${C.border}`, color:C.textMuted, borderRadius:2, padding:"2px 6px", fontSize:10, cursor:"pointer", fontFamily:"inherit" }}>Reset Demo</button>
-            <button onClick={handleSignOut} style={{ background:"none", border:`1px solid ${C.border}`, color:C.red, borderRadius:2, padding:"2px 6px", fontSize:10, cursor:"pointer", fontFamily:"inherit" }}>Sign Out</button>
+            <button onClick={reset} style={{ background:"none", border:`1px solid ${C.border}`, color:C.textMuted, borderRadius:10, padding:"2px 8px", fontSize:10, cursor:"pointer", fontFamily:"inherit" }}>Reset Demo</button>
+            <button onClick={handleSignOut} style={{ background:"none", border:`1px solid ${C.border}`, color:C.red, borderRadius:10, padding:"2px 8px", fontSize:10, cursor:"pointer", fontFamily:"inherit" }}>Sign Out</button>
           </div>
         </div>}
       </aside>
