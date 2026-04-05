@@ -248,7 +248,7 @@ function Badge({ children, color = "slate" }) {
   return <span style={{ display:"inline-flex", alignItems:"center", padding:"2px 8px", borderRadius:10, fontSize:11, fontWeight:600, letterSpacing:0.2, background:s.bg, color:s.text, border:`1px solid ${s.border}`, whiteSpace:"nowrap", lineHeight:"16px" }}>{children}</span>;
 }
 function statusBadge(s) {
-  const m = { Approved:"green", Active:"green", Disbursed:"green", Verified:"green", Compliant:"green", Cleared:"green", Submitted:"blue", Underwriting:"cyan", Pending:"amber", "Pending Review":"amber", Due:"amber", Overdue:"red", Early:"amber", Mid:"amber", Late:"red", Declined:"red", Breach:"red", Received:"blue", "Under Review":"cyan" };
+  const m = { Approved:"green", Active:"green", Disbursed:"green", Verified:"green", Compliant:"green", Cleared:"green", Settled:"green", Submitted:"blue", Underwriting:"cyan", Booked:"purple", "Pre-Approval":"cyan", Pending:"amber", "Pending Review":"amber", Due:"amber", Draft:"slate", Overdue:"red", Early:"amber", Mid:"amber", Late:"red", Declined:"red", Breach:"red", "Written Off":"red", Expired:"red", Withdrawn:"slate", Received:"blue", "Under Review":"cyan" };
   return <Badge color={m[s] || "slate"}>{s}</Badge>;
 }
 
@@ -2574,10 +2574,10 @@ export default function App() {
         { label:"Business Name", render:r=><span style={{ fontWeight:600 }}>{r.name}</span> },
         { label:"Contact", key:"contact" },
         { label:"Industry", key:"industry" },
-        { label:"Revenue", render:r=>fmt.cur(r.revenue) },
+        { label:"Revenue", render:r=><span style={{ fontFamily:"monospace", fontSize:12 }}>{fmt.cur(r.revenue)}</span> },
         { label:"BEE", render:r=><Badge color="purple">Level {r.beeLevel}</Badge> },
         { label:"FICA", render:r=>statusBadge(r.ficaStatus) },
-        { label:"Risk", render:r=><Badge color={r.riskCategory==="Low"?"green":r.riskCategory==="Medium"?"amber":"red"}>{r.riskCategory}</Badge> },
+        { label:"Risk", render:r=> r.riskCategory ? <Badge color={r.riskCategory==="Low"?"green":r.riskCategory==="Medium"?"amber":"red"}>{r.riskCategory}</Badge> : <span style={{ fontSize:10, color:C.textMuted }}>—</span> },
         { label:"", render:()=><span style={{ color:C.accent }}>{I.chev}</span> },
       ]} rows={filtered} onRowClick={r=>setDetail({type:"customer",id:r.id})} />
     </div>);
@@ -2617,22 +2617,22 @@ export default function App() {
       <Tab tabs={tabs} active={tab} onChange={setTab} />
       <Table columns={[
         { label:"App ID", render:r=><span style={{ fontFamily:"monospace", fontWeight:600, fontSize:12 }}>{r.id}</span> },
-        { label:"Applicant", render:r=>cust(r.custId)?.name },
-        { label:"Product", render:r=>prod(r.product)?.name || r.product },
-        { label:"Amount", render:r=>fmt.cur(r.amount) },
-        { label:"Term", render:r=>`${r.term}m` },
+        { label:"Applicant", render:r=><span style={{ fontWeight:500 }}>{cust(r.custId)?.name}</span> },
+        { label:"Product", render:r=><span style={{ fontSize:12 }}>{prod(r.product)?.name || r.product}</span> },
+        { label:"Amount", render:r=><span style={{ fontFamily:"monospace", fontSize:12 }}>{fmt.cur(r.amount)}</span> },
+        { label:"Term", render:r=><span style={{ fontSize:12 }}>{r.term}m</span> },
         { label:"Date", render:r=>fmt.date(r.submitted || r.createdAt) },
         { label:"Assigned To", render:r=>{
           const u = SYSTEM_USERS.find(x=>x.id===r.assignedTo);
           if (u) return <span style={{ fontSize:11 }}>{u.name}</span>;
           if (!["Submitted","Underwriting"].includes(r.status)) return <span style={{ fontSize:10, color:C.textMuted }}>—</span>;
           if (!canDo("origination","assign")) return <span style={{ fontSize:10, color:C.amber }}>Unassigned</span>;
-          return <select onChange={e=>{if(e.target.value)assignApplication(r.id,e.target.value)}} defaultValue="" style={{ fontSize:10, border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontFamily:"inherit", padding:"1px 3px" }}>
+          return <select onChange={e=>{if(e.target.value)assignApplication(r.id,e.target.value)}} defaultValue="" style={{ fontSize:11, border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontFamily:"inherit", padding:"4px 8px", borderRadius:4 }}>
             <option value="">Assign...</option>
             {assignableUsers.map(u=><option key={u.id} value={u.id}>{u.name}</option>)}
           </select>;
         }},
-        { label:"QA", render:r=> r.qaSignedOff ? <span style={{ fontSize:10, color:C.green }}>Passed</span> : r.qaFindings?.result==="Failed" ? <span style={{ fontSize:10, color:C.red }}>Failed</span> : r.status==="Draft" ? <span style={{ fontSize:10, color:C.amber }}>Pending</span> : <span style={{ fontSize:10, color:C.textMuted }}>—</span> },
+        { label:"QA", render:r=> r.qaSignedOff ? <Badge color="green">Passed</Badge> : r.qaFindings?.result==="Failed" ? <Badge color="red">Failed</Badge> : r.status==="Draft" ? <Badge color="amber">Pending</Badge> : <span style={{ fontSize:10, color:C.textMuted }}>—</span> },
         { label:"Status", render:r=>{
           if (r.status==="Draft" && r.expiresAt && r.expiresAt < Date.now()) return <Badge color="red">Expired</Badge>;
           return statusBadge(r.status);
@@ -2663,8 +2663,8 @@ export default function App() {
       <SectionCard title={`Pending Decisions (${pending.length})`}>
         <Table columns={[
           { label:"App ID", render:r=><span style={{ fontFamily:"monospace", fontWeight:600, fontSize:12 }}>{r.id}</span> },
-          { label:"Applicant", render:r=>cust(r.custId)?.name },
-          { label:"Amount", render:r=>fmt.cur(r.amount) },
+          { label:"Applicant", render:r=><span style={{ fontWeight:500 }}>{cust(r.custId)?.name}</span> },
+          { label:"Amount", render:r=><span style={{ fontFamily:"monospace", fontSize:12 }}>{fmt.cur(r.amount)}</span> },
           { label:"Authority", render:r=>r.amount>1000000?"Credit Committee":r.amount>500000?"Head of Credit":r.amount>250000?"Senior Analyst":"Analyst" },
           { label:"Status", render:r=>statusBadge(r.status) },
           { label:"Actions", render:r=><div style={{ display:"flex", gap:8 }}>{r.status==="Submitted"&&canDo("underwriting","update")&&<Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();moveToUnderwriting(r.id)}}>Start DD</Btn>}{r.status==="Underwriting"&&canDo("underwriting","view")&&<Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();setDetail({type:"application",id:r.id})}}>Open Workflow</Btn>}</div> },
