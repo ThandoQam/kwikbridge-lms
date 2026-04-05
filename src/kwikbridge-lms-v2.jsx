@@ -171,7 +171,8 @@ function seed() {
     { id:"P005", name:"Working Capital — Micro Traders", minAmount:500, maxAmount:10000, minTerm:0.17, maxTerm:1, baseRate:96.0, monthlyRate:8.0, description:"Fast micro-loans for informal traders and micro-enterprises. AI-scored with group guarantee (Grameen model). Up to 12 cycles per year. ECDC SERFSP pre-screened origination.", repaymentType:"Bullet", arrangementFee:3.0, commitmentFee:0, gracePeriod:0, maxLTV:100, minDSCR:1.0, eligibleBEE:[1,2,3,4,5,6,7,8], eligibleIndustries:["All"], status:"Active", createdBy:"U001", createdAt:now-365*day, idealFor:"Street vendors, spaza shop owners, informal traders, micro-service providers.", riskClass:"B", ecl:8.58, s1PD:0.03, lgd:0.65 },
     { id:"P006", name:"Agri Finance — Smallholder", minAmount:50000, maxAmount:1000000, minTerm:3, maxTerm:6, baseRate:36.0, monthlyRate:3.0, description:"Seasonal agricultural finance for smallholder farmers. Crop lien and equipment collateral. Scenario-weighted for drought probability (75% good season / 25% drought).", repaymentType:"Seasonal", arrangementFee:2.0, commitmentFee:0, gracePeriod:0, maxLTV:70, minDSCR:1.2, eligibleBEE:[1,2,3,4,5,6,7,8], eligibleIndustries:["Agriculture","Food Processing"], status:"Active", createdBy:"U001", createdAt:now-365*day, idealFor:"Smallholder farmers, emerging agricultural enterprises, crop producers in the Eastern Cape.", riskClass:"C", ecl:9.88, s1PD:0.0525, lgd:0.575 },
     { id:"P007", name:"Project & Contract Finance", minAmount:1000000, maxAmount:5000000, minTerm:3, maxTerm:12, baseRate:42.0, monthlyRate:3.5, description:"Tailored financing for specific projects and contracts. Designed to match your project's cash flow cycle with repayment terms up to 12 months. Suitable for mid-sized construction, infrastructure, and service delivery contracts.", repaymentType:"Amortising", arrangementFee:2.0, commitmentFee:0.5, gracePeriod:1, maxLTV:80, minDSCR:1.2, eligibleBEE:[1,2,3,4], eligibleIndustries:["Construction","Infrastructure","Professional Services"], status:"Active", createdBy:"U001", createdAt:now-365*day, idealFor:"SMEs undertaking mid-sized projects, construction firms, service providers with secured contracts.", riskClass:"A", ecl:0.70, s1PD:0.006, lgd:0.22 },
-  ];
+  
+];
 
   const statutoryReports = [
     { id:"SR-001", name:"Annual Compliance Report", type:"Annual", category:"Statutory", period:"FY ending 28 Feb 2026", dueDate:"2026-08-31", submitTo:"submissions@ncr.org.za", status:"Not Started", preparer:null, reviewer:null, notes:"Comprehensive compliance report covering all NCA obligations." },
@@ -423,6 +424,7 @@ export default function App() {
   const [search, setSearch] = useState("");
   const [notifOpen, setNotifOpen] = useState(false);
   const [modal, setModal] = useState(null);
+  const [securitySelections, setSecuritySelections] = useState({});
   const [sideCollapsed, setSideCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(SYSTEM_USERS[0]);
@@ -1118,6 +1120,30 @@ export default function App() {
     </div>;
 
   const { customers, products, applications, loans, collections, alerts, audit, provisions, comms, documents, statutoryReports, settings } = data;
+
+  // ═══ SECURITY INSTRUMENTS & PRODUCT REQUIREMENTS ═══
+  const SECURITY_INSTRUMENTS = {
+    cession: { id:"cession", name:"Cession of Receivables", desc:"Three-way cession agreement — cedent assigns rights to payment from off-taker (debtor) to cessionary (lender). Primary security for PO and invoice financing.", template:"cession_agreement", requiresOffTaker:true },
+    bankAuth: { id:"bankAuth", name:"Bank Letter of Authority", desc:"Irrevocable authority for lender to collect directly from borrower's bank account or intercept payments from off-taker.", template:"bank_authority", requiresBankDetails:true },
+    personalGuarantee: { id:"personalGuarantee", name:"Personal Guarantee / Suretyship", desc:"Director or shareholder assumes personal liability for the loan amount. Unlimited or limited suretyship.", template:"suretyship_deed", requiresGuarantor:true },
+    assetPledge: { id:"assetPledge", name:"Asset Pledge", desc:"Movable asset (vehicle, equipment, stock) pledged as security. Asset may not be disposed of without lender consent.", template:"asset_pledge", requiresAssetDetails:true },
+    cropLien: { id:"cropLien", name:"Crop Lien / Agricultural Pledge", desc:"Lien over standing crops or harvested produce. Registered with Deeds Office.", template:"crop_lien", requiresCropDetails:true },
+    debitMandate: { id:"debitMandate", name:"Debit Order Mandate", desc:"Authority for scheduled debit order collection from borrower's bank account.", template:"debit_mandate", requiresBankDetails:true },
+    insurance: { id:"insurance", name:"Credit Life / Key-Person Insurance", desc:"Insurance policy ceded to lender. Covers death, disability, or key-person risk.", template:null, requiresPolicy:true },
+  };
+
+  // Product-specific security requirements
+  const PRODUCT_SECURITY = {
+    P001: { required:["cession"], optional:["bankAuth","personalGuarantee","insurance"], desc:"PO Financing requires cession of the government purchase order. Three-way cession (cedent→cessionary→debtor) with ECDoE as off-taker." },
+    P002: { required:["cession"], optional:["bankAuth","personalGuarantee"], desc:"Invoice financing requires cession of the verified invoice. Short-term, high-velocity — cession is primary security." },
+    P003: { required:["cession"], optional:["bankAuth","personalGuarantee"], desc:"Road maintenance invoice cession with ECDoT as off-taker." },
+    P004: { required:["cession","bankAuth"], optional:["personalGuarantee","insurance"], desc:"Coega IDZ infrastructure — dual security required: cession of contract + bank collection authority." },
+    P005: { required:["debitMandate"], optional:["personalGuarantee"], desc:"Micro trader working capital — debit mandate for automated collection. Group guarantee model." },
+    P006: { required:["cropLien"], optional:["personalGuarantee","insurance"], desc:"Agricultural finance — crop lien over standing crops/harvest. Seasonal repayment structure." },
+    P007: { required:["cession","personalGuarantee"], optional:["bankAuth","assetPledge","insurance"], desc:"Contract-backed term loans require cession of contract proceeds + director suretyship." },
+  };
+
+
   const unread = alerts.filter(a => !a.read).length;
 
   // ═══ BORROWER PORTAL LAYOUT ═══
@@ -1943,6 +1969,110 @@ export default function App() {
       alerts: [...alerts, addAlert("Application", decision==="Approved"?"info":"warning", `${decision} – ${c?.name}`, `${appId} ${decision.toLowerCase()} by ${currentUser.name}. Amount: ${fmt.cur(a.amount)}.`)]
     });
   };
+
+  // ═══ Security Document Template Generator ═══
+  const generateSecurityDoc = (templateType, app, cust, prod) => {
+    const today = new Date().toLocaleDateString("en-ZA", { day:"numeric", month:"long", year:"numeric" });
+    const loanRef = `LN-${String(loans.length+1).padStart(3,"0")}`;
+    const templates = {
+      cession_agreement: {
+        title: "DEED OF CESSION",
+        sections: [
+          { heading:"PARTIES", content:`1. THE CEDENT: ${cust?.name} (Reg: ${cust?.regNum}), represented by ${cust?.contact} ("the Cedent")\n2. THE CESSIONARY: TQA Capital (Pty) Ltd (Reg: 2017/313869/07), NCR Registration NCRCP22396 ("the Cessionary")\n3. THE DEBTOR: [Off-taker/Government Department] ("the Debtor")` },
+          { heading:"PREAMBLE", content:`WHEREAS the Cedent has entered into a credit agreement with the Cessionary (Reference: ${loanRef}) for the amount of ${fmt.cur(app.amount)} for the purpose of ${app.purpose || prod?.name};\n\nAND WHEREAS the Cessionary requires security for the said credit facility;\n\nNOW THEREFORE the parties agree as follows:` },
+          { heading:"1. CESSION", content:`1.1 The Cedent hereby cedes, assigns and transfers to the Cessionary all right, title and interest in and to the receivables arising from ${prod?.name} as described in the Purchase Order / Invoice / Contract referenced in Schedule A.\n\n1.2 This cession is given as security for the due and punctual payment of all amounts owing by the Cedent to the Cessionary.\n\n1.3 The cession shall remain in force until all obligations under the credit agreement have been discharged in full.` },
+          { heading:"2. OBLIGATIONS OF THE CEDENT", content:`2.1 The Cedent shall notify the Debtor of this cession and instruct the Debtor to make payment directly to the Cessionary.\n\n2.2 The Cedent shall not enter into any agreement that would prejudice the Cessionary's rights under this cession.\n\n2.3 The Cedent shall immediately notify the Cessionary of any dispute or variation to the underlying contract.` },
+          { heading:"3. PAYMENT DIRECTION", content:`3.1 The Debtor is hereby directed to make all payments due under the contract/invoice/purchase order directly to:\n\nBank: [TQA Capital Collection Account]\nAccount Number: [To be provided]\nReference: ${loanRef}\n\n3.2 Any payment made to the Cedent in contravention of this direction shall be held in trust for the Cessionary.` },
+          { heading:"4. GOVERNING LAW", content:`This Deed of Cession shall be governed by the laws of the Republic of South Africa and subject to the jurisdiction of the High Court of the Eastern Cape Division.` },
+          { heading:"SIGNATURES", content:`Signed at _________________ on this _____ day of _________________ 20___\n\nFor the CEDENT: _________________________\nName: ${cust?.contact}\nCapacity: Director\n\nFor the CESSIONARY: _________________________\nName: \nCapacity: Authorised Signatory\nTQA Capital (Pty) Ltd` },
+        ]
+      },
+      bank_authority: {
+        title: "IRREVOCABLE BANK LETTER OF AUTHORITY",
+        sections: [
+          { heading:"TO", content:`The Branch Manager\n[Bank Name]\n[Branch]\n\nAccount Holder: ${cust?.name}\nAccount Number: [To be provided]` },
+          { heading:"AUTHORITY", content:`I/We, ${cust?.contact}, in my/our capacity as authorised signatory of ${cust?.name} (Reg: ${cust?.regNum}), hereby irrevocably authorise and instruct you to:\n\n1. Allow TQA Capital (Pty) Ltd (Reg: 2017/313869/07) to collect by debit order the sum of [monthly instalment] on the [date] of each month, or such other amount as may be notified to you by TQA Capital.\n\n2. Intercept and redirect to TQA Capital any payment received into the above account from [Off-taker/Government Department] up to the amount of ${fmt.cur(app.amount)} plus interest and fees, until the credit facility (Ref: ${loanRef}) is settled in full.\n\n3. This authority shall remain in force and irrevocable until written cancellation is received from TQA Capital (Pty) Ltd.` },
+          { heading:"ACKNOWLEDGEMENT", content:`I/We understand that this authority forms part of the security for a credit facility and may not be revoked without the prior written consent of TQA Capital (Pty) Ltd.` },
+          { heading:"SIGNATURES", content:`Signed at _________________ on ${today}\n\nFor ${cust?.name}: _________________________\nName: ${cust?.contact}\nCapacity: Director\nID Number: ${cust?.idNum || "[ID Number]"}\n\nWitness 1: _________________________\nWitness 2: _________________________` },
+        ]
+      },
+      suretyship_deed: {
+        title: "DEED OF SURETYSHIP",
+        sections: [
+          { heading:"PARTIES", content:`THE SURETY: ${cust?.contact} (ID: ${cust?.idNum || "[ID Number]"})\nTHE CREDITOR: TQA Capital (Pty) Ltd (Reg: 2017/313869/07)\nTHE PRINCIPAL DEBTOR: ${cust?.name} (Reg: ${cust?.regNum})` },
+          { heading:"SURETYSHIP", content:`1. The Surety hereby binds himself/herself as surety and co-principal debtor in solidum with the Principal Debtor for the due payment of all amounts owing to the Creditor, up to a maximum of ${fmt.cur(app.amount)} plus interest, costs and charges.\n\n2. The Surety renounces the benefits of excussion, division, and cession of actions, the meaning and effect of which have been explained to the Surety.\n\n3. This suretyship shall remain in force until all obligations of the Principal Debtor to the Creditor have been discharged in full.\n\n4. The Surety consents to the jurisdiction of the Magistrate's Court in terms of Section 45 of the Magistrate's Courts Act.` },
+          { heading:"SIGNATURES", content:`Signed at _________________ on ${today}\n\nSURETY: _________________________\nFull Name: ${cust?.contact}\nID Number: ${cust?.idNum || "[ID Number]"}\n\nAS WITNESSES:\n1. _________________________\n2. _________________________` },
+        ]
+      },
+      asset_pledge: {
+        title: "PLEDGE AND CESSION IN SECURITATEM DEBITI",
+        sections: [
+          { heading:"PARTIES", content:`THE PLEDGOR: ${cust?.name} (Reg: ${cust?.regNum})\nTHE PLEDGEE: TQA Capital (Pty) Ltd (Reg: 2017/313869/07)` },
+          { heading:"PLEDGE", content:`1. The Pledgor hereby pledges to the Pledgee the movable assets described in Schedule A as security for the credit facility (Ref: ${loanRef}) in the amount of ${fmt.cur(app.amount)}.\n\n2. The Pledgor shall not dispose of, encumber, or remove the pledged assets without the prior written consent of the Pledgee.\n\n3. The Pledgor shall maintain the pledged assets in good condition and keep them insured at full replacement value with the Pledgee noted as first loss payee.\n\n4. Upon default, the Pledgee shall be entitled to take possession of and realise the pledged assets.` },
+          { heading:"SCHEDULE A — PLEDGED ASSETS", content:`[Description of assets to be completed]\n\nAsset 1: _____________________ Value: R_____________\nAsset 2: _____________________ Value: R_____________\nAsset 3: _____________________ Value: R_____________` },
+          { heading:"SIGNATURES", content:`Signed at _________________ on ${today}\n\nFor the PLEDGOR: _________________________\nName: ${cust?.contact}\n\nFor the PLEDGEE: _________________________\nTQA Capital (Pty) Ltd` },
+        ]
+      },
+      crop_lien: {
+        title: "NOTARIAL BOND OVER CROPS / AGRICULTURAL PLEDGE",
+        sections: [
+          { heading:"PARTIES", content:`THE PLEDGOR: ${cust?.name} (Reg: ${cust?.regNum})\nTHE PLEDGEE: TQA Capital (Pty) Ltd` },
+          { heading:"AGRICULTURAL PLEDGE", content:`1. The Pledgor hereby grants to the Pledgee a lien over all crops (standing, harvested, and to be planted) on the property described in Schedule A.\n\n2. The Pledgor shall not sell, remove, or dispose of the pledged crops without prior written consent.\n\n3. The Pledgor shall maintain crop insurance with the Pledgee noted as first loss payee.\n\n4. Upon default, the Pledgee is entitled to harvest, sell, and apply proceeds to the outstanding debt.` },
+          { heading:"SCHEDULE A — PROPERTY AND CROP DETAILS", content:`Property: _____________________ Erf/Farm No: _____________\nCrop Type: _____________________ Estimated Yield: _____________\nSeason: _____________________ Expected Harvest: _____________` },
+          { heading:"SIGNATURES", content:`Signed at _________________ on ${today}\n\nFor the PLEDGOR: _________________________\nName: ${cust?.contact}\n\nFor the PLEDGEE: _________________________\nTQA Capital (Pty) Ltd` },
+        ]
+      },
+      debit_mandate: {
+        title: "DEBIT ORDER MANDATE",
+        sections: [
+          { heading:"ACCOUNT HOLDER", content:`Name: ${cust?.name}\nID/Reg: ${cust?.regNum}\nBank: _____________________ Branch: _____________\nAccount No: _____________________ Account Type: _____________` },
+          { heading:"MANDATE", content:`I/We hereby authorise TQA Capital (Pty) Ltd to debit my/our account with the instalment amount due under credit agreement ${loanRef}, on the [date] of each month, commencing on [start date].\n\nShould the payment date fall on a non-business day, the debit will be processed on the next business day.\n\nThis authority may be cancelled by providing 30 days written notice to TQA Capital (Pty) Ltd, subject to the terms of the credit agreement.` },
+          { heading:"SIGNATURES", content:`Signed at _________________ on ${today}\n\nAccount Holder: _________________________\nName: ${cust?.contact}\nDate: ${today}` },
+        ]
+      },
+    };
+
+    const tmpl = templates[templateType];
+    if (!tmpl) { showToast("Template not found", "error"); return; }
+
+    // Store as a document record
+    const docId = "DOC-SEC-" + Date.now();
+    const docRecord = { id:docId, custId:cust?.id, appId:app.id, name:tmpl.title, type:"Security", category:"Collateral", status:"Pending Review", uploadedAt:Date.now(), uploadedBy:currentUser.id, notes:`Auto-generated ${tmpl.title} for ${prod?.name}. Awaiting signatures.` };
+    
+    // Generate text preview and store
+    const fullText = tmpl.sections.map(s => `${s.heading}\n${s.content}`).join("\n\n");
+    
+    save({ ...data, 
+      documents: [...documents, docRecord],
+      audit: [...audit, addAudit("Security Document Generated", app.id, currentUser.name, `${tmpl.title} generated for ${cust?.name}. Loan: ${loanRef}. Amount: ${fmt.cur(app.amount)}.`, "Booking")]
+    });
+    showToast(`${tmpl.title} generated successfully`);
+  };
+
+  // ═══ Loan Agreement Template Generator ═══
+  const generateLoanAgreement = (loan, app, cust, prod) => {
+    const today = new Date().toLocaleDateString("en-ZA", { day:"numeric", month:"long", year:"numeric" });
+    const rate = loan?.rate || app?.rate || prod?.baseRate;
+    const term = loan?.term || app?.term;
+    const amount = loan?.amount || app?.amount;
+    const monthlyPmt = loan?.monthlyPmt || 0;
+    const arrangementFee = Math.round(amount * ((prod?.arrangementFee||1)/100));
+    const prodSec = PRODUCT_SECURITY[app?.product];
+    const securityInstruments = prodSec ? [...(prodSec.required||[]), ...Object.keys(securitySelections[app?.id]||{}).filter(k=>securitySelections[app?.id][k])].map(id=>SECURITY_INSTRUMENTS[id]?.name).filter(Boolean) : [];
+
+    const docId = "DOC-AGR-" + Date.now();
+    const docRecord = { id:docId, custId:cust?.id, appId:app?.id, name:"Loan Agreement — " + (loan?.id || "Draft"), type:"Legal", category:"Legal", status:"Pending Review", uploadedAt:Date.now(), uploadedBy:currentUser.id, notes:`Auto-generated Loan Agreement. Amount: ${fmt.cur(amount)}. Term: ${term}m. Rate: ${rate}%. Awaiting signatures.` };
+
+    save({ ...data,
+      documents: [...documents, docRecord],
+      audit: [...audit, addAudit("Loan Agreement Generated", app?.id, currentUser.name, `Loan Agreement generated for ${cust?.name}. Amount: ${fmt.cur(amount)}. Term: ${term}m. Rate: ${rate}%. ${securityInstruments.length} security instruments.`, "Booking")]
+    });
+    showToast("Loan Agreement generated successfully");
+  };
+
+
+
+
 
   const bookLoan = (appId) => {
     if (!canDo("loans","update")) { alert("Permission denied: you cannot book loans."); return; }
@@ -3946,8 +4076,39 @@ export default function App() {
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                 <div>
                   <div style={{ fontSize:12, fontWeight:600, color:C.text }}>Loan Booking</div>
+
+              {/* ═══ Security Instruments ═══ */}
+              {(() => {
+                const prodSec = PRODUCT_SECURITY[a.product];
+                if (!prodSec) return null;
+                const allInstruments = [...(prodSec.required||[]), ...(prodSec.optional||[])];
+                const sels = securitySelections[a.id] || {};
+                return (
+                  <SectionCard title="Security Instruments">
+                    <div style={{ fontSize:11, color:C.textMuted, marginBottom:12 }}>{prodSec.desc}</div>
+                    {allInstruments.map(instId => {
+                      const inst = SECURITY_INSTRUMENTS[instId];
+                      if (!inst) return null;
+                      const isRequired = (prodSec.required||[]).includes(instId);
+                      const isSelected = isRequired || sels[instId];
+                      return (
+                        <div key={instId} style={{ display:"flex", alignItems:"flex-start", gap:12, padding:"8px 0", borderBottom:`1px solid ${C.surface3}` }}>
+                          <input type="checkbox" checked={isSelected} disabled={isRequired} onChange={() => { const next = {...sels, [instId]:!sels[instId]}; setSecuritySelections({...securitySelections, [a.id]:next}); }} style={{ marginTop:2, accentColor:C.accent }} />
+                          <div style={{ flex:1 }}>
+                            <div style={{ fontSize:12, fontWeight:600, color:C.text }}>{inst.name} {isRequired && <span style={{ fontSize:10, color:C.red, fontWeight:500 }}>(Required)</span>}</div>
+                            <div style={{ fontSize:11, color:C.textDim, marginTop:2 }}>{inst.desc}</div>
+                          </div>
+                          {isSelected && inst.template && <button className="kb-cta-outline" onClick={() => { const c2 = customers.find(x=>x.id===a.custId); const p2 = products.find(x=>x.id===a.product); showToast(`Generating ${inst.name} template...`); generateSecurityDoc(inst.template, a, c2, p2); }} style={{ background:"none", border:`1px solid ${C.border}`, borderRadius:4, padding:"4px 12px", fontSize:10, fontWeight:500, color:C.accent, cursor:"pointer", fontFamily:"inherit", whiteSpace:"nowrap" }}>Generate</button>}
+                        </div>
+                      );
+                    })}
+                    <div style={{ marginTop:8, fontSize:10, color:C.textMuted }}>Required instruments must be signed before disbursement. Optional instruments reduce risk exposure and may improve pricing.</div>
+                  </SectionCard>
+                );
+              })()}
                   <div style={{ fontSize:11, color:C.textMuted }}>Verify conditions precedent and create loan record.</div>
                 </div>
+              <Btn variant="secondary" onClick={() => { const c3 = customers.find(x=>x.id===a.custId); const p3 = products.find(x=>x.id===a.product); generateLoanAgreement(null, a, c3, p3); }}>Generate Agreement</Btn>
                 <Btn onClick={()=>bookLoan(a.id)}>Book Loan</Btn>
               </div>
             </div>
