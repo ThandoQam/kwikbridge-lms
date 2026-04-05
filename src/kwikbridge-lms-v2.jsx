@@ -605,7 +605,7 @@ export default function App() {
       } else {
         setAuthForm({ ...authForm, error:"" });
         setAuthMode("login");
-        alert("Account created. Check your email for confirmation, then sign in.");
+        showToast("Account created. Check your email for confirmation, then sign in.");
       }
     } catch (e) { setAuthForm({ ...authForm, error:"Network error. Try again." }); }
   };
@@ -1476,20 +1476,20 @@ export default function App() {
   const addAlert = (type, severity, title, msg, extra = {}) => ({ id: uid(), type, severity, title, msg, read: false, ts: Date.now(), ...extra });
 
   const createCustomer = (form) => {
-    if (!canDo("customers","create")) { alert("Permission denied."); return; }
+    if (!canDo("customers","create")) { showToast("Permission denied."); return; }
     const c = { ...form, id:`C${String(customers.length+1).padStart(3,"0")}`, ficaStatus:"Pending", ficaDate:null, riskCategory:"Medium", created:Date.now(), beeStatus:"Pending Review", beeExpiry:null, womenOwned:+form.womenOwned||0, youthOwned:+form.youthOwned||0, disabilityOwned:+form.disabilityOwned||0 };
     save({ ...data, customers:[...customers, c], audit:[...audit, addAudit("Customer Created", c.id, currentUser.name, `New customer: ${c.name}. Industry: ${c.industry}.`, "Onboarding")] });
     return c.id;
   };
   const updateCustomer = (custId, updates) => {
-    if (!canDo("customers","update")) { alert("Permission denied."); return; }
+    if (!canDo("customers","update")) { showToast("Permission denied."); return; }
     save({ ...data, customers: customers.map(c => c.id === custId ? { ...c, ...updates } : c), audit:[...audit, addAudit("Customer Updated", custId, currentUser.name, `Profile updated. Fields: ${Object.keys(updates).join(", ")}.`, "Onboarding")] });
   };
   const updateFicaStatus = (custId, newStatus) => {
-    if (!canDoAny("customers",["update"]) && !canDo("underwriting","signoff")) { alert("Permission denied."); return; }
+    if (!canDoAny("customers",["update"]) && !canDo("underwriting","signoff")) { showToast("Permission denied."); return; }
     const c = cust(custId);
     const validTransitions = { "Pending":["Under Review"], "Under Review":["Verified","Failed"], "Failed":["Under Review"], "Verified":["Expired","Under Review"], "Expired":["Under Review"] };
-    if (!validTransitions[c?.ficaStatus]?.includes(newStatus)) { alert(`Invalid transition: ${c?.ficaStatus} → ${newStatus}`); return; }
+    if (!validTransitions[c?.ficaStatus]?.includes(newStatus)) { showToast(`Invalid transition: ${c?.ficaStatus} → ${newStatus}`); return; }
     const updates = { ficaStatus: newStatus };
     if (newStatus === "Verified") updates.ficaDate = Date.now();
     save({ ...data, customers: customers.map(x => x.id === custId ? { ...x, ...updates } : x),
@@ -1498,7 +1498,7 @@ export default function App() {
     });
   };
   const updateBeeStatus = (custId, newStatus, beeLevel, expiryDate) => {
-    if (!canDoAny("customers",["update"]) && !canDo("underwriting","signoff")) { alert("Permission denied."); return; }
+    if (!canDoAny("customers",["update"]) && !canDo("underwriting","signoff")) { showToast("Permission denied."); return; }
     const c = cust(custId);
     const updates = { beeStatus: newStatus };
     if (beeLevel) updates.beeLevel = +beeLevel;
@@ -1510,15 +1510,15 @@ export default function App() {
   };
 
   const submitApp = form => {
-    if (!canDo("origination","create")) { alert("Permission denied: you cannot create applications."); return; }
+    if (!canDo("origination","create")) { showToast("Permission denied: you cannot create applications."); return; }
     const c = cust(form.custId);
     const p = prod(form.product);
-    if (c?.ficaStatus === "Pending") { alert(`Cannot submit: ${c.name} FICA status is Pending. Initiate KYC review first.`); return; }
-    if (c?.ficaStatus === "Failed") { alert(`Cannot submit: ${c.name} FICA verification failed. Re-submit KYC before applying.`); return; }
-    if (c?.ficaStatus === "Expired") { alert(`Cannot submit: ${c.name} FICA has expired. Renew verification first.`); return; }
+    if (c?.ficaStatus === "Pending") { showToast(`Cannot submit: ${c.name} FICA status is Pending. Initiate KYC review first.`); return; }
+    if (c?.ficaStatus === "Failed") { showToast(`Cannot submit: ${c.name} FICA verification failed. Re-submit KYC before applying.`); return; }
+    if (c?.ficaStatus === "Expired") { showToast(`Cannot submit: ${c.name} FICA has expired. Renew verification first.`); return; }
     const existing = applications.find(a => a.custId === form.custId && a.product === form.product && ["Draft","Submitted","Underwriting"].includes(a.status));
-    if (existing) { alert(`Duplicate: ${c?.name} already has an active ${p?.name} application (${existing.id}, status: ${existing.status}).`); return; }
-    if (p?.status !== "Active") { alert(`Product ${p?.name} is ${p?.status}. Only Active products can accept applications.`); return; }
+    if (existing) { showToast(`Duplicate: ${c?.name} already has an active ${p?.name} application (${existing.id}, status: ${existing.status}).`); return; }
+    if (p?.status !== "Active") { showToast(`Product ${p?.name} is ${p?.status}. Only Active products can accept applications.`); return; }
 
     const expiresAt = Date.now() + 30 * day; // 30-day expiry for Draft applications
     const app = { id:`APP-${String(applications.length+1).padStart(3,"0")}`, custId:form.custId, status:"Draft", product:form.product, amount:+form.amount, term:+form.term, purpose:form.purpose, rate:null, riskScore:null, dscr:null, currentRatio:null, debtEquity:null, socialScore:null, recommendation:null, approver:null, creditMemo:null, submitted:null, decided:null, conditions:[], assignedTo:null, createdBy:currentUser.id, createdAt:Date.now(), expiresAt, sanctionsFlag:false, sanctionsDate:null, withdrawnAt:null, withdrawnBy:null, qaSignedOff:false, qaOfficer:null, qaDate:null, qaFindings:null };
@@ -1533,9 +1533,9 @@ export default function App() {
   };
 
   const qaSignOffApplication = (appId) => {
-    if (!canDo("origination","update")) { alert("Permission denied."); return; }
+    if (!canDo("origination","update")) { showToast("Permission denied."); return; }
     const a = applications.find(x => x.id === appId);
-    if (!a || a.status !== "Draft") { alert("Only Draft applications can be QA'd and submitted."); return; }
+    if (!a || a.status !== "Draft") { showToast("Only Draft applications can be QA'd and submitted."); return; }
     const c = cust(a.custId);
     const p = prod(a.product);
     const custDocs = (documents||[]).filter(d => d.custId === a.custId && (d.appId === a.id || !d.appId));
@@ -1556,7 +1556,7 @@ export default function App() {
     if (p && a.amount < p.minAmount) fieldErrors.push(`Amount below product minimum (${fmt.cur(p.minAmount)})`);
     if (p && a.amount > p.maxAmount) fieldErrors.push(`Amount exceeds product maximum (${fmt.cur(p.maxAmount)})`);
 
-    if (a.expiresAt && a.expiresAt < Date.now()) { alert(`Application ${appId} has expired (${fmt.date(a.expiresAt)}). It can no longer be submitted.`); return; }
+    if (a.expiresAt && a.expiresAt < Date.now()) { showToast(`Application ${appId} has expired (${fmt.date(a.expiresAt)}). It can no longer be submitted.`); return; }
 
     const qaFindings = { mandatoryDocs: mandatoryTypes.map(type => { const doc = custDocs.find(d=>d.type===type); return { type, docId:doc?.id||null, status:doc?.status||"Missing", onFile:!!doc }; }), missingDocs: missing, incompleteDocs: incomplete, fieldErrors, passedAt: null, officer: null };
 
@@ -1593,7 +1593,7 @@ export default function App() {
         ],
         alerts: [...alerts, addAlert("Application","warning",`QA Failed – ${c?.name}`,`${appId}: ${missing.length} missing, ${incomplete.length} incomplete. Notification sent to applicant.`)]
       });
-      alert(`QA check failed:\n${missing.length ? `Missing documents: ${missing.join(", ")}\n` : ""}${incomplete.length ? `Incomplete: ${incomplete.join(", ")}\n` : ""}${fieldErrors.length ? `Validation: ${fieldErrors.join(", ")}\n` : ""}\nNotification sent to ${c?.contact}.`);
+      showToast(`QA check failed:\n${missing.length ? `Missing documents: ${missing.join(", ")}\n` : ""}${incomplete.length ? `Incomplete: ${incomplete.join(", ")}\n` : ""}${fieldErrors.length ? `Validation: ${fieldErrors.join(", ")}\n` : ""}\nNotification sent to ${c?.contact}.`);
       return;
     }
 
@@ -1616,7 +1616,7 @@ export default function App() {
   };
 
   const assignApplication = (appId, userId) => {
-    if (!canDo("origination","assign")) { alert("Permission denied: you cannot assign applications."); return; }
+    if (!canDo("origination","assign")) { showToast("Permission denied: you cannot assign applications."); return; }
     const u = SYSTEM_USERS.find(x => x.id === userId);
     save({ ...data,
       applications: applications.map(a => a.id === appId ? { ...a, assignedTo: userId } : a),
@@ -1625,9 +1625,9 @@ export default function App() {
   };
 
   const withdrawApplication = (appId, reason) => {
-    if (!canDo("origination","update")) { alert("Permission denied."); return; }
+    if (!canDo("origination","update")) { showToast("Permission denied."); return; }
     const a = applications.find(x => x.id === appId);
-    if (!a || !["Draft","Submitted","Underwriting"].includes(a.status)) { alert("Only Draft, Submitted or Underwriting applications can be withdrawn."); return; }
+    if (!a || !["Draft","Submitted","Underwriting"].includes(a.status)) { showToast("Only Draft, Submitted or Underwriting applications can be withdrawn."); return; }
     save({ ...data,
       applications: applications.map(x => x.id === appId ? { ...x, status: "Withdrawn", withdrawnAt: Date.now(), withdrawnBy: currentUser.id } : x),
       audit: [...audit, addAudit("Application Withdrawn", appId, currentUser.name, `Withdrawn. Reason: ${reason || "No reason provided"}.`, "Origination")],
@@ -1636,10 +1636,10 @@ export default function App() {
   };
 
   const moveToUnderwriting = appId => {
-    if (!canDo("underwriting","update")) { alert("Permission denied."); return; }
+    if (!canDo("underwriting","update")) { showToast("Permission denied."); return; }
     const a = applications.find(x => x.id === appId);
-    if (!a || a.status !== "Submitted") { alert("Only Submitted applications (post-QA sign-off) can move to Underwriting."); return; }
-    if (!a.qaSignedOff) { alert("QA sign-off required before underwriting can begin."); return; }
+    if (!a || a.status !== "Submitted") { showToast("Only Submitted applications (post-QA sign-off) can move to Underwriting."); return; }
+    if (!a.qaSignedOff) { showToast("QA sign-off required before underwriting can begin."); return; }
     const emptyWF = { kycComplete:false, kycFindings:[], kycDate:null, kycOfficer:null, docsComplete:false, docsFindings:[], docsDate:null, docsOfficer:null, siteVisitComplete:false, siteVisitFindings:[], siteVisitDate:null, siteVisitOfficer:null, siteVisitNotes:"", creditPulled:false, creditBureauScore:null, creditDate:null, creditFindings:[], financialAnalysisComplete:false, financialDate:null, socialVerified:false, socialFindings:[], socialDate:null, socialOfficer:null, collateralAssessed:false, collateralFindings:[], collateralDate:null, collateralTotal:0, sanctionsCleared:false, sanctionsDate:null, analystNotes:"", creditMemoSections:[] };
     save({ ...data,
       applications: applications.map(a => a.id === appId ? { ...a, status: "Underwriting", workflow: a.workflow || emptyWF, assignedTo: currentUser.id } : a),
@@ -1679,7 +1679,7 @@ export default function App() {
   };
 
   const signOffStep = (appId, stepKey) => {
-    if (!canDo("underwriting","signoff")) { alert("Permission denied: you cannot sign off on DD steps."); return; }
+    if (!canDo("underwriting","signoff")) { showToast("Permission denied: you cannot sign off on DD steps."); return; }
     const a = applications.find(x => x.id === appId);
     if (!a) return;
     const c = cust(a.custId);
@@ -1717,21 +1717,21 @@ export default function App() {
   };
 
   const approveDocument = (docId, appId) => {
-    if (!canDo("documents","approve")) { alert("Permission denied: you cannot approve documents."); return; }
+    if (!canDo("documents","approve")) { showToast("Permission denied: you cannot approve documents."); return; }
     const doc = (documents||[]).find(d => d.id === docId);
     if (!doc) return;
     const updated = { ...doc, status: "Verified", verifiedBy: currentUser.name, verifiedAt: Date.now() };
     save({ ...data, documents: documents.map(d => d.id === docId ? updated : d), audit: [...audit, addAudit("Document Approved", docId, currentUser.name, `${doc.name} verified and approved.`, "Underwriting")] });
   };
   const rejectDocument = (docId, reason) => {
-    if (!canDo("documents","update")) { alert("Permission denied."); return; }
+    if (!canDo("documents","update")) { showToast("Permission denied."); return; }
     const doc = (documents||[]).find(d => d.id === docId);
     if (!doc) return;
     const updated = { ...doc, status: "Rejected", verifiedBy: currentUser.name, verifiedAt: Date.now(), notes: reason || "Document rejected. Re-submission required." };
     save({ ...data, documents: documents.map(d => d.id === docId ? updated : d), audit: [...audit, addAudit("Document Rejected", docId, currentUser.name, `${doc.name} rejected. Reason: ${reason||"Re-submission required."}`, "Underwriting")] });
   };
   const requestDocFromApplicant = (appId, docType, message) => {
-    if (!canDo("comms","create")) { alert("Permission denied: you cannot send communications."); return; }
+    if (!canDo("comms","create")) { showToast("Permission denied: you cannot send communications."); return; }
     const a = applications.find(x => x.id === appId);
     const c = cust(a?.custId);
     const body = message || `Dear ${c?.contact},\n\nPlease submit the following document for your loan application ${appId}:\n\n  → ${docType}\n\nYou may upload via the KwikBridge portal or email to documents@kwikbridge.co.za.\n\nIf you have any questions, contact your Loan Officer.\n\nRegards,\n${currentUser.name}\nKwikBridge Lending Operations`;
@@ -1748,7 +1748,7 @@ export default function App() {
     });
   };
   const sendNotification = (appId, subject, body) => {
-    if (!canDo("comms","create")) { alert("Permission denied."); return; }
+    if (!canDo("comms","create")) { showToast("Permission denied."); return; }
     const a = applications.find(x => x.id === appId);
     const c = cust(a?.custId);
     const notification = { id:uid(), custId:a?.custId, loanId:null, channel:"Email", direction:"Outbound", from:currentUser.name, subject, body, ts:Date.now() };
@@ -1884,8 +1884,8 @@ export default function App() {
     }
 
     if (stepKey === "credit") {
-      if (!w.kycComplete) { alert("Complete KYC/FICA verification before running credit analysis."); return; }
-      if (!w.docsComplete) { alert("Complete document review before running credit analysis."); return; }
+      if (!w.kycComplete) { showToast("Complete KYC/FICA verification before running credit analysis."); return; }
+      if (!w.docsComplete) { showToast("Complete document review before running credit analysis."); return; }
       const bureauScore = w.creditBureauScore || Math.floor(Math.random() * 200 + 500);
       const monthlyPmt = Math.round(a.amount * (0.145 / 12) / (1 - Math.pow(1 + 0.145 / 12, -a.term)));
       const monthlyIncome = Math.round((c?.revenue || 3000000) / 12);
@@ -1968,12 +1968,12 @@ export default function App() {
   };
 
   const decideLoan = (appId, decision) => {
-    if (!canDo("underwriting","approve")) { alert("Permission denied: you cannot approve/decline applications."); return; }
+    if (!canDo("underwriting","approve")) { showToast("Permission denied: you cannot approve/decline applications."); return; }
     const a = applications.find(x => x.id === appId);
     if (!a) return;
     const limit = approvalLimit(role);
-    if (decision === "Approved" && a.amount > limit) { alert(`Authority exceeded: your limit is ${fmt.cur(limit)}. This application (${fmt.cur(a.amount)}) requires escalation to ${a.amount > 1000000 ? "Credit Committee" : "Head of Credit"}.`); return; }
-    if (a.createdBy === currentUser.id) { alert("Separation of duties: you cannot approve an application you created."); return; }
+    if (decision === "Approved" && a.amount > limit) { showToast(`Authority exceeded: your limit is ${fmt.cur(limit)}. This application (${fmt.cur(a.amount)}) requires escalation to ${a.amount > 1000000 ? "Credit Committee" : "Head of Credit"}.`); return; }
+    if (a.createdBy === currentUser.id) { showToast("Separation of duties: you cannot approve an application you created."); return; }
     const w = a.workflow || {};
     const c = cust(a.custId);
     const p = prod(a.product);
@@ -2108,9 +2108,9 @@ export default function App() {
 
 
   const bookLoan = (appId) => {
-    if (!canDo("loans","update")) { alert("Permission denied: you cannot book loans."); return; }
+    if (!canDo("loans","update")) { showToast("Permission denied: you cannot book loans."); return; }
     const a = applications.find(x => x.id === appId);
-    if (!a || a.status !== "Approved") { alert("Only Approved applications can be booked."); return; }
+    if (!a || a.status !== "Approved") { showToast("Only Approved applications can be booked."); return; }
     const c = cust(a.custId);
     const p = prod(a.product);
     const w = a.workflow || {};
@@ -2119,7 +2119,7 @@ export default function App() {
     if (!w.docsComplete) cpFail.push("Document checklist incomplete");
     if (c?.ficaStatus !== "Verified") cpFail.push(`FICA status: ${c?.ficaStatus} (must be Verified)`);
     if (c?.beeStatus !== "Verified" && p?.eligibleBEE?.length < 4) cpFail.push("BEE certificate not verified");
-    if (cpFail.length > 0) { alert(`Conditions precedent not met:\n${cpFail.join("\n")}\n\nResolve before booking.`); return; }
+    if (cpFail.length > 0) { showToast(`Conditions precedent not met:\n${cpFail.join("\n")}\n\nResolve before booking.`); return; }
     const rate = a.rate || p?.baseRate || 14.5;
     const monthlyPmt = Math.round(a.amount * (rate / 100 / 12) / (1 - Math.pow(1 + rate / 100 / 12, -a.term)));
     const loan = { id:`LN-${String(loans.length+1).padStart(3,"0")}`, appId, custId:a.custId, status:"Booked", amount:a.amount, balance:a.amount, rate, term:a.term, monthlyPmt, disbursed:null, nextDue:null, lastPmt:null, lastPmtAmt:null, totalPaid:0, dpd:0, stage:1, payments:[], bookedAt:Date.now(), bookedBy:currentUser.id, disbursedBy:null, disbursementAuth2:null, preDisbursementAML:null, covenants:(a.conditions||[]).map(c=>({name:c,status:"Compliant",value:"—",checked:Date.now()})), collateral:w.collateralFindings?.filter(f=>f.item!=="Security Coverage").map(f=>({type:f.item,value:0,description:f.detail}))||[], arrangementFee: Math.round(a.amount * ((p?.arrangementFee||1)/100)) };
@@ -2138,13 +2138,13 @@ export default function App() {
   };
 
   const disburseLoan = (loanId) => {
-    if (!canDo("servicing","create") && !canDo("loans","update")) { alert("Permission denied: you cannot disburse loans."); return; }
+    if (!canDo("servicing","create") && !canDo("loans","update")) { showToast("Permission denied: you cannot disburse loans."); return; }
     const l = loans.find(x => x.id === loanId);
-    if (!l || l.status !== "Booked") { alert("Only Booked loans can be disbursed."); return; }
+    if (!l || l.status !== "Booked") { showToast("Only Booked loans can be disbursed."); return; }
     const c = cust(l.custId);
     const amlClear = true; // Placeholder for API
-    if (!amlClear) { alert("Pre-disbursement AML check failed. Disbursement blocked."); return; }
-    if (l.bookedBy === currentUser.id) { alert("Dual authorization required: the person who booked the loan cannot disburse it."); return; }
+    if (!amlClear) { showToast("Pre-disbursement AML check failed. Disbursement blocked."); return; }
+    if (l.bookedBy === currentUser.id) { showToast("Dual authorization required: the person who booked the loan cannot disburse it."); return; }
     const updated = { ...l, status:"Active", disbursed:Date.now(), disbursedBy:currentUser.id, preDisbursementAML:{ clear:true, date:Date.now(), checkedBy:currentUser.name }, nextDue:Date.now()+30*day };
     save({ ...data,
       loans: loans.map(x => x.id === loanId ? updated : x),
@@ -2157,7 +2157,7 @@ export default function App() {
   };
 
   const recordPayment = (loanId, amount) => {
-    if (!canDo("servicing","create")) { alert("Permission denied: you cannot record payments."); return; }
+    if (!canDo("servicing","create")) { showToast("Permission denied: you cannot record payments."); return; }
     const l = loans.find(x => x.id === loanId);
     if (!l || l.status !== "Active") return;
     const monthlyRate = l.rate / 100 / 12;
@@ -2177,7 +2177,7 @@ export default function App() {
   };
 
   const addCollectionAction = (loanId, actionType, notes, extra={}) => {
-    if (!canDo("collections","create")) { alert("Permission denied: you cannot log collection actions."); return; }
+    if (!canDo("collections","create")) { showToast("Permission denied: you cannot log collection actions."); return; }
     const l = loans.find(x => x.id === loanId);
     const entry = { id: uid(), loanId, custId: l?.custId, stage: l?.dpd <= 30 ? "Early" : l?.dpd <= 90 ? "Mid" : "Late", dpd: l?.dpd || 0, action: actionType, channel: extra.channel || "System", officer: currentUser.name, notes, created: Date.now(), ...extra };
     let newAlerts = [...alerts];
@@ -2188,7 +2188,7 @@ export default function App() {
   };
 
   const createPTP = (loanId, ptpDate, ptpAmount, notes) => {
-    if (!canDo("collections","create")) { alert("Permission denied."); return; }
+    if (!canDo("collections","create")) { showToast("Permission denied."); return; }
     const l = loans.find(x => x.id === loanId);
     const entry = { id: uid(), loanId, custId: l?.custId, stage: l?.dpd <= 30 ? "Early" : l?.dpd <= 90 ? "Mid" : "Late", dpd: l?.dpd || 0, action: "Promise-to-Pay", channel: "Phone", officer: currentUser.name, notes: notes || `PTP: ${fmt.cur(ptpAmount)} by ${fmt.date(new Date(ptpDate).getTime())}`, created: Date.now(), ptpDate: new Date(ptpDate).getTime(), ptpAmount: +ptpAmount, ptpStatus: "Pending" };
     save({ ...data,
@@ -2198,7 +2198,7 @@ export default function App() {
   };
 
   const proposeRestructure = (loanId, proposal) => {
-    if (!canDo("collections","create")) { alert("Permission denied."); return; }
+    if (!canDo("collections","create")) { showToast("Permission denied."); return; }
     const l = loans.find(x => x.id === loanId);
     const entry = { id: uid(), loanId, custId: l?.custId, stage: "Restructure", dpd: l?.dpd || 0, action: "Restructuring Proposed", channel: "Meeting", officer: currentUser.name, notes: `Proposal: ${proposal.type}. ${proposal.detail}. Pending ${proposal.approver} approval.`, created: Date.now(), restructure: proposal };
     save({ ...data,
@@ -2209,7 +2209,7 @@ export default function App() {
   };
 
   const proposeWriteOff = (loanId, reason) => {
-    if (!canDo("collections","create")) { alert("Permission denied."); return; }
+    if (!canDo("collections","create")) { showToast("Permission denied."); return; }
     const l = loans.find(x => x.id === loanId);
     const entry = { id: uid(), loanId, custId: l?.custId, stage: "Write-Off", dpd: l?.dpd || 0, action: "Write-Off Proposed", channel: "System", officer: currentUser.name, notes: reason, created: Date.now(), writeOff: true };
     save({ ...data,
@@ -2220,7 +2220,7 @@ export default function App() {
   };
 
   const approveWriteOff = (loanId) => {
-    if (!canDo("collections","approve")) { alert("Permission denied: only Credit Head or above can approve write-offs."); return; }
+    if (!canDo("collections","approve")) { showToast("Permission denied: only Credit Head or above can approve write-offs."); return; }
     const l = loans.find(x => x.id === loanId);
     if (!l) return;
     save({ ...data,
@@ -2550,7 +2550,7 @@ export default function App() {
     if (tab === "beeExpiring") filtered = filtered.filter(c=>c.beeExpiry&&c.beeExpiry<now+90*day);
 
     const handleCreate = () => {
-      if (!cForm.name || !cForm.contact || !cForm.idNum || !cForm.regNum) { alert("Name, contact, ID number, and registration number are required."); return; }
+      if (!cForm.name || !cForm.contact || !cForm.idNum || !cForm.regNum) { showToast("Name, contact, ID number, and registration number are required."); return; }
       createCustomer({ ...cForm, revenue:+cForm.revenue||0, employees:+cForm.employees||0, years:+cForm.years||0, beeLevel:+cForm.beeLevel||3 });
       setShowCreate(false);
       setCForm({ name:"", contact:"", email:"", phone:"", idNum:"", regNum:"", industry:"Retail", sector:"", revenue:"", employees:"", years:"", beeLevel:3, address:"", province:"Eastern Cape", womenOwned:0, youthOwned:0, disabilityOwned:0 });
@@ -2768,7 +2768,7 @@ export default function App() {
           { label:"Borrower", render:r=>cust(r.custId)?.name },
           { label:"Product", render:r=>{const p=prod(r.product);return <span style={{fontSize:11}}>{p?.name||"—"}</span>} },
           { label:"Amount", render:r=>cell.money(r.amount) },
-          { label:"Balance", render:r=><span style={{ fontWeight:700 }}>{fmt.cur(r.balance)}</span> },
+          { label:"Balance", render:r=>cell.money(r.balance) },
           { label:"Rate", render:r=>cell.pct(r.rate) },
           { label:"Status", render:r=>statusBadge(r.status) },
           { label:"DPD", render:r=>r.status==="Active"?<span style={{ fontWeight:700, color:r.dpd===0?C.green:r.dpd<=30?C.amber:C.red }}>{r.dpd}</span>:<span style={{ color:C.textMuted }}>—</span> },
@@ -2833,7 +2833,7 @@ export default function App() {
         <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"20px", gridColumn:"1/-1" }}>
           <div style={{ fontSize:14, fontWeight:700, marginBottom:12, color:C.text }}>Portfolio by Product</div>
           <Table columns={[
-            { label:"Product", render:r=><span style={{ fontWeight:600, fontSize:12 }}>{r.name}</span> },
+            { label:"Product", render:r=>cell.name(r.name) },
             { label:"Loans", render:r=>r.count },
             { label:"Book Value", render:r=>cell.money(r.balance) },
             { label:"% of Book", render:r=><span style={{ fontFamily:"monospace" }}>{currentBook>0?fmt.pct(r.balance/currentBook):"—"}</span> },
@@ -2906,9 +2906,9 @@ export default function App() {
           { label:"Date", render:r=>fmt.date(r.date) },
           { label:"Loan", key:"loanId" },
           { label:"Borrower", render:r=>cust(loans.find(l=>l.id===r.loanId)?.custId)?.name },
-          { label:"Total", render:r=><span style={{ fontWeight:700 }}>{fmt.cur(r.amount)}</span> },
-          { label:"Interest", render:r=><span style={{ color:C.amber }}>{fmt.cur(r.interest||0)}</span> },
-          { label:"Principal", render:r=><span style={{ color:C.green }}>{fmt.cur(r.principal||0)}</span> },
+          { label:"Total", render:r=>cell.money(r.amount) },
+          { label:"Interest", render:r=>cell.money(r.interest||0) },
+          { label:"Principal", render:r=>cell.money(r.principal||0) },
           { label:"Type", key:"type" },
           { label:"Status", render:r=>statusBadge(r.status) },
         ]} rows={allPmts.slice(0,20)} />
@@ -2933,8 +2933,8 @@ export default function App() {
                 <Table columns={[
                   { label:"#", render:r=>r.month },
                   { label:"Payment", render:r=>fmt.cur(r.pmt) },
-                  { label:"Interest", render:r=><span style={{ color:C.amber }}>{fmt.cur(r.interest)}</span> },
-                  { label:"Principal", render:r=><span style={{ color:C.green }}>{fmt.cur(r.principal)}</span> },
+                  { label:"Interest", render:r=>cell.money(r.interest) },
+                  { label:"Principal", render:r=>cell.money(r.principal) },
                   { label:"Balance", render:r=>cell.money(r.balance) },
                   { label:"Status", render:r=>statusBadge(r.status) },
                 ]} rows={sched} />
@@ -3009,7 +3009,7 @@ export default function App() {
         { label:"Loan", key:"loanId" },
         { label:"Borrower", render:r=>cust(r.custId)?.name },
         { label:"Stage", render:r=>statusBadge(r.stage) },
-        { label:"Action", render:r=><span style={{ fontWeight:600 }}>{r.action}</span> },
+        { label:"Action", render:r=>cell.name(r.action) },
         { label:"Channel", key:"channel" },
         { label:"Officer", key:"officer" },
         { label:"Notes", render:r=><span style={{ fontSize:11, color:C.textDim, maxWidth:250, overflow:"hidden", textOverflow:"ellipsis", display:"inline-block", whiteSpace:"nowrap" }}>{r.notes}</span> },
@@ -3037,7 +3037,7 @@ export default function App() {
           { label:"Borrower", render:r=>cust(r.custId)?.name },
           { label:"Balance", render:r=>fmt.cur(loans.find(l=>l.id===r.loanId)?.balance||0) },
           { label:"DPD", render:r=>cell.count(r.dpd) },
-          { label:"Reason", render:r=><span style={{ fontSize:11, color:C.textDim }}>{r.notes}</span> },
+          { label:"Reason", render:r=>cell.dim(r.notes) },
           { label:"Proposed By", key:"officer" },
           { label:"Date", render:r=>fmt.date(r.created) },
           { label:"Action", render:r=>{
@@ -3100,14 +3100,14 @@ export default function App() {
       </div>
       <SectionCard title="ECL by Loan">
         <Table columns={[
-          { label:"Loan ID", render:r=><span style={{ fontFamily:"monospace", fontWeight:600, fontSize:12 }}>{r.loanId}</span> },
+          { label:"Loan ID", render:r=>cell.id(r.loanId) },
           { label:"Borrower", render:r=>cust(loans.find(l=>l.id===r.loanId)?.custId)?.name },
           { label:"Stage", render:r=><Badge color={r.stage===1?"green":r.stage===2?"amber":"red"}>Stage {r.stage}</Badge> },
           { label:"EAD", render:r=>fmt.cur(r.ead) },
           { label:"PD", render:r=>fmt.pct(r.pd) },
           { label:"LGD", render:r=>fmt.pct(r.lgd,0) },
-          { label:"ECL", render:r=><span style={{ fontWeight:700, color:C.purple }}>{fmt.cur(r.ecl)}</span> },
-          { label:"Method", render:r=><span style={{ fontSize:11, color:C.textDim }}>{r.method}</span> },
+          { label:"ECL", render:r=>cell.money(r.ecl) },
+          { label:"Method", render:r=>cell.dim(r.method) },
         ]} rows={provisions} />
         <div style={{ textAlign:"right", marginTop:14, fontSize:14, fontWeight:700, color:C.text }}>Total ECL: <span style={{ color:C.purple }}>{fmt.cur(totalECL)}</span></div>
       </SectionCard>
@@ -3183,8 +3183,8 @@ export default function App() {
         <Table columns={[
           { label:"Timestamp", render:r=>fmt.dateTime(r.ts) },
           { label:"Category", render:r=><Badge color={r.category==="Risk"||r.category==="Collections"?"red":r.category==="Compliance"?"amber":r.category==="Decision"?"purple":"cyan"}>{r.category}</Badge> },
-          { label:"Action", render:r=><span style={{ fontWeight:600 }}>{r.action}</span> },
-          { label:"Entity", render:r=><span style={{ fontFamily:"monospace", fontSize:11 }}>{r.entity}</span> },
+          { label:"Action", render:r=>cell.name(r.action) },
+          { label:"Entity", render:r=>cell.mono(r.entity) },
           { label:"User", key:"user" },
           { label:"Detail", render:r=><span style={{ fontSize:11, color:C.textDim, maxWidth:300, overflow:"hidden", textOverflow:"ellipsis", display:"inline-block", whiteSpace:"nowrap" }}>{r.detail}</span> },
         ]} rows={filteredAudit.slice(0,50)} />
@@ -3193,8 +3193,8 @@ export default function App() {
 
       {tab==="controls" && <div>
         <Table columns={[
-          { label:"Control", render:r=><span style={{ fontWeight:600 }}>{r.control}</span> },
-          { label:"Module", render:r=><span style={{ fontSize:11, color:C.textDim }}>{r.module}</span> },
+          { label:"Control", render:r=>cell.name(r.control) },
+          { label:"Module", render:r=>cell.dim(r.module) },
           { label:"Status", render:r=><span style={{ fontSize:12, color:r.ok?C.green:C.red, fontWeight:500 }}>{r.status}</span> },
           { label:"Health", render:r=>r.ok ? <Badge color="green">OK</Badge> : <Badge color="red">Attention</Badge> },
         ]} rows={controlPoints} />
@@ -3202,7 +3202,7 @@ export default function App() {
 
       {tab==="authority" && <SectionCard title="Credit Approval Authority Matrix (Live)">
         <Table columns={[
-          { label:"Role", render:r=><span style={{ fontWeight:500 }}>{ROLES[r.role]?.label}</span> },
+          { label:"Role", render:r=>cell.name(ROLES[r.role]?.label) },
           { label:"Approval Limit", render:r=>r.limit===Infinity ? "Unlimited" : r.limit > 0 ? fmt.cur(r.limit) : <span style={{ color:C.textMuted }}>No approval authority</span> },
           { label:"Current Users", render:r=>SYSTEM_USERS.filter(u=>u.role===r.role).map(u=>u.name).join(", ") || <span style={{ color:C.textMuted }}>—</span> },
           { label:"Tier", render:r=>ROLES[r.role]?.tier },
@@ -3247,7 +3247,7 @@ export default function App() {
           { label:"Date", render:r=>fmt.dateTime(r.ts) },
           { label:"Severity", render:r=><Badge color={r.severity==="critical"?"red":r.severity==="warning"?"amber":"blue"}>{r.severity}</Badge> },
           { label:"Type", render:r=><Badge color="cyan">{r.type}</Badge> },
-          { label:"Title", render:r=><span style={{ fontWeight:600 }}>{r.title}</span> },
+          { label:"Title", render:r=>cell.name(r.title) },
           { label:"Message", render:r=><span style={{ fontSize:11, color:C.textDim, maxWidth:300, overflow:"hidden", textOverflow:"ellipsis", display:"inline-block", whiteSpace:"nowrap" }}>{r.msg}</span> },
           { label:"Status", render:r=>r.read?<Badge color="slate">Read</Badge>:<Badge color="amber">Unread</Badge> },
           { label:"", render:r=>!r.read && canDo("governance","update") ? <Btn size="sm" variant="ghost" onClick={e=>{e.stopPropagation();markRead(r.id)}}>Dismiss</Btn> : null },
@@ -3513,15 +3513,15 @@ export default function App() {
       </div>
 
       <Table columns={[
-        { label:"Doc ID", render:r=><span style={{ fontFamily:"monospace", fontSize:11 }}>{r.id}</span> },
-        { label:"Document Name", render:r=><span style={{ fontWeight:500 }}>{r.name}</span> },
-        { label:"Category", render:r=><span style={{ fontSize:11 }}>{r.category}</span> },
-        { label:"Type", render:r=><span style={{ fontSize:11, color:C.textDim }}>{r.type}</span> },
-        { label:"Customer", render:r=><span style={{ fontSize:12 }}>{cust(r.custId)?.name}</span> },
+        { label:"Doc ID", render:r=>cell.mono(r.id) },
+        { label:"Document Name", render:r=>cell.name(r.name) },
+        { label:"Category", render:r=>cell.text(r.category) },
+        { label:"Type", render:r=>cell.dim(r.type) },
+        { label:"Customer", render:r=>cell.text(cust(r.custId)?.name) },
         { label:"Linked To", render:r=><span style={{ fontFamily:"monospace", fontSize:10, color:C.textDim }}>{[r.appId, r.loanId].filter(Boolean).join(" / ") || "—"}</span> },
         { label:"Status", render:r=>statusBadge(r.status) },
         { label:"Uploaded", render:r=>r.uploadedAt ? fmt.date(r.uploadedAt) : "—" },
-        { label:"Verified By", render:r=><span style={{ fontSize:11, color:C.textDim }}>{r.verifiedBy || "—"}</span> },
+        { label:"Verified By", render:r=>cell.dim(r.verifiedBy || "—") },
         { label:"Expiry", render:r=>{
           if (!r.expiryDate) return <span style={{ color:C.textMuted, fontSize:11 }}>N/A</span>;
           const d = Math.ceil((r.expiryDate - now) / day);
@@ -3662,7 +3662,7 @@ export default function App() {
         { label:"Customer", render:r=>cust(r.custId)?.name },
         { label:"Channel", render:r=><Badge color={r.channel==="Phone"?"blue":r.channel==="Email"?"cyan":r.channel==="Letter"?"amber":r.channel==="In-Person"?"green":"slate"}>{r.channel||"—"}</Badge> },
         { label:"Direction", render:r=><Badge color={r.direction==="Inbound"?"purple":"slate"}>{r.direction}</Badge> },
-        { label:"Subject", render:r=><span style={{ fontWeight:600 }}>{r.subject}</span> },
+        { label:"Subject", render:r=>cell.name(r.subject) },
         { label:"From/By", key:"from" },
         { label:"Summary", render:r=><span style={{ fontSize:11, color:C.textDim, maxWidth:250, overflow:"hidden", textOverflow:"ellipsis", display:"inline-block", whiteSpace:"nowrap" }}>{r.body}</span> },
       ]} rows={[...comms].sort((a,b)=>b.ts-a.ts)} />
@@ -4309,9 +4309,9 @@ export default function App() {
         <SectionCard title={`Payment History (${l.payments.length})`}>
           <Table columns={[
             { label:"Date", render:r=>fmt.date(r.date) },
-            { label:"Total", render:r=><span style={{ fontWeight:700 }}>{fmt.cur(r.amount)}</span> },
-            { label:"Interest", render:r=><span style={{ color:C.amber }}>{fmt.cur(r.interest||0)}</span> },
-            { label:"Principal", render:r=><span style={{ color:C.green }}>{fmt.cur(r.principal||0)}</span> },
+            { label:"Total", render:r=>cell.money(r.amount) },
+            { label:"Interest", render:r=>cell.money(r.interest||0) },
+            { label:"Principal", render:r=>cell.money(r.principal||0) },
             { label:"Type", key:"type" },
             { label:"Status", render:r=>statusBadge(r.status) },
           ]} rows={[...l.payments].sort((a,b)=>b.date-a.date)} />
@@ -4335,7 +4335,7 @@ export default function App() {
   }
 
   const saveProduct = (prod) => {
-    if (!canDo("products","create") && !canDo("products","update")) { alert("Permission denied."); return; }
+    if (!canDo("products","create") && !canDo("products","update")) { showToast("Permission denied."); return; }
     const isNew = !products.find(p => p.id === prod.id);
     if (isNew) {
       save({ ...data, products: [...products, { ...prod, id:`P${String(products.length+1).padStart(3,"0")}`, createdBy:currentUser.id, createdAt:Date.now() }], audit:[...audit, addAudit("Product Created", prod.name, currentUser.name, `New product: ${prod.name}. Rate: ${prod.baseRate}%. Range: ${fmt.cur(prod.minAmount)}-${fmt.cur(prod.maxAmount)}.`, "Configuration")] });
@@ -4344,7 +4344,7 @@ export default function App() {
     }
   };
   const toggleProductStatus = (prodId) => {
-    if (!canDo("products","update")) { alert("Permission denied."); return; }
+    if (!canDo("products","update")) { showToast("Permission denied."); return; }
     const p = products.find(x => x.id === prodId);
     if (!p) return;
     const newStatus = p.status === "Active" ? "Suspended" : "Active";
@@ -4385,7 +4385,7 @@ export default function App() {
     const resetPassword = id => {
       const u = sysUsers.find(x=>x.id===id);
       save({...data, audit:[...audit, addAudit("Password Reset",id,currentUser.name,`Password reset initiated for ${u?.name}.`,"Configuration")]});
-      alert(`Password reset link sent to ${u?.email}`);
+      showToast(`Password reset link sent to ${u?.email}`);
     };
     const revokeAccess = id => {
       setSysUsers(sysUsers.map(u => u.id===id ? {...u,status:"Revoked",role:"VIEWER"} : u));
@@ -4394,7 +4394,7 @@ export default function App() {
     };
     // Settings
     const handleSaveSettings = () => {
-      if (!canDo("settings","update")) { alert("Permission denied."); return; }
+      if (!canDo("settings","update")) { showToast("Permission denied."); return; }
       save({ ...data, settings: settingsForm, audit:[...audit, addAudit("Settings Updated", "System", currentUser.name, "Company settings modified.", "Configuration")] });
       setSettingsEditing(false);
     };
@@ -4522,7 +4522,7 @@ export default function App() {
         )}
         <Table columns={[
           { label:"Product", render:r=><div><div style={{ fontWeight:600, fontSize:12 }}>{r.name}</div><div style={{ fontSize:10, color:C.textMuted }}>{r.idealFor||r.description?.substring(0,60)}</div></div> },
-          { label:"Type", render:r=><span style={{ fontSize:11 }}>{r.repaymentType||"Amortising"}</span> },
+          { label:"Type", render:r=>cell.text(r.repaymentType||"Amortising") },
           { label:"Rate", render:r=><span style={{ fontSize:12, fontWeight:600 }}>{r.monthlyRate||r.baseRate}%{r.monthlyRate?"/mo":""}</span> },
           { label:"Amount Range", render:r=><span style={{ fontSize:11 }}>{fmt.cur(r.minAmount)} – {fmt.cur(r.maxAmount)}</span> },
           { label:"Term", render:r=><span style={{ fontSize:11 }}>{r.minTerm<1?Math.round(r.minTerm*30)+"d":r.minTerm+"m"}–{r.maxTerm}m</span> },
@@ -4568,7 +4568,7 @@ export default function App() {
         <Table columns={[
           { label:"User", render:r=><div style={{ display:"flex", alignItems:"center", gap:8 }}><div style={{ width:24, height:24, borderRadius:10, background:r.status==="Active"?C.surface2:C.red+"20", border:`1px solid ${r.status==="Active"?C.border:C.red}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, fontWeight:600, color:r.status==="Active"?C.textDim:C.red }}>{r.initials}</div><div><div style={{ fontWeight:500, fontSize:12 }}>{r.name}</div><div style={{ fontSize:10, color:C.textMuted }}>{r.email}</div></div></div> },
           { label:"Role", render:r=><Badge color={r.role==="ADMIN"?"purple":r.role==="EXEC"?"blue":"gray"}>{ROLES[r.role]?.label||r.role}</Badge> },
-          { label:"Tier", render:r=><span style={{ fontSize:11 }}>{ROLES[r.role]?.tier}</span> },
+          { label:"Tier", render:r=>cell.text(ROLES[r.role]?.tier) },
           { label:"Approval Limit", render:r=>APPROVAL_LIMITS[r.role]?(APPROVAL_LIMITS[r.role]===Infinity?"Unlimited":fmt.cur(APPROVAL_LIMITS[r.role])):<span style={{ color:C.textMuted }}>—</span> },
           { label:"Status", render:r=><Badge color={r.status==="Active"?"green":r.status==="Suspended"?"amber":"red"}>{r.status||"Active"}</Badge> },
           { label:"Actions", render:r=>canDo("settings","update") && r.id!==currentUser.id ? <div style={{ display:"flex", gap:4, flexWrap:"wrap" }}>
@@ -4580,7 +4580,7 @@ export default function App() {
         ]} rows={sysUsers} />
         <SectionCard title="Approval Authority Matrix">
           <Table columns={[
-            { label:"Role", render:r=><span style={{ fontWeight:500 }}>{ROLES[r.role]?.label}</span> },
+            { label:"Role", render:r=>cell.name(ROLES[r.role]?.label) },
             { label:"Max Amount", render:r=>r.limit === Infinity ? "Unlimited" : r.limit > 0 ? fmt.cur(r.limit) : <span style={{ color:C.textMuted }}>No approval authority</span> },
             { label:"Tier", render:r=>String(ROLES[r.role]?.tier) },
             { label:"Active Users", render:r=>sysUsers.filter(u=>u.role===r.role&&(u.status||"Active")==="Active").length },
@@ -4633,7 +4633,7 @@ export default function App() {
         </SectionCard>
         <SectionCard title="API Key Management" actions={canDo("settings","create") && <Btn size="sm" variant="secondary" onClick={addApiKey} icon={I.plus}>Generate Key</Btn>}>
           <Table columns={[
-            { label:"Name", render:r=><span style={{ fontWeight:500 }}>{r.name}</span> },
+            { label:"Name", render:r=>cell.name(r.name) },
             { label:"Key", render:r=><span style={{ fontFamily:"monospace", fontSize:10, color:C.textDim }}>{r.key}</span> },
             { label:"Status", render:r=><Badge color={r.status==="Active"?"green":"red"}>{r.status}</Badge> },
             { label:"Created", render:r=>fmt.date(r.created) },
@@ -4665,7 +4665,7 @@ export default function App() {
         <Table columns={[
           { label:"Rule", render:r=><div><div style={{ fontWeight:600, fontSize:12 }}>{r.name}</div><div style={{ fontSize:10, color:C.textMuted }}>{r.description}</div></div> },
           { label:"Category", render:r=><Badge color={r.category==="Credit"?"blue":r.category==="Collections"?"amber":r.category==="Compliance"?"purple":"gray"}>{r.category}</Badge> },
-          { label:"Value", render:r=><span style={{ fontSize:13, fontWeight:700, color:C.accent }}>{r.value}</span> },
+          { label:"Value", render:r=>cell.count(r.value) },
           { label:"Status", render:r=><Badge color={r.status==="Active"?"green":"red"}>{r.status}</Badge> },
           { label:"Updated", render:r=><div><div style={{ fontSize:10 }}>{fmt.date(r.lastUpdated)}</div><div style={{ fontSize:10, color:C.textMuted }}>{r.updatedBy}</div></div> },
           { label:"Actions", render:r=>canDo("settings","update") ? <div style={{ display:"flex", gap:4 }}>
