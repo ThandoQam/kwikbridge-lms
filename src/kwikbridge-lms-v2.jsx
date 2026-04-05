@@ -624,9 +624,10 @@ export default function App() {
           if (r?.value) {
             const loaded = JSON.parse(r.value);
             const hasCurrentSchema = loaded.applications?.some(a => a.qaSignedOff !== undefined) || (loaded.applications?.length === 0 && loaded.products?.length > 0);
-            if (hasCurrentSchema && loaded.customers?.length > 0) { setData(loaded); return; }
-          }
-        } catch {}
+            if (hasCurrentSchema && loaded.customers?.length > 0) { console.log("[KwikBridge] Loaded from cache:", loaded.customers?.length, "customers"); setData(loaded); return; }
+            else { console.log("[KwikBridge] Cache exists but stale schema, trying Supabase..."); }
+          } else { console.log("[KwikBridge] No cache, trying Supabase..."); }
+        } catch (e) { console.log("[KwikBridge] Cache error:", e.message); }
         // Then try Supabase with 3-second timeout
         try {
           const controller = new AbortController();
@@ -649,12 +650,14 @@ export default function App() {
           }
           clearTimeout(timeout);
           if (hasData) {
+            console.log("[KwikBridge] Loaded from Supabase:", Object.entries(results).map(([k,v])=>k+":"+(Array.isArray(v)?v.length:v?"1":"0")).join(", "));
             if (!results.settings) results.settings = { companyName:"TQA Capital (Pty) Ltd", ncrReg:"NCRCP22396", ncrExpiry:"31 July 2026", branch:"East London, Nahoon Valley" };
             setData(results);
             return;
-          }
-        } catch (e) { console.log("Supabase load skipped:", e.name); }
+          } else { console.log("[KwikBridge] Supabase returned no data"); }
+        } catch (e) { console.log("[KwikBridge] Supabase fetch failed:", e.name, e.message); }
         // Last resort: seed
+        console.log("[KwikBridge] Falling back to seed()");
         const d = seed();
         try { await store.set(SK, JSON.stringify(d)); } catch {}
         setData(d);
