@@ -88,8 +88,8 @@ const now = Date.now();
 const day = 864e5;
 
 const C = {
-  bg: "#f7f8fa", surface: "#ffffff", surface2: "#f9fafb", surface3: "#f3f4f6",
-  border: "#e5e7eb", borderLight: "#d1d5db",
+  bg: "#f8f9fb", surface: "#ffffff", surface2: "#f5f6f8", surface3: "#f3f4f6",
+  border: "#e2e5ea", borderLight: "#d1d5db",
   text: "#111827", textDim: "#4b5563", textMuted: "#9ca3af",
   accent: "#1e3a5f", accentDim: "#2d5487", accentGlow: "#eef2f7",
   green: "#059669", greenDim: "#047857", greenBg: "#ecfdf5",
@@ -261,16 +261,16 @@ const I = {
 
 function Badge({ children, color = "slate" }) {
   const map = {
-    green: { text: C.green, bg: C.greenBg, border: C.green+"33" },
-    amber: { text: C.amber, bg: C.amberBg, border: C.amber+"33" },
-    red: { text: C.red, bg: C.redBg, border: C.red+"33" },
-    blue: { text: C.blue, bg: C.blueBg, border: C.blue+"33" },
-    purple: { text: C.purple, bg: C.purpleBg, border: C.purple+"33" },
-    cyan: { text: C.textDim, bg: C.surface3, border: C.border },
-    slate: { text: C.textMuted, bg: C.surface3, border: C.border },
+    green: { text: C.green, bg: C.greenBg },
+    amber: { text: C.amber, bg: C.amberBg },
+    red: { text: C.red, bg: C.redBg },
+    blue: { text: C.blue, bg: C.blueBg },
+    purple: { text: C.purple, bg: C.purpleBg },
+    cyan: { text: C.textDim, bg: C.surface3 },
+    slate: { text: C.textMuted, bg: C.surface3 },
   };
   const s = map[color] || map.slate;
-  return <span style={{ display:"inline-flex", alignItems:"center", padding:"2px 8px", borderRadius:10, fontSize:T.fontSize.sm, fontWeight:T.fontWeight.semi, letterSpacing:0.2, background:s.bg, color:s.text, border:`1px solid ${s.border}`, whiteSpace:"nowrap", lineHeight:"16px" }}>{children}</span>;
+  return <span style={{ display:"inline-flex", alignItems:"center", padding:"2px 8px", borderRadius:4, fontSize:11, fontWeight:500, letterSpacing:0.2, background:s.bg, color:s.text, whiteSpace:"nowrap", lineHeight:"16px" }}>{children}</span>;
 }
 function statusBadge(s) {
   const m = { Approved:"green", Active:"green", Disbursed:"green", Verified:"green", Compliant:"green", Cleared:"green", Settled:"green", Submitted:"blue", Underwriting:"cyan", Booked:"purple", "Pre-Approval":"cyan", Pending:"amber", "Pending Review":"amber", Due:"amber", Draft:"slate", Overdue:"red", Early:"amber", Mid:"amber", Late:"red", Declined:"red", Breach:"red", "Written Off":"red", Expired:"red", Withdrawn:"slate", Received:"blue", "Under Review":"cyan" };
@@ -282,15 +282,13 @@ function KPI({ label, value, sub, trend, color, accent, sparkData, alert }) {
   const trendIcon = trend === "up" ? "↑" : trend === "down" ? "↓" : "";
   const valueColor = alert ? C.red : C.text;
   return (
-    <div className="kb-kpi" style={{ background: C.surface, borderRadius: 4, padding: "16px 16px 16px 20px", border: `1px solid ${C.border}`, position: "relative", overflow: "hidden", transition: "box-shadow .15s ease-out, transform .15s ease-out" }}>
-      <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: 3, background: C.accent, opacity: 0.85, transition: "opacity .15s ease-out" }} />
-      <div style={{ fontSize: T.fontSize.xs, fontWeight: T.fontWeight.semi, color: C.textMuted, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: T.spacing.sm }}>{label}</div>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-        <div style={{ fontSize: 20, fontWeight: T.fontWeight.bold, color: valueColor, letterSpacing: -0.3, lineHeight: 1, whiteSpace: "nowrap" }}>{value}</div>
-        {trendIcon && <span style={{ fontSize: 12, fontWeight: 600, color: trendColor }}>{trendIcon}</span>}
+    <div className="kb-kpi" style={{ padding: "14px 0", transition: "opacity .15s ease-out" }}>
+      <div style={{ fontSize: 10, fontWeight: 500, color: C.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>{label}</div>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+        <div style={{ fontSize: 22, fontWeight: 700, color: valueColor, letterSpacing: -0.5, lineHeight: 1, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>{value}</div>
+        {trendIcon && <span style={{ fontSize: 11, fontWeight: 600, color: trendColor }}>{trendIcon}</span>}
       </div>
-      {sub && <div style={{ fontSize: T.fontSize.sm, color: C.textDim, marginTop: T.spacing.sm }}>{sub}</div>}
-      {sparkData && sparkData.length > 1 && <svg viewBox={`0 0 ${sparkData.length * 12} 24`} style={{ width: "100%", height: 24, marginTop: 8, opacity: 0.4 }}><polyline fill="none" stroke={C.accent} strokeWidth="1.5" points={sparkData.map((v,i)=>`${i*12},${24-v/Math.max(...sparkData)*22}`).join(" ")} /></svg>}
+      {sub && <div style={{ fontSize: 11, color: C.textDim, marginTop: 4 }}>{sub}</div>}
     </div>
   );
 }
@@ -310,7 +308,7 @@ function Btn({ children, onClick, variant = "primary", size = "md", icon, disabl
 
 function Table({ columns, rows, onRowClick, emptyMsg = "No records found" }) {
   return (
-    <div style={{ overflowX: "auto", border: `1px solid ${C.border}` }}>
+    <div style={{ overflowX: "auto", border: `1px solid ${C.border}`, borderRadius: 6 }}>
       <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
         <thead><tr style={{ background: C.surface2 }}>
           {columns.map((c, i) => <th key={i} style={{ padding: "8px 14px", textAlign: "left", fontWeight: 500, color: C.textMuted, borderBottom: `1px solid ${C.border}`, whiteSpace: "nowrap", fontSize: T.fontSize.sm, textTransform: "uppercase", letterSpacing: 0.6 }}>{c.label}</th>)}
@@ -392,12 +390,12 @@ function InfoGrid({ items }) {
 
 function SectionCard({ title, children, actions }) {
   return (
-    <div style={{ background: C.surface, border: `1px solid ${C.surface3}`, borderRadius: 4, marginBottom: 16, overflow: "hidden" }}>
-      {title && <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 16px", borderBottom: `1px solid ${C.border}`, background: C.surface2 }}>
-        <h3 style={{ margin: 0, fontSize: 11, fontWeight: 600, color: C.textDim, textTransform: "uppercase", letterSpacing: 0.6 }}>{title}</h3>
+    <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, overflow: "hidden" }}>
+      {title && <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 20px 8px", borderBottom: "none" }}>
+        <h3 style={{ margin: 0, fontSize: 11, fontWeight: 600, color: C.textMuted, textTransform: "uppercase", letterSpacing: 0.8 }}>{title}</h3>
         {actions && <div style={{ display: "flex", gap: 8 }}>{actions}</div>}
       </div>}
-      <div style={{ padding: "16px 20px" }}>{children}</div>
+      <div style={{ padding: title ? "4px 20px 16px" : "16px 20px" }}>{children}</div>
     </div>
   );
 }
@@ -705,9 +703,9 @@ export default function App() {
 
   
   const GLOBAL_CSS = `
-        *{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.kb-kpi:hover{box-shadow:0 2px 8px rgba(0,0,0,0.06) !important;transform:translateY(-0.5px)}
-        .kb-kpi:hover>div:first-child{opacity:1 !important}
-        .kb-kpi:active{transform:scale(0.98);transform-origin:center}
+        *{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}.kb-kpi{flex:1;padding:16px 20px !important;border-right:1px solid ${C.surface3}}
+        .kb-kpi:last-child{border-right:none}
+        .kb-kpi:hover{background:${C.surface2}}
         .kb-btn:hover{opacity:0.88;transform:translateY(-0.5px)}
         .kb-row:hover{background:${C.surface2} !important}
         .kb-link:hover{text-decoration:underline !important}
@@ -1446,7 +1444,7 @@ export default function App() {
             </div>
             <div style={{ fontSize:11, color:C.textMuted }}>{myCustomer?.name || authSession?.user?.email}</div>
           </header>
-          <main style={{ flex:1, overflow:"auto", padding:16 }}>{renderPortalPage()}</main>
+          <main style={{ flex:1, overflow:"auto", padding:"20px 24px" }}>{renderPortalPage()}</main>
         </div>
       </div>
     );
@@ -2320,7 +2318,7 @@ export default function App() {
     };
 
     return (<div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
         <div>
           <h2 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: C.text, letterSpacing:-0.3 }}>Dashboard</h2>
           <p style={{ margin: "4px 0 0", fontSize: 12, color: C.textMuted }}>{currentUser.name} · {ROLES[role]?.label} · {roleSummary[role] || ""}</p>
@@ -2335,7 +2333,7 @@ export default function App() {
       </div>
 
       {/* KPIs — tiered by role */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12, marginBottom: 20 }}>
+      <div style={{ display: "flex", gap: 0, marginBottom: 20, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, overflow: "hidden" }}>
         {/* Everyone sees portfolio total and loan count */}
         <KPI label="Total Loan Book" value={fmt.cur(totalBook)} sub={`${loans.length} active loans`} trend={loans.length > 0 ? "up" : null} />
         {/* Tier 0-3: see full financial KPIs */}
@@ -2381,7 +2379,7 @@ export default function App() {
         </div>
       </div>}
 
-<div style={{ display: "grid", gridTemplateColumns: tier <= 2 ? "1fr 1fr 1fr" : tier <= 4 ? "1fr 1fr" : "1fr", gap: 16, marginBottom: 20 }}>
+<div style={{ display: "grid", gridTemplateColumns: tier <= 2 ? "1fr 1fr 1fr" : tier <= 4 ? "1fr 1fr" : "1fr", gap: 12, marginBottom: 16 }}>
         {/* IFRS 9 */}
         <div data-widget="ifrs9" style={{order:widgetConfig.findIndex(w=>w.id==="ifrs9")}}>{visibleWidgets.some(w=>w.id==="ifrs9") && canDo("provisioning","view") && (
           <SectionCard title="IFRS 9 Staging">
@@ -4789,7 +4787,7 @@ export default function App() {
           })}
         </nav>
       </aside>
-      <aside className="kb-sidebar" style={{ width:sideCollapsed?56:220, background:`linear-gradient(180deg, ${C.surface} 0%, ${C.surface2} 100%)`, borderRight:`1px solid ${C.border}`, transition:"width .2s ease", position:"fixed", top:0, left:0, bottom:0, display:"flex", flexDirection:"column", overflow:"hidden", zIndex:40 }}>
+      <aside className="kb-sidebar" style={{ width:sideCollapsed?56:220, background:C.surface, borderRight:`1px solid ${C.border}`, transition:"width .2s ease", position:"fixed", top:0, left:0, bottom:0, display:"flex", flexDirection:"column", overflow:"hidden", zIndex:40 }}>
         <div style={{ padding:sideCollapsed?"12px 8px":"14px 14px 10px", borderBottom:`1px solid ${C.border}`, display:"flex", alignItems:"center", gap:8, cursor:"pointer" }} onClick={()=>setSideCollapsed(!sideCollapsed)}>
           {!sideCollapsed && <div><div style={{ fontSize:14, fontWeight:700, color:C.accent, letterSpacing:-0.3 }}>KwikBridge</div><div style={{ fontSize:10, color:C.textMuted, letterSpacing:0.5 }}>LOAN MANAGEMENT</div></div>}
         </div>
@@ -4816,7 +4814,7 @@ export default function App() {
 
       {/* Main */}
       <div className="kb-main" style={{ flex:1, display:"flex", flexDirection:"column", minWidth:0, marginLeft:sideCollapsed?56:220, transition:"margin-left .2s ease" }}>
-        <header style={{ background:C.surface, borderBottom:`1px solid ${C.border}`, padding:"0 20px", height:52, display:"flex", alignItems:"center", justifyContent:"space-between", flexShrink:0, position:"sticky", top:0, zIndex:10, boxShadow:"0 1px 3px rgba(0,0,0,0.04)" }}>
+        <header style={{ background:C.surface, borderBottom:`1px solid ${C.border}`, padding:"0 24px", height:48, display:"flex", alignItems:"center", justifyContent:"space-between", flexShrink:0, position:"sticky", top:0, zIndex:10 }}>
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
             <button className="kb-hamburger" onClick={()=>setMobileMenuOpen(!mobileMenuOpen)} style={{ background:"none", border:"none", cursor:"pointer", color:C.text, padding:"4px", display:"none", alignItems:"center" }}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
             {(pageHistory.length > 0 || detail) && <button onClick={()=>{if(detail){setDetail(null)}else{goBack()}}} style={{ background:"none", border:"none", cursor:"pointer", color:C.textDim, padding:"4px 2px", display:"flex", alignItems:"center" }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>}
@@ -4854,7 +4852,7 @@ export default function App() {
           </div>
         </header>
 
-        <main style={{ flex:1, overflow:"auto", padding:16 }} onClick={()=>notifOpen&&setNotifOpen(false)}>
+        <main style={{ flex:1, overflow:"auto", padding:"20px 24px" }} onClick={()=>notifOpen&&setNotifOpen(false)}>
           {renderPage()}
         </main>
       </div>
