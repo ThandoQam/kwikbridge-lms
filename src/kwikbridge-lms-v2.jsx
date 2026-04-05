@@ -1125,14 +1125,42 @@ export default function App() {
 
 
   // Reset: seed fresh data + push to Supabase
-  const reset = () => {
-    const d = seed();
-    setData(d);
+  const reset = async () => {
+    // Clear local cache first
+    try { await store.delete(SK); } catch {}
+    try { localStorage.removeItem("kb-widgets"); } catch {}
     setDetail(null);
     setModal(null);
     setPage("dashboard");
-    // Persist in background — don't await
-    store.set(SK, JSON.stringify(d)).catch(() => {});
+    // Try to reload from Supabase (source of truth)
+    try {
+      const results = {};
+      let hasData = false;
+      for (const [key, table] of Object.entries(TABLES)) {
+        if (key === "settings") {
+          const r = await fetch(sb(table) + "?order=id", { headers: sbHeaders });
+          const rows = r.ok ? await r.json() : [];
+          results[key] = rows[0] ? fromDb(rows[0]) : null;
+        } else {
+          const r = await fetch(sb(table) + "?order=id", { headers: sbHeaders });
+          const rows = r.ok ? await r.json() : [];
+          results[key] = rows.map(fromDb);
+          if (rows.length > 0) hasData = true;
+        }
+      }
+      if (hasData) {
+        if (!results.settings) results.settings = { companyName:"TQA Capital (Pty) Ltd", ncrReg:"NCRCP22396", ncrExpiry:"31 July 2026", branch:"East London, Nahoon Valley" };
+        setData(results);
+        try { await store.set(SK, JSON.stringify(results)); } catch {}
+        showToast("Demo reset — data reloaded from database.");
+        return;
+      }
+    } catch (e) { console.log("Supabase reload failed:", e); }
+    // Fallback: re-seed if Supabase unavailable
+    const d = seed();
+    setData(d);
+    try { await store.set(SK, JSON.stringify(d)); } catch {}
+    showToast("Demo reset — using seed data (database unavailable).");
   };
   const cust = id => data?.customers?.find(c => c.id === id);
   const prod = id => data?.products?.find(p => p.id === id);
