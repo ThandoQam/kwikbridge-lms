@@ -36,6 +36,7 @@ const SUPABASE_URL = "https://yioqaluxgqxsifclydmd.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlpb3FhbHV4Z3F4c2lmY2x5ZG1kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxNDQwMTQsImV4cCI6MjA5MDcyMDAxNH0.PwccS7acx7syNvsDTV_rp6zNttk1gxrF_ObnwolHFH8";
 const sb = (table) => `${SUPABASE_URL}/rest/v1/${table}`;
 const sbHeaders = { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json", "Prefer": "return=minimal" };
+const sbReadHeaders = { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` };
 const sbGet = async (table) => { const r = await fetch(sb(table) + "?order=id", { headers: sbHeaders }); return r.ok ? r.json() : []; };
 const sbUpsert = async (table, rows) => { if (!rows?.length) return; await fetch(sb(table), { method: "POST", headers: { ...sbHeaders, "Prefer": "resolution=merge-duplicates,return=minimal" }, body: JSON.stringify(rows) }); };
 const sbDelete = async (table, id) => { await fetch(sb(table) + `?id=eq.${encodeURIComponent(id)}`, { method: "DELETE", headers: sbHeaders }); };
@@ -633,7 +634,7 @@ export default function App() {
           const controller = new AbortController();
           const timeout = setTimeout(() => controller.abort(), 10000);
           const sbGetWithTimeout = async (table) => {
-            const r = await fetch(sb(table) + "?order=id", { headers: sbHeaders, signal: controller.signal });
+            const r = await fetch(sb(table) + "?order=id", { headers: sbReadHeaders, signal: controller.signal });
             return r.ok ? r.json() : [];
           };
           const results = {};
@@ -1142,8 +1143,9 @@ export default function App() {
       const results = {};
       let hasData = false;
       for (const [key, table] of Object.entries(TABLES)) {
-        const r = await fetch(sb(table) + "?order=id", { headers: sbHeaders });
+        const r = await fetch(sb(table) + "?order=id", { headers: sbReadHeaders });
         const rows = r.ok ? await r.json() : [];
+        console.log(`[KwikBridge] Reset fetch ${table}: ${r.status}, rows: ${rows.length}`);
         if (key === "settings") { results[key] = rows[0] ? fromDb(rows[0]) : null; }
         else { results[key] = rows.map(fromDb); if (rows.length > 0) hasData = true; }
       }
