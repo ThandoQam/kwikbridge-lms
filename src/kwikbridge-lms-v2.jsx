@@ -1126,41 +1126,52 @@ export default function App() {
 
   // Reset: seed fresh data + push to Supabase
   const reset = async () => {
-    // Clear local cache first
+    // Clear local cache
     try { await store.delete(SK); } catch {}
     try { localStorage.removeItem("kb-widgets"); } catch {}
     setDetail(null);
     setModal(null);
     setPage("dashboard");
-    // Try to reload from Supabase (source of truth)
+    
+    // Step 1: Try to fetch from Supabase
+    let sbData = null;
     try {
       const results = {};
       let hasData = false;
       for (const [key, table] of Object.entries(TABLES)) {
-        if (key === "settings") {
-          const r = await fetch(sb(table) + "?order=id", { headers: sbHeaders });
-          const rows = r.ok ? await r.json() : [];
-          results[key] = rows[0] ? fromDb(rows[0]) : null;
-        } else {
-          const r = await fetch(sb(table) + "?order=id", { headers: sbHeaders });
-          const rows = r.ok ? await r.json() : [];
-          results[key] = rows.map(fromDb);
-          if (rows.length > 0) hasData = true;
-        }
+        const r = await fetch(sb(table) + "?order=id", { headers: sbHeaders });
+        const rows = r.ok ? await r.json() : [];
+        if (key === "settings") { results[key] = rows[0] ? fromDb(rows[0]) : null; }
+        else { results[key] = rows.map(fromDb); if (rows.length > 0) hasData = true; }
       }
-      if (hasData) {
-        if (!results.settings) results.settings = { companyName:"TQA Capital (Pty) Ltd", ncrReg:"NCRCP22396", ncrExpiry:"31 July 2026", branch:"East London, Nahoon Valley" };
-        setData(results);
-        try { await store.set(SK, JSON.stringify(results)); } catch {}
-        showToast("Demo reset — data reloaded from database.");
-        return;
-      }
-    } catch (e) { console.log("Supabase reload failed:", e); }
-    // Fallback: re-seed if Supabase unavailable
+      if (hasData) sbData = results;
+    } catch (e) { console.log("Supabase fetch:", e.message); }
+    
+    // Step 2: If Supabase has data, use it
+    if (sbData) {
+      if (!sbData.settings) sbData.settings = { companyName:"TQA Capital (Pty) Ltd", ncrReg:"NCRCP22396", ncrExpiry:"31 July 2026", branch:"East London, Nahoon Valley" };
+      setData(sbData);
+      try { await store.set(SK, JSON.stringify(sbData)); } catch {}
+      showToast("Demo reset — data reloaded from database.");
+      return;
+    }
+    
+    // Step 3: Supabase empty — seed locally AND push to Supabase
     const d = seed();
     setData(d);
     try { await store.set(SK, JSON.stringify(d)); } catch {}
-    showToast("Demo reset — using seed data (database unavailable).");
+    
+    // Push seed data to Supabase so it persists for future resets
+    try {
+      for (const [key, table] of Object.entries(TABLES)) {
+        const rows = key === "settings" ? (d[key] ? [{ ...toDb(d[key]), id: 1 }] : []) : (d[key] || []).map(toDb);
+        if (rows.length > 0) await sbUpsert(table, rows);
+      }
+      showToast("Demo reset — seed data loaded and synced to database.");
+    } catch (e) {
+      console.log("Supabase seed push:", e.message);
+      showToast("Demo reset — using local seed data.");
+    }
   };
   const cust = id => data?.customers?.find(c => c.id === id);
   const prod = id => data?.products?.find(p => p.id === id);
