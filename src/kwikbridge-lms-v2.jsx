@@ -680,7 +680,18 @@ export default function App() {
   if (!authSession && zone === "public") return (
     <div style={{ fontFamily:"'Outfit','Segoe UI',system-ui,sans-serif", background:C.bg, minHeight:"100vh", color:C.text }}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-      <style>{`*{box-sizing:border-box;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale} input:focus,select:focus,textarea:focus{outline:none;border-color:#1a1a2e !important}
+      <style>{`*{box-sizing:border-box;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+        input:focus,select:focus,textarea:focus{outline:none;border-color:${C.accent} !important;box-shadow:0 0 0 3px rgba(30,58,95,0.08)}
+        .kb-cta{transition:transform .15s ease,box-shadow .15s ease,opacity .15s ease}
+        .kb-cta:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(30,58,95,0.25);opacity:0.92}
+        .kb-cta:active{transform:translateY(0);box-shadow:0 1px 4px rgba(30,58,95,0.15)}
+        .kb-cta-outline{transition:transform .15s ease,border-color .15s ease,background .15s ease}
+        .kb-cta-outline:hover{background:rgba(30,58,95,0.04) !important;border-color:${C.accent} !important;transform:translateY(-0.5px)}
+        .kb-cta-outline:active{transform:translateY(0)}
+        .kb-nav-link{transition:color .15s ease}
+        .kb-nav-link:hover{color:${C.accent} !important}
+        .kb-card-hover{transition:transform .2s ease,box-shadow .2s ease}
+        .kb-card-hover:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.08)}
         @media(max-width:768px){.kb-pub-nav{gap:8px !important}.kb-pub-nav button{font-size:11px !important;padding:3px 0 !important}.kb-pub-hero h1{font-size:24px !important}.kb-pub-grid2{grid-template-columns:1fr !important}}
         @media(max-width:480px){.kb-pub-nav{flex-wrap:wrap}.kb-pub-cta{flex-direction:column !important}}
       `}</style>
@@ -1034,7 +1045,7 @@ export default function App() {
           <div className="kb-grid-3" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12 }}>
             <div className="kb-kpi" style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding:20, position:"relative", overflow:"hidden", boxShadow:"0 1px 3px rgba(0,0,0,0.04)" }}><div style={{ position:"absolute", top:0, left:0, right:0, height:3, background:C.accent }} /><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase", letterSpacing:0.8 }}>Applications</div><div style={{ fontSize:28, fontWeight:700, color:C.accent, marginTop:8 }}>{myApps.length}</div><div style={{ fontSize:10, color:C.textDim, marginTop:4 }}>{myApps.filter(a=>a.status==="Approved").length} approved</div></div>
             <div className="kb-kpi" style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding:20, position:"relative", overflow:"hidden", boxShadow:"0 1px 3px rgba(0,0,0,0.04)" }}><div style={{ position:"absolute", top:0, left:0, right:0, height:3, background:C.green }} /><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase", letterSpacing:0.8 }}>Active Loans</div><div style={{ fontSize:28, fontWeight:700, color:C.green, marginTop:8 }}>{myLoans.filter(l=>l.status==="Active").length}</div><div style={{ fontSize:10, color:C.textDim, marginTop:4 }}>{myLoans.filter(l=>l.dpd===0).length} current</div></div>
-            <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:20, borderRadius:8 }}><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase" }}>Total Balance</div><div style={{ fontSize:28, fontWeight:700, color:C.blue, marginTop:4 }}>{fmt.cur(myLoans.reduce((s,l)=>s+l.balance,0))}</div></div>
+            <div className="kb-card-hover" style={{ background:C.surface, border:`1px solid ${C.border}`, padding:20, borderRadius:8 }}><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase" }}>Total Balance</div><div style={{ fontSize:28, fontWeight:700, color:C.blue, marginTop:4 }}>{fmt.cur(myLoans.reduce((s,l)=>s+l.balance,0))}</div></div>
           </div>
           {myApps.length > 0 && <div style={{ marginTop:16 }}><h3 style={{ fontSize:14, fontWeight:600, margin:"0 0 8px" }}>Recent Applications</h3>
             {myApps.slice(0,3).map(a=><div key={a.id} style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"12px 16px", marginBottom:8, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
