@@ -5001,6 +5001,75 @@ export default function App() {
     );
   }
 
+  
+
+  // ═══ BROWSER SELF-TEST — run via console: window.__runTest() ═══
+  window.__runTest = () => {
+    const results = [];
+    const test = (name, fn) => {
+      try { const r = fn(); results.push({ s: r ? "✓" : "✗", name, r }); }
+      catch(e) { results.push({ s: "✗", name, r: e.message }); }
+    };
+    
+    // Data integrity
+    test("Customers loaded", () => data?.customers?.length > 0);
+    test("Products loaded", () => data?.products?.length >= 7);
+    test("Applications loaded", () => data?.applications?.length > 0);
+    test("Loans loaded", () => data?.loans?.length > 0);
+    test("Provisions loaded", () => data?.provisions?.length > 0);
+    test("Collections loaded", () => data?.collections?.length >= 0);
+    test("Audit trail loaded", () => data?.audit?.length > 0);
+    test("Alerts loaded", () => data?.alerts?.length >= 0);
+    test("Documents loaded", () => data?.documents?.length >= 0);
+    test("Settings loaded", () => data?.settings != null);
+    
+    // Auth
+    test("User authenticated", () => !!authSession);
+    test("Current user set", () => !!currentUser?.name);
+    test("Role assigned", () => !!role && ROLES[role]);
+    
+    // Permissions
+    test("canDo works", () => typeof canDo === "function");
+    test("Admin has full access", () => role === "ADMIN" ? canDo("origination","create") : true);
+    
+    // Navigation
+    test("staffNavItems defined", () => staffNavItems?.length >= 12);
+    test("Page state valid", () => !!page);
+    
+    // Functions exist
+    test("createCustomer exists", () => typeof createCustomer === "function");
+    test("decideLoan exists", () => typeof decideLoan === "function");
+    test("submitRecommendation exists", () => typeof submitRecommendation === "function");
+    test("bookLoan exists", () => typeof bookLoan === "function");
+    test("disburseLoan exists", () => typeof disburseLoan === "function");
+    test("recordPayment exists", () => typeof recordPayment === "function");
+    test("addCollectionAction exists", () => typeof addCollectionAction === "function");
+    test("generateSecurityDoc exists", () => typeof generateSecurityDoc === "function");
+    test("generateLoanAgreement exists", () => typeof generateLoanAgreement === "function");
+    test("generateCreditMemo exists", () => typeof generateCreditMemo === "function");
+    test("showToast exists", () => typeof showToast === "function");
+    test("save exists", () => typeof save === "function");
+    
+    // Data relationships
+    test("Loans reference valid customers", () => data.loans.every(l => data.customers.some(c => c.id === l.custId)));
+    test("Apps reference valid customers", () => data.applications.every(a => data.customers.some(c => c.id === a.custId)));
+    test("Apps reference valid products", () => data.applications.every(a => data.products.some(p => p.id === a.product)));
+    test("Provisions reference valid loans", () => data.provisions.every(p => data.loans.some(l => l.id === p.loanId)));
+    
+    // UI state
+    test("No stale detail view", () => detail === null || (detail.type && detail.id));
+    test("Widget config valid", () => widgetConfig?.length >= 8);
+    
+    // Print results
+    console.log("\n═══ KWIKBRIDGE BROWSER TEST ═══\n");
+    const passed = results.filter(r => r.s === "✓").length;
+    const failed = results.filter(r => r.s === "✗");
+    results.forEach(r => console.log(`  ${r.s} ${r.name}${r.s === "✗" ? " → " + r.r : ""}`));
+    console.log(`\n  ${passed}/${results.length} passed${failed.length ? " — " + failed.length + " FAILED" : " ✓"}`);
+    return { passed, failed: failed.length, total: results.length };
+  };
+
+
   return (
     <div style={{ fontFamily:"'Outfit','Segoe UI',system-ui,sans-serif", background:C.bg, minHeight:"100vh", display:"flex", color:C.text }}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
