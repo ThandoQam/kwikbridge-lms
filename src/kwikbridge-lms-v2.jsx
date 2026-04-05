@@ -100,6 +100,31 @@ const C = {
   white: "#ffffff",
 };
 
+// ═══ DESIGN TOKENS — Single Source of Truth ═══
+const T = {
+  fontSize: { xs:10, sm:11, base:12, md:13, lg:14, xl:16, h3:18, h2:22, h1:28 },
+  fontWeight: { normal:400, medium:500, semi:600, bold:700 },
+  spacing: { xs:4, sm:8, md:12, lg:16, xl:20, xxl:24, xxxl:32 },
+  radius: { sm:2, md:4, lg:8, pill:10 },
+  shadow: { none:"none", sm:"0 1px 3px rgba(0,0,0,0.04)", md:"0 2px 8px rgba(0,0,0,0.06)", lg:"0 4px 16px rgba(0,0,0,0.08)" },
+};
+
+// ═══ CELL RENDERERS — Universal table cell formatters ═══
+const cell = {
+  id: v => <span style={{ fontFamily:"monospace", fontWeight:T.fontWeight.semi, fontSize:T.fontSize.base }}>{v}</span>,
+  name: v => <span style={{ fontWeight:T.fontWeight.medium, fontSize:T.fontSize.md }}>{v}</span>,
+  text: v => <span style={{ fontSize:T.fontSize.base, color:C.textDim }}>{v}</span>,
+  money: v => <span style={{ fontFamily:"monospace", fontSize:T.fontSize.base }}>{typeof v==="number"?fmt.cur(v):v}</span>,
+  date: v => <span style={{ fontSize:T.fontSize.base, color:C.textDim }}>{v ? fmt.date(v) : "—"}</span>,
+  pct: v => <span style={{ fontFamily:"monospace", fontSize:T.fontSize.base }}>{typeof v==="number"?v.toFixed(1)+"%":v}</span>,
+  count: v => <span style={{ fontWeight:T.fontWeight.semi, fontSize:T.fontSize.md }}>{v}</span>,
+  badge: (v, colorMap) => { if (!v) return <span style={{ fontSize:T.fontSize.xs, color:C.textMuted }}>—</span>; return null; },
+  dim: v => <span style={{ fontSize:T.fontSize.sm, color:C.textMuted }}>{v || "—"}</span>,
+  mono: v => <span style={{ fontFamily:"monospace", fontSize:T.fontSize.base }}>{v}</span>,
+};
+
+
+
 const ROLES = {
   ADMIN:       { id:"ADMIN",       label:"System Admin",       tier:0, zone:"staff" },
   EXEC:        { id:"EXEC",        label:"Executive",          tier:1, zone:"staff" },
@@ -245,7 +270,7 @@ function Badge({ children, color = "slate" }) {
     slate: { text: C.textMuted, bg: C.surface3, border: C.border },
   };
   const s = map[color] || map.slate;
-  return <span style={{ display:"inline-flex", alignItems:"center", padding:"2px 8px", borderRadius:10, fontSize:11, fontWeight:600, letterSpacing:0.2, background:s.bg, color:s.text, border:`1px solid ${s.border}`, whiteSpace:"nowrap", lineHeight:"16px" }}>{children}</span>;
+  return <span style={{ display:"inline-flex", alignItems:"center", padding:"2px 8px", borderRadius:10, fontSize:T.fontSize.sm, fontWeight:T.fontWeight.semi, letterSpacing:0.2, background:s.bg, color:s.text, border:`1px solid ${s.border}`, whiteSpace:"nowrap", lineHeight:"16px" }}>{children}</span>;
 }
 function statusBadge(s) {
   const m = { Approved:"green", Active:"green", Disbursed:"green", Verified:"green", Compliant:"green", Cleared:"green", Settled:"green", Submitted:"blue", Underwriting:"cyan", Booked:"purple", "Pre-Approval":"cyan", Pending:"amber", "Pending Review":"amber", Due:"amber", Draft:"slate", Overdue:"red", Early:"amber", Mid:"amber", Late:"red", Declined:"red", Breach:"red", "Written Off":"red", Expired:"red", Withdrawn:"slate", Received:"blue", "Under Review":"cyan" };
@@ -259,12 +284,12 @@ function KPI({ label, value, sub, trend, color, accent, sparkData, alert }) {
   return (
     <div className="kb-kpi" style={{ background: C.surface, borderRadius: 4, padding: "20px 20px 20px 24px", border: `1px solid ${C.border}`, flex: "1 1 200px", minWidth: 180, position: "relative", overflow: "hidden", transition: "box-shadow .15s ease-out, transform .15s ease-out" }}>
       <div style={{ position: "absolute", top: 4, left: 0, bottom: 4, width: 3, background: C.accent, borderRadius: "0 2px 2px 0", transition: "opacity .15s ease-out" }} />
-      <div style={{ fontSize: 10, fontWeight: 600, color: C.textMuted, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 8 }}>{label}</div>
+      <div style={{ fontSize: T.fontSize.xs, fontWeight: T.fontWeight.semi, color: C.textMuted, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: T.spacing.sm }}>{label}</div>
       <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-        <div style={{ fontSize: 22, fontWeight: 700, color: valueColor, letterSpacing: -0.3, lineHeight: 1, whiteSpace: "nowrap" }}>{value}</div>
+        <div style={{ fontSize: T.fontSize.h2, fontWeight: T.fontWeight.bold, color: valueColor, letterSpacing: -0.3, lineHeight: 1, whiteSpace: "nowrap" }}>{value}</div>
         {trendIcon && <span style={{ fontSize: 12, fontWeight: 600, color: trendColor }}>{trendIcon}</span>}
       </div>
-      {sub && <div style={{ fontSize: 11, color: C.textDim, marginTop: 8 }}>{sub}</div>}
+      {sub && <div style={{ fontSize: T.fontSize.sm, color: C.textDim, marginTop: T.spacing.sm }}>{sub}</div>}
       {sparkData && sparkData.length > 1 && <svg viewBox={`0 0 ${sparkData.length * 12} 24`} style={{ width: "100%", height: 24, marginTop: 8, opacity: 0.4 }}><polyline fill="none" stroke={C.accent} strokeWidth="1.5" points={sparkData.map((v,i)=>`${i*12},${24-v/Math.max(...sparkData)*22}`).join(" ")} /></svg>}
     </div>
   );
@@ -288,14 +313,14 @@ function Table({ columns, rows, onRowClick, emptyMsg = "No records found" }) {
     <div style={{ overflowX: "auto", border: `1px solid ${C.border}` }}>
       <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
         <thead><tr style={{ background: C.surface2 }}>
-          {columns.map((c, i) => <th key={i} style={{ padding: "8px 14px", textAlign: "left", fontWeight: 500, color: C.textMuted, borderBottom: `1px solid ${C.border}`, whiteSpace: "nowrap", fontSize: 11, textTransform: "uppercase", letterSpacing: 0.6 }}>{c.label}</th>)}
+          {columns.map((c, i) => <th key={i} style={{ padding: "8px 14px", textAlign: "left", fontWeight: 500, color: C.textMuted, borderBottom: `1px solid ${C.border}`, whiteSpace: "nowrap", fontSize: T.fontSize.sm, textTransform: "uppercase", letterSpacing: 0.6 }}>{c.label}</th>)}
         </tr></thead>
         <tbody>
           {rows.map((row, ri) => (
             <tr key={ri} onClick={() => onRowClick?.(row)} style={{ cursor: onRowClick ? "pointer" : "default", borderBottom: `1px solid ${C.border}` }}
               onMouseEnter={e => { if (onRowClick) e.currentTarget.style.background = C.surface2; }}
               onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-              {columns.map((c, ci) => <td key={ci} style={{ padding: "8px 14px", color: C.text, whiteSpace: "nowrap" }}>{c.render ? c.render(row) : row[c.key]}</td>)}
+              {columns.map((c, ci) => <td key={ci} style={{ padding: "8px 14px", color: C.text, whiteSpace: "nowrap", fontSize: T.fontSize.base }}>{c.render ? c.render(row) : row[c.key]}</td>)}
             </tr>
           ))}
           {rows.length === 0 && <tr><td colSpan={columns.length} style={{ padding: 32, textAlign: "center", color: C.textMuted, fontSize: 12 }}>{emptyMsg}</td></tr>}
@@ -346,7 +371,7 @@ function Tab({ tabs, active, onChange }) {
 function ProgressBar({ value, max = 100, color = C.textMuted, height = 4 }) {
   const pct = Math.min(100, Math.max(0, (value / max) * 100));
   return (
-    <div style={{ height, borderRadius: 0, background: "#ebebeb", overflow: "hidden" }}>
+    <div style={{ height, borderRadius: 0, background: "C.surface3", overflow: "hidden" }}>
       <div style={{ height: "100%", borderRadius: 0, background: color, width: `${pct}%`, transition: "width .5s ease" }} />
     </div>
   );
@@ -739,7 +764,7 @@ export default function App() {
         .kb-badge-submitted{background:#eff6ff;color:#2563eb}
         .kb-badge-underwriting{background:#fffbeb;color:#d97706}
         .kb-badge-booked{background:#f5f3ff;color:#7c3aed}
-        .kb-badge-draft{background:#f3f4f6;color:#6b7280}
+        .kb-badge-draft{background:#f3f4f6;color:C.textDim}
         
         input:focus,select:focus,textarea:focus{border-color:${C.accent} !important;box-shadow:0 0 0 3px rgba(30,58,95,0.08)}
         
@@ -757,7 +782,7 @@ export default function App() {
         .kb-card-hover:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.08)}
         ::-webkit-scrollbar{width:5px;height:5px}
         ::-webkit-scrollbar-track{background:transparent}
-        ::-webkit-scrollbar-thumb{background:#d4d4d4;border-radius:0}
+        ::-webkit-scrollbar-thumb{background:C.borderLight;border-radius:0}
         *{box-sizing:border-box}
         @media(max-width:768px){
           .kb-sidebar{display:none !important}
@@ -907,7 +932,7 @@ export default function App() {
               ))}
             </div>
 
-            {f.error && <div style={{ background:"#fef2f2", border:"1px solid #fca5a5", color:"#dc2626", padding:"8px 14px", fontSize:12, marginBottom:16 }}>{f.error}</div>}
+            {f.error && <div style={{ background:C.redBg, border:`1px solid ${C.red}44`, color:C.red, padding:"8px 14px", fontSize:12, marginBottom:16 }}>{f.error}</div>}
 
             {/* Step 1: Your Details */}
             {f.step===1 && <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"24px" }}>
@@ -1019,7 +1044,7 @@ export default function App() {
           {authMode === "login" ? "Sign In" : "Create Account"}
         </div>
 
-        {authForm.error && <div style={{ background:"#fef2f2", border:"1px solid #fca5a5", color:"#dc2626", padding:"8px 12px", fontSize:12, marginBottom:12, lineHeight:1.4 }}>{authForm.error}</div>}
+        {authForm.error && <div style={{ background:C.redBg, border:`1px solid ${C.red}33`, color:C.red, padding:"8px 12px", fontSize:12, marginBottom:12, lineHeight:1.4 }}>{authForm.error}</div>}
 
         {authMode === "signup" && (
           <div style={{ marginBottom:12 }}>
@@ -1195,10 +1220,10 @@ export default function App() {
         case "portal_applications": return (<div>
           <h2 style={{ margin:"0 0 16px", fontSize:24, fontWeight:700 }}>My Applications</h2>
           <Table columns={[
-            {label:"ID",render:r=><span style={{fontWeight:600}}>{r.id}</span>},
+            {label:"ID",render:r=>cell.id(r.id)},
             {label:"Product",render:r=>prod(r.product)?.name||r.product},
-            {label:"Amount",render:r=>fmt.cur(r.amount)},
-            {label:"Term",render:r=>`${r.term}m`},
+            {label:"Amount",render:r=>cell.money(r.amount)},
+            {label:"Term",render:r=>cell.text(r.term+"m")},
             {label:"Status",render:r=><Badge color={r.status==="Approved"?"green":r.status==="Declined"?"red":"blue"}>{r.status}</Badge>},
             {label:"Submitted",render:r=>fmt.date(r.submitted||r.createdAt)},
           ]} rows={myApps} emptyMsg="No applications found." />
@@ -2377,7 +2402,7 @@ export default function App() {
         <div data-widget="dpd" style={{order:widgetConfig.findIndex(w=>w.id==="dpd")}}>{visibleWidgets.some(w=>w.id==="dpd") && canDo("provisioning","view") && loans.length > 0 && (
           <SectionCard title="DPD Distribution">
             <div style={{ display: "flex", alignItems: "flex-end", gap: 4, height: 140, padding: "0 4px" }}>
-              {[{label:"Current",min:0,max:0,color:C.green},{label:"1-30",min:1,max:30,color:C.amber},{label:"31-60",min:31,max:60,color:"#f97316"},{label:"61-90",min:61,max:90,color:C.red},{label:"90+",min:91,max:9999,color:"#7f1d1d"}].map(b => {
+              {[{label:"Current",min:0,max:0,color:C.green},{label:"1-30",min:1,max:30,color:C.amber},{label:"31-60",min:31,max:60,color:C.amber},{label:"61-90",min:61,max:90,color:C.red},{label:"90+",min:91,max:9999,color:C.red}].map(b => {
                 const count = loans.filter(l => l.dpd >= b.min && l.dpd <= b.max).length;
                 const pct = loans.length ? count / loans.length : 0;
                 const height = Math.max(4, pct * 100);
@@ -2570,11 +2595,11 @@ export default function App() {
 
       <Tab tabs={tabs} active={tab} onChange={setTab} />
       <Table columns={[
-        { label:"ID", render:r=><span style={{ fontFamily:"monospace", fontSize:12 }}>{r.id}</span> },
-        { label:"Business Name", render:r=><span style={{ fontWeight:600 }}>{r.name}</span> },
+        { label:"ID", render:r=>cell.id(r.id) },
+        { label:"Business Name", render:r=>cell.name(r.name) },
         { label:"Contact", key:"contact" },
         { label:"Industry", key:"industry" },
-        { label:"Revenue", render:r=><span style={{ fontFamily:"monospace", fontSize:12 }}>{fmt.cur(r.revenue)}</span> },
+        { label:"Revenue", render:r=>cell.money(r.revenue) },
         { label:"BEE", render:r=><Badge color="purple">Level {r.beeLevel}</Badge> },
         { label:"FICA", render:r=>statusBadge(r.ficaStatus) },
         { label:"Risk", render:r=> r.riskCategory ? <Badge color={r.riskCategory==="Low"?"green":r.riskCategory==="Medium"?"amber":"red"}>{r.riskCategory}</Badge> : <span style={{ fontSize:10, color:C.textMuted }}>—</span> },
@@ -2616,12 +2641,12 @@ export default function App() {
 
       <Tab tabs={tabs} active={tab} onChange={setTab} />
       <Table columns={[
-        { label:"App ID", render:r=><span style={{ fontFamily:"monospace", fontWeight:600, fontSize:12 }}>{r.id}</span> },
-        { label:"Applicant", render:r=><span style={{ fontWeight:500 }}>{cust(r.custId)?.name}</span> },
-        { label:"Product", render:r=><span style={{ fontSize:12 }}>{prod(r.product)?.name || r.product}</span> },
-        { label:"Amount", render:r=><span style={{ fontFamily:"monospace", fontSize:12 }}>{fmt.cur(r.amount)}</span> },
-        { label:"Term", render:r=><span style={{ fontSize:12 }}>{r.term}m</span> },
-        { label:"Date", render:r=>fmt.date(r.submitted || r.createdAt) },
+        { label:"App ID", render:r=>cell.id(r.id) },
+        { label:"Applicant", render:r=>cell.name(cust(r.custId)?.name) },
+        { label:"Product", render:r=>cell.text(prod(r.product)?.name || r.product) },
+        { label:"Amount", render:r=>cell.money(r.amount) },
+        { label:"Term", render:r=>cell.text(r.term+"m") },
+        { label:"Date", render:r=>cell.date(r.submitted || r.createdAt) },
         { label:"Assigned To", render:r=>{
           const u = SYSTEM_USERS.find(x=>x.id===r.assignedTo);
           if (u) return <span style={{ fontSize:11 }}>{u.name}</span>;
@@ -2662,9 +2687,9 @@ export default function App() {
       <p style={{ margin:"0 0 20px", fontSize:13, color:C.textMuted }}>Risk analysis, affordability, scoring & credit decisions</p>
       <SectionCard title={`Pending Decisions (${pending.length})`}>
         <Table columns={[
-          { label:"App ID", render:r=><span style={{ fontFamily:"monospace", fontWeight:600, fontSize:12 }}>{r.id}</span> },
-          { label:"Applicant", render:r=><span style={{ fontWeight:500 }}>{cust(r.custId)?.name}</span> },
-          { label:"Amount", render:r=><span style={{ fontFamily:"monospace", fontSize:12 }}>{fmt.cur(r.amount)}</span> },
+          { label:"App ID", render:r=>cell.id(r.id) },
+          { label:"Applicant", render:r=>cell.name(cust(r.custId)?.name) },
+          { label:"Amount", render:r=>cell.money(r.amount) },
           { label:"Authority", render:r=>r.amount>1000000?"Credit Committee":r.amount>500000?"Head of Credit":r.amount>250000?"Senior Analyst":"Analyst" },
           { label:"Status", render:r=>statusBadge(r.status) },
           { label:"Actions", render:r=><div style={{ display:"flex", gap:8 }}>{r.status==="Submitted"&&canDo("underwriting","update")&&<Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();moveToUnderwriting(r.id)}}>Start DD</Btn>}{r.status==="Underwriting"&&canDo("underwriting","view")&&<Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();setDetail({type:"application",id:r.id})}}>Open Workflow</Btn>}</div> },
@@ -2672,9 +2697,9 @@ export default function App() {
       </SectionCard>
       <SectionCard title="Recent Decisions">
         <Table columns={[
-          { label:"App ID", render:r=><span style={{ fontFamily:"monospace", fontSize:12 }}>{r.id}</span> },
+          { label:"App ID", render:r=>cell.id(r.id) },
           { label:"Applicant", render:r=>cust(r.custId)?.name },
-          { label:"Amount", render:r=>fmt.cur(r.amount) },
+          { label:"Amount", render:r=>cell.money(r.amount) },
           { label:"Risk Score", render:r=>r.riskScore!=null?<span style={{ fontWeight:700, color:r.riskScore>=70?C.green:r.riskScore>=50?C.amber:C.red }}>{r.riskScore}</span>:"—" },
           { label:"DSCR", render:r=>r.dscr||"—" },
           { label:"Decision", render:r=>statusBadge(r.status) },
@@ -2739,12 +2764,12 @@ export default function App() {
         </div>
         <Tab tabs={[{key:"all",label:"All",count:loans.length},{key:"booked",label:"Booked",count:bookedLoans.length},{key:"active",label:"Active",count:activeLoans.length}]} active={tab} onChange={setTab} />
         <Table columns={[
-          { label:"Loan ID", render:r=><span style={{ fontFamily:"monospace", fontWeight:600, fontSize:12 }}>{r.id}</span> },
+          { label:"Loan ID", render:r=>cell.id(r.id) },
           { label:"Borrower", render:r=>cust(r.custId)?.name },
           { label:"Product", render:r=>{const p=prod(r.product);return <span style={{fontSize:11}}>{p?.name||"—"}</span>} },
-          { label:"Amount", render:r=>fmt.cur(r.amount) },
+          { label:"Amount", render:r=>cell.money(r.amount) },
           { label:"Balance", render:r=><span style={{ fontWeight:700 }}>{fmt.cur(r.balance)}</span> },
-          { label:"Rate", render:r=>`${r.rate}%` },
+          { label:"Rate", render:r=>cell.pct(r.rate) },
           { label:"Status", render:r=>statusBadge(r.status) },
           { label:"DPD", render:r=>r.status==="Active"?<span style={{ fontWeight:700, color:r.dpd===0?C.green:r.dpd<=30?C.amber:C.red }}>{r.dpd}</span>:<span style={{ color:C.textMuted }}>—</span> },
           { label:"Stage", render:r=>r.status==="Active"?<Badge color={r.stage===1?"green":r.stage===2?"amber":"red"}>Stage {r.stage}</Badge>:<span style={{ color:C.textMuted }}>—</span> },
@@ -2810,7 +2835,7 @@ export default function App() {
           <Table columns={[
             { label:"Product", render:r=><span style={{ fontWeight:600, fontSize:12 }}>{r.name}</span> },
             { label:"Loans", render:r=>r.count },
-            { label:"Book Value", render:r=>fmt.cur(r.balance) },
+            { label:"Book Value", render:r=>cell.money(r.balance) },
             { label:"% of Book", render:r=><span style={{ fontFamily:"monospace" }}>{currentBook>0?fmt.pct(r.balance/currentBook):"—"}</span> },
             { label:"Avg DPD", render:r=>r.count>0?Math.round(r.dpd/r.count):0 },
             { label:"Risk Class", render:r=><Badge color={r.riskClass==="A"?"green":r.riskClass==="B"?"amber":r.riskClass==="C"?"red":"gray"}>{r.riskClass||"—"}</Badge> },
@@ -2867,10 +2892,10 @@ export default function App() {
       {tab==="upcoming" && (
         <Table columns={[
           { label:"Due Date", render:r=>{ const d=Math.ceil((r.nextDue-Date.now())/day); return <span style={{ fontWeight:d<0?700:400, color:d<0?C.red:d<=7?C.amber:C.textDim }}>{fmt.date(r.nextDue)}{d<0?` (${Math.abs(d)}d overdue)`:""}</span>; }},
-          { label:"Loan", render:r=><span style={{ fontFamily:"monospace", fontSize:12 }}>{r.id}</span> },
+          { label:"Loan", render:r=>cell.id(r.id) },
           { label:"Borrower", render:r=>cust(r.custId)?.name },
           { label:"Instalment", render:r=>fmt.cur(r.monthlyPmt) },
-          { label:"Balance", render:r=>fmt.cur(r.balance) },
+          { label:"Balance", render:r=>cell.money(r.balance) },
           { label:"DPD", render:r=><span style={{ fontWeight:700, color:r.dpd===0?C.green:C.amber }}>{r.dpd}</span> },
           { label:"Action", render:r=>canDo("servicing","create")?<Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();recordPayment(r.id, r.monthlyPmt)}}>Record Payment</Btn>:<span style={{fontSize:10,color:C.textMuted}}>View only</span> },
         ]} rows={[...activeLoans].sort((a,b)=>a.nextDue-b.nextDue)} onRowClick={r=>setDetail({type:"loan",id:r.id})} />
@@ -2910,7 +2935,7 @@ export default function App() {
                   { label:"Payment", render:r=>fmt.cur(r.pmt) },
                   { label:"Interest", render:r=><span style={{ color:C.amber }}>{fmt.cur(r.interest)}</span> },
                   { label:"Principal", render:r=><span style={{ color:C.green }}>{fmt.cur(r.principal)}</span> },
-                  { label:"Balance", render:r=>fmt.cur(r.balance) },
+                  { label:"Balance", render:r=>cell.money(r.balance) },
                   { label:"Status", render:r=>statusBadge(r.status) },
                 ]} rows={sched} />
               </div>
@@ -2921,9 +2946,9 @@ export default function App() {
 
       {tab==="overdue" && (
         <Table columns={[
-          { label:"Loan", render:r=><span style={{ fontFamily:"monospace", fontWeight:600, fontSize:12 }}>{r.id}</span> },
+          { label:"Loan", render:r=>cell.id(r.id) },
           { label:"Borrower", render:r=>cust(r.custId)?.name },
-          { label:"Balance", render:r=>fmt.cur(r.balance) },
+          { label:"Balance", render:r=>cell.money(r.balance) },
           { label:"Instalment", render:r=>fmt.cur(r.monthlyPmt) },
           { label:"DPD", render:r=><span style={{ fontSize:18, fontWeight:700, color:r.dpd<=30?C.amber:C.red }}>{r.dpd}</span> },
           { label:"Last Payment", render:r=>r.lastPmt ? fmt.date(r.lastPmt) : <span style={{ color:C.textMuted }}>None</span> },
@@ -2963,9 +2988,9 @@ export default function App() {
       ]} active={tab} onChange={setTab} />
 
       {tab==="accounts" && <Table columns={[
-        { label:"Loan", render:r=><span style={{ fontFamily:"monospace", fontWeight:600, fontSize:12 }}>{r.id}</span> },
+        { label:"Loan", render:r=>cell.id(r.id) },
         { label:"Borrower", render:r=>cust(r.custId)?.name },
-        { label:"Balance", render:r=>fmt.cur(r.balance) },
+        { label:"Balance", render:r=>cell.money(r.balance) },
         { label:"DPD", render:r=><span style={{ fontSize:18, fontWeight:700, color:r.dpd<=30?C.amber:C.red }}>{r.dpd}</span> },
         { label:"Stage", render:r=><Badge color={r.dpd<=30?"amber":r.dpd<=90?"red":"red"}>{r.dpd<=30?"Early":r.dpd<=90?"Mid":"Late"}</Badge> },
         { label:"Last Action", render:r=>{ const last=collections.filter(c=>c.loanId===r.id).sort((a,b)=>b.created-a.created)[0]; return last?<span style={{ fontSize:10, color:C.textDim }}>{last.action} ({fmt.date(last.created)})</span>:<span style={{ fontSize:10, color:C.textMuted }}>None</span>; }},
@@ -3011,7 +3036,7 @@ export default function App() {
           { label:"Loan", key:"loanId" },
           { label:"Borrower", render:r=>cust(r.custId)?.name },
           { label:"Balance", render:r=>fmt.cur(loans.find(l=>l.id===r.loanId)?.balance||0) },
-          { label:"DPD", render:r=>r.dpd },
+          { label:"DPD", render:r=>cell.count(r.dpd) },
           { label:"Reason", render:r=><span style={{ fontSize:11, color:C.textDim }}>{r.notes}</span> },
           { label:"Proposed By", key:"officer" },
           { label:"Date", render:r=>fmt.date(r.created) },
@@ -3764,12 +3789,12 @@ export default function App() {
 
         {/* Applications */}
         {ca.length>0 && <SectionCard title={`Applications (${ca.length})`}>
-          <Table columns={[{label:"ID",render:r=><span style={{fontFamily:"monospace",fontSize:12}}>{r.id}</span>},{label:"Product",render:r=>prod(r.product)?.name},{label:"Amount",render:r=>fmt.cur(r.amount)},{label:"Status",render:r=>statusBadge(r.status)}]} rows={ca} onRowClick={r=>setDetail({type:"application",id:r.id})} />
+          <Table columns={[{label:"ID",render:r=><span style={{fontFamily:"monospace",fontSize:12}}>{r.id}</span>},{label:"Product",render:r=>prod(r.product)?.name},{label:"Amount",render:r=>cell.money(r.amount)},{label:"Status",render:r=>statusBadge(r.status)}]} rows={ca} onRowClick={r=>setDetail({type:"application",id:r.id})} />
         </SectionCard>}
 
         {/* Loans */}
         {cl.length>0 && <SectionCard title={`Active Loans (${cl.length})`}>
-          <Table columns={[{label:"ID",render:r=><span style={{fontFamily:"monospace",fontSize:12}}>{r.id}</span>},{label:"Balance",render:r=>fmt.cur(r.balance)},{label:"DPD",render:r=>r.dpd},{label:"Stage",render:r=><Badge color={r.stage===1?"green":r.stage===2?"amber":"red"}>Stage {r.stage}</Badge>}]} rows={cl} onRowClick={r=>setDetail({type:"loan",id:r.id})} />
+          <Table columns={[{label:"ID",render:r=><span style={{fontFamily:"monospace",fontSize:12}}>{r.id}</span>},{label:"Balance",render:r=>cell.money(r.balance)},{label:"DPD",render:r=>cell.count(r.dpd)},{label:"Stage",render:r=><Badge color={r.stage===1?"green":r.stage===2?"amber":"red"}>Stage {r.stage}</Badge>}]} rows={cl} onRowClick={r=>setDetail({type:"loan",id:r.id})} />
         </SectionCard>}
       </div>);
     }
@@ -3937,7 +3962,7 @@ export default function App() {
           const allFilled = findings.length > 0 && !isOldFormat && findings.every(f => f.value && f.value.trim().length > 5);
           return (<div>
           {!w.siteVisitDate && <div style={{ fontSize:11, color:C.textMuted, marginBottom:8 }}>Click "Generate Findings" to create the site visit assessment form. Complete each field after the physical visit, then sign off.</div>}
-          {isOldFormat && <div style={{ padding:12, background:"#fff8e1", border:`1px solid ${C.amber}`, marginBottom:8, fontSize:11 }}>
+          {isOldFormat && <div style={{ padding:12, background:C.amberBg, border:`1px solid ${C.amber}`, marginBottom:8, fontSize:11 }}>
             <div style={{ fontWeight:600, marginBottom:4 }}>Site visit data is in a legacy format (static/read-only).</div>
             <div style={{ color:C.textDim }}>Click "Re-generate" above to create the interactive assessment form. You will need to re-enter your observations.</div>
           </div>}
@@ -3993,7 +4018,7 @@ export default function App() {
           const canSignOff = hasNewFormat && riskFinding?.analystNote && riskFinding.analystNote.trim().length > 10;
           return (<div>
           {!w.creditDate && <div style={{ fontSize:11, color:C.textMuted, marginBottom:8 }}>Pull credit bureau report and run automated financial analysis. System computes key ratios from submitted financials. Review each finding, add your professional assessment, flag concerns, then confirm.</div>}
-          {isOldCreditFormat && <div style={{ padding:12, background:"#fff8e1", border:`1px solid ${C.amber}`, marginBottom:8, fontSize:11 }}>
+          {isOldCreditFormat && <div style={{ padding:12, background:C.amberBg, border:`1px solid ${C.amber}`, marginBottom:8, fontSize:11 }}>
             <div style={{ fontWeight:600, marginBottom:4 }}>Credit analysis data is in a legacy format (static/read-only).</div>
             <div style={{ color:C.textDim }}>Click "Re-analyse" above to generate the interactive analyst review form.</div>
           </div>}
@@ -4716,7 +4741,7 @@ export default function App() {
           <Field label="Amount (R)"><Input type="number" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} placeholder={p?`${fmt.cur(p.minAmount)} – ${fmt.cur(p.maxAmount)}`:"e.g. 500000"} /></Field>
           <Field label="Term (months)"><Input type="number" value={form.term} onChange={e=>setForm({...form,term:e.target.value})} placeholder={p?`${p.minTerm} – ${p.maxTerm}`:"e.g. 36"} /></Field>
         </div>
-        {errors.length > 0 && <div style={{ background:"#fff5f5", border:`1px solid ${C.red}`, padding:"8px 12px", marginBottom:12, fontSize:11, color:C.red }}>{errors.map((e,i)=><div key={i}>{e}</div>)}</div>}
+        {errors.length > 0 && <div style={{ background:C.redBg, border:`1px solid ${C.red}`, padding:"8px 12px", marginBottom:12, fontSize:11, color:C.red }}>{errors.map((e,i)=><div key={i}>{e}</div>)}</div>}
         <Field label="Purpose of Loan"><Textarea value={form.purpose} onChange={e=>setForm({...form,purpose:e.target.value})} placeholder="Describe the purpose..." rows={3} /></Field>
         <div style={{ display:"flex", gap:12, marginTop:16 }}>
           <Btn variant="ghost" onClick={()=>setModal(null)} style={{ flex:1 }}>Cancel</Btn>
