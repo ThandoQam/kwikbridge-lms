@@ -273,7 +273,7 @@ function Badge({ children, color = "slate" }) {
   return <span style={{ display:"inline-flex", alignItems:"center", padding:"2px 8px", borderRadius:4, fontSize:11, fontWeight:500, letterSpacing:0.2, background:s.bg, color:s.text, whiteSpace:"nowrap", lineHeight:"16px" }}>{children}</span>;
 }
 function statusBadge(s) {
-  const m = { Approved:"green", Active:"green", Disbursed:"green", Verified:"green", Compliant:"green", Cleared:"green", Settled:"green", Submitted:"blue", Underwriting:"cyan", Booked:"purple", "Pre-Approval":"cyan", Pending:"amber", "Pending Review":"amber", Due:"amber", Draft:"slate", Overdue:"red", Early:"amber", Mid:"amber", Late:"red", Declined:"red", Breach:"red", "Written Off":"red", Expired:"red", Withdrawn:"slate", Received:"blue", "Under Review":"cyan" };
+  const m = { Approved:"green", Active:"green", Disbursed:"green", Verified:"green", Compliant:"green", Cleared:"green", Settled:"green", Submitted:"blue", Underwriting:"cyan", Booked:"purple", "Pre-Approval":"cyan", "Pending Approval":"purple", Pending:"amber", "Pending Review":"amber", Due:"amber", Draft:"slate", Overdue:"red", Early:"amber", Mid:"amber", Late:"red", Declined:"red", Breach:"red", "Written Off":"red", Expired:"red", Withdrawn:"slate", Received:"blue", "Under Review":"cyan" };
   return <Badge color={m[s] || "slate"}>{s}</Badge>;
 }
 
@@ -1967,40 +1967,260 @@ export default function App() {
     save({ ...data, applications: applications.map(x => x.id === appId ? updatedApp : x), audit: newAudit, alerts: newAlerts });
   };
 
-  const decideLoan = (appId, decision) => {
-    if (!canDo("underwriting","approve")) { showToast("Permission denied: you cannot approve/decline applications."); return; }
+  // ═══ Credit Memo Generator — structured memo with all DD findings ═══
+  const generateCreditMemo = (app) => {
+    const w = app.workflow || {};
+    const c = cust(app.custId);
+    const p = prod(app.product);
+    const prodSec = PRODUCT_SECURITY[app.product];
+    const ltv = app.amount && w.collateralTotal ? (app.amount/w.collateralTotal*100).toFixed(0) : "N/A";
+    return {
+      header: {
+        appId: app.id,
+        borrower: c?.name,
+        regNumber: c?.regNum,
+        contact: c?.contact,
+        product: p?.name,
+        amount: app.amount,
+        term: app.term,
+        purpose: app.purpose || p?.description?.split(".")[0],
+        dateAssessed: Date.now(),
+        analyst: currentUser.name,
+        analystRole: ROLES[role]?.label,
+      },
+      kyc: {
+        status: w.kycComplete ? "Passed" : "Incomplete",
+        officer: w.kycOfficer,
+        date: w.kycDate,
+        findings: w.kycFindings || [],
+        ficaVerified: w.kycComplete,
+      },
+      documents: {
+        total: w.docsFindings?.length || 0,
+        verified: w.docsFindings?.filter(f=>f.status==="Verified").length || 0,
+        findings: w.docsFindings || [],
+      },
+      siteVisit: {
+        completed: w.siteVisitComplete,
+        date: w.siteVisitDate,
+        officer: w.siteVisitOfficer,
+        findings: w.siteVisitFindings || [],
+        notes: w.siteVisitNotes,
+      },
+      financial: {
+        bureauScore: w.creditBureauScore,
+        riskScore: app.riskScore,
+        dscr: app.dscr,
+        currentRatio: app.currentRatio,
+        debtEquity: app.debtEquity,
+        findings: w.creditFindings || [],
+      },
+      security: {
+        totalValue: w.collateralTotal,
+        ltv: ltv,
+        instruments: prodSec ? [...(prodSec.required||[]), ...(prodSec.optional||[])].map(id=>SECURITY_INSTRUMENTS[id]?.name).filter(Boolean) : [],
+        findings: w.collateralFindings || [],
+      },
+      socialImpact: {
+        score: app.socialScore,
+        beeLevel: c?.beeLevel,
+        jobs: c?.employees,
+        womenOwned: c?.womenOwned,
+        youthOwned: c?.youthOwned,
+        findings: w.socialFindings || [],
+      },
+      analystNotes: w.analystNotes || "",
+    };
+  };
+
+  // Format credit memo as readable text
+  const formatCreditMemo = (memo, recommendation, conditions) => {
+    const sections = [];
+    sections.push("══════════════════════════════════════════");
+    sections.push("CREDIT MEMORANDUM");
+    sections.push("══════════════════════════════════════════");
+    sections.push("");
+    sections.push("1. APPLICANT DETAILS");
+    sections.push(`   Application:    ${memo.header.appId}`);
+    sections.push(`   Borrower:       ${memo.header.borrower}`);
+    sections.push(`   Registration:   ${memo.header.regNumber || "—"}`);
+    sections.push(`   Contact:        ${memo.header.contact}`);
+    sections.push(`   Product:        ${memo.header.product}`);
+    sections.push(`   Amount:         ${fmt.cur(memo.header.amount)}`);
+    sections.push(`   Term:           ${memo.header.term} months`);
+    sections.push(`   Purpose:        ${memo.header.purpose || "—"}`);
+    sections.push("");
+    sections.push("2. KYC / FICA VERIFICATION");
+    sections.push(`   Status:         ${memo.kyc.status}`);
+    sections.push(`   Officer:        ${memo.kyc.officer || "—"}`);
+    sections.push(`   Date:           ${memo.kyc.date ? fmt.date(memo.kyc.date) : "—"}`);
+    if (memo.kyc.findings.length) memo.kyc.findings.forEach(f => sections.push(`   • ${f.item}: ${f.detail || f.status}`));
+    sections.push("");
+    sections.push("3. DOCUMENT VERIFICATION");
+    sections.push(`   Verified:       ${memo.documents.verified} of ${memo.documents.total}`);
+    if (memo.documents.findings.length) memo.documents.findings.forEach(f => sections.push(`   • ${f.name || f.item}: ${f.status}`));
+    sections.push("");
+    sections.push("4. SITE VISIT & MANAGEMENT ASSESSMENT");
+    sections.push(`   Completed:      ${memo.siteVisit.completed ? "Yes" : "No"}`);
+    sections.push(`   Date:           ${memo.siteVisit.date ? fmt.date(memo.siteVisit.date) : "—"}`);
+    sections.push(`   Officer:        ${memo.siteVisit.officer || "—"}`);
+    if (memo.siteVisit.notes) sections.push(`   Notes:          ${memo.siteVisit.notes}`);
+    if (memo.siteVisit.findings.length) memo.siteVisit.findings.forEach(f => sections.push(`   • ${f.item}: ${f.detail || f.status}`));
+    sections.push("");
+    sections.push("5. FINANCIAL & CREDIT ANALYSIS");
+    sections.push(`   Bureau Score:   ${memo.financial.bureauScore || "—"}`);
+    sections.push(`   Risk Score:     ${memo.financial.riskScore || "—"}/100`);
+    sections.push(`   DSCR:           ${memo.financial.dscr || "—"}x`);
+    sections.push(`   Current Ratio:  ${memo.financial.currentRatio || "—"}`);
+    sections.push(`   Debt/Equity:    ${memo.financial.debtEquity || "—"}`);
+    if (memo.financial.findings.length) memo.financial.findings.forEach(f => sections.push(`   • ${f.item}: ${f.detail || f.status}`));
+    sections.push("");
+    sections.push("6. SECURITY & COLLATERAL");
+    sections.push(`   Total Value:    ${memo.security.totalValue ? fmt.cur(memo.security.totalValue) : "—"}`);
+    sections.push(`   LTV:            ${memo.security.ltv}%`);
+    sections.push(`   Instruments:    ${memo.security.instruments.join(", ") || "None specified"}`);
+    if (memo.security.findings.length) memo.security.findings.forEach(f => sections.push(`   • ${f.item}: ${f.detail || f.status}`));
+    sections.push("");
+    sections.push("7. DEVELOPMENT IMPACT");
+    sections.push(`   Social Score:   ${memo.socialImpact.score || "—"}/100`);
+    sections.push(`   BEE Level:      ${memo.socialImpact.beeLevel || "—"}`);
+    sections.push(`   Jobs:           ${memo.socialImpact.jobs || "—"}`);
+    sections.push(`   Women-Owned:    ${memo.socialImpact.womenOwned || "—"}%`);
+    sections.push(`   Youth-Owned:    ${memo.socialImpact.youthOwned || "—"}%`);
+    sections.push("");
+    if (memo.analystNotes) { sections.push("8. ANALYST NOTES"); sections.push(`   ${memo.analystNotes}`); sections.push(""); }
+    sections.push("9. RECOMMENDATION");
+    sections.push(`   ${recommendation}`);
+    sections.push("");
+    if (conditions.length) {
+      sections.push("10. CONDITIONS PRECEDENT");
+      conditions.forEach((c,i) => sections.push(`   ${i+1}. ${c}`));
+      sections.push("");
+    }
+    sections.push("──────────────────────────────────────────");
+    sections.push(`Prepared by:  ${memo.header.analyst} (${memo.header.analystRole})`);
+    sections.push(`Date:         ${fmt.date(memo.header.dateAssessed)}`);
+    sections.push("");
+    sections.push("APPROVAL:");
+    sections.push("Signature:    ________________________________");
+    sections.push("Name:         ________________________________");
+    sections.push("Date:         ________________________________");
+    sections.push("──────────────────────────────────────────");
+    return sections.join("\n");
+  };
+
+  // Determine approval authority for a given amount
+  const getApprovalAuthority = (amount) => {
+    if (amount <= 250000) return { role: "CREDIT", label: "Credit Analyst", level: "Individual" };
+    if (amount <= 500000) return { role: "CREDIT_SNR", label: "Senior Credit Analyst", level: "Individual" };
+    if (amount <= 1000000) return { role: "CREDIT_HEAD", label: "Head of Credit", level: "Individual" };
+    return { role: "EXEC", label: "Credit Committee", level: "Committee" };
+  };
+
+  // Step 1: Analyst submits recommendation — generates memo, routes to authority
+  const submitRecommendation = (appId, recommendation) => {
+    if (!canDo("underwriting","update")) { showToast("Permission denied."); return; }
     const a = applications.find(x => x.id === appId);
-    if (!a) return;
-    const limit = approvalLimit(role);
-    if (decision === "Approved" && a.amount > limit) { showToast(`Authority exceeded: your limit is ${fmt.cur(limit)}. This application (${fmt.cur(a.amount)}) requires escalation to ${a.amount > 1000000 ? "Credit Committee" : "Head of Credit"}.`); return; }
-    if (a.createdBy === currentUser.id) { showToast("Separation of duties: you cannot approve an application you created."); return; }
-    const w = a.workflow || {};
+    if (!a || a.status !== "Underwriting") { showToast("Application must be in Underwriting status."); return; }
+    
     const c = cust(a.custId);
     const p = prod(a.product);
-    const memoSections = [];
-    if (w.kycFindings?.length) memoSections.push(`KYC/FICA: ${w.kycComplete ? "All checks passed." : "Incomplete — see findings."}`);
-    if (w.docsFindings?.length) { const vd = w.docsFindings.filter(f=>f.status==="Verified").length; memoSections.push(`Documents: ${vd}/${w.docsFindings.length} verified.`); }
-    if (w.siteVisitFindings?.length) memoSections.push(`Site visit completed ${fmt.date(w.siteVisitDate)}. ${w.siteVisitFindings.length} areas assessed.`);
-    if (w.creditFindings?.length) memoSections.push(`Bureau: ${w.creditBureauScore}. DSCR: ${a.dscr}x. Risk score: ${a.riskScore}/100.`);
-    if (w.collateralFindings?.length) memoSections.push(`Security: ${fmt.cur(w.collateralTotal)}. LTV: ${a.amount && w.collateralTotal ? (a.amount/w.collateralTotal*100).toFixed(0) : "—"}%.`);
-    if (w.socialFindings?.length) memoSections.push(`Social impact: ${a.socialScore}/100. BEE Level ${c?.beeLevel}.`);
-    if (w.analystNotes) memoSections.push(`Analyst notes: ${w.analystNotes}`);
-    const recommendation = decision === "Approved" ? `Recommendation: APPROVE. ${p?.name} of ${fmt.cur(a.amount)} over ${a.term} months.` : `Recommendation: DECLINE. ${a.dscr < 1.2 ? "DSCR below threshold. " : ""}${a.riskScore < 50 ? "Risk score below acceptable level." : ""}`;
-    memoSections.push(recommendation);
-    const approver = `${currentUser.name} (${ROLES[role]?.label})`;
-    const conditions = decision === "Approved" ? [
+    const memo = generateCreditMemo(a);
+    const authority = getApprovalAuthority(a.amount);
+    
+    const conditions = recommendation === "Approve" ? [
       `Maintain DSCR above ${a.dscr >= 1.5 ? "1.3" : "1.2"}`,
       "Submit quarterly management accounts within 30 days of quarter-end",
       "Maintain adequate insurance on all financed assets",
       ...(c?.beeLevel <= 2 ? ["Maintain BEE Level " + c.beeLevel + " status"] : []),
       ...(a.amount > 1000000 ? ["Annual audited financial statements required"] : []),
     ] : [];
-    const updated = { ...a, status: decision, decided: Date.now(), recommendation: decision, approver, creditMemo: memoSections.join("\n"), conditions, rate: decision === "Approved" ? (p?.baseRate || 14.5) : null };
+    
+    const recText = recommendation === "Approve" 
+      ? `APPROVE — ${p?.name} of ${fmt.cur(a.amount)} over ${a.term} months at ${p?.baseRate}% p.a. Risk Score: ${a.riskScore}/100. DSCR: ${a.dscr}x.`
+      : `DECLINE — ${a.dscr < 1.2 ? "DSCR below threshold. " : ""}${a.riskScore < 50 ? "Risk score below acceptable level. " : ""}Insufficient creditworthiness for ${fmt.cur(a.amount)}.`;
+    
+    const formattedMemo = formatCreditMemo(memo, recText, conditions);
+    
+    const updated = { 
+      ...a, 
+      status: "Pending Approval", 
+      creditMemo: formattedMemo,
+      creditMemoData: memo,
+      recommendation: recommendation,
+      recommendedBy: currentUser.name,
+      recommendedAt: Date.now(),
+      conditions,
+      approvalAuthority: authority,
+      rate: recommendation === "Approve" ? (p?.baseRate || 14.5) : null,
+    };
+    
     save({ ...data,
       applications: applications.map(x => x.id === appId ? updated : x),
-      audit: [...audit, addAudit(`Credit Decision – ${decision}`, appId, approver, `${decision}. Risk: ${a.riskScore}. DSCR: ${a.dscr}x. Bureau: ${w.creditBureauScore}. Social: ${a.socialScore}.`, "Decision")],
-      alerts: [...alerts, addAlert("Application", decision==="Approved"?"info":"warning", `${decision} – ${c?.name}`, `${appId} ${decision.toLowerCase()} by ${currentUser.name}. Amount: ${fmt.cur(a.amount)}.`)]
+      audit: [...audit, 
+        addAudit("Credit Memo Submitted", appId, currentUser.name, `${recommendation} recommendation. ${fmt.cur(a.amount)}. Routed to ${authority.label} for ${authority.level === "Committee" ? "committee adjudication" : "approval"}.`, "Decision"),
+      ],
+      alerts: [...alerts, addAlert("Application", "info", `Memo Submitted – ${c?.name}`, `${appId}: ${recommendation} recommendation by ${currentUser.name}. Awaiting ${authority.label} approval. Amount: ${fmt.cur(a.amount)}.`)],
     });
+    showToast(`Credit memo submitted. Routed to ${authority.label} for approval.`);
+  };
+
+  // Step 2: Authority approves or declines the recommendation
+  const decideLoan = (appId, decision) => {
+    const a = applications.find(x => x.id === appId);
+    if (!a) return;
+    
+    // Must be in Pending Approval status
+    if (a.status !== "Pending Approval" && a.status !== "Underwriting") { 
+      showToast("Application must be in Pending Approval or Underwriting status."); return; 
+    }
+    
+    // Check authority
+    const limit = approvalLimit(role);
+    if (a.amount > limit) { 
+      const required = getApprovalAuthority(a.amount);
+      showToast(`Authority exceeded. Your limit: ${fmt.cur(limit)}. Required: ${required.label}.`); 
+      return; 
+    }
+    
+    // Separation of duties — approver cannot be the same as recommender
+    if (a.recommendedBy === currentUser.name) { 
+      showToast("Separation of duties: the approver must be different from the recommending analyst."); return; 
+    }
+    if (a.createdBy === currentUser.id) { 
+      showToast("Separation of duties: you cannot approve an application you created."); return; 
+    }
+    
+    const c = cust(a.custId);
+    const p = prod(a.product);
+    const approver = `${currentUser.name} (${ROLES[role]?.label})`;
+    
+    // If no memo exists yet (direct decision from Underwriting), generate one
+    if (!a.creditMemo) {
+      const memo = generateCreditMemo(a);
+      const conditions = decision === "Approved" ? [
+        `Maintain DSCR above ${a.dscr >= 1.5 ? "1.3" : "1.2"}`,
+        "Submit quarterly management accounts within 30 days of quarter-end",
+        "Maintain adequate insurance on all financed assets",
+        ...(c?.beeLevel <= 2 ? ["Maintain BEE Level " + c.beeLevel + " status"] : []),
+        ...(a.amount > 1000000 ? ["Annual audited financial statements required"] : []),
+      ] : [];
+      const recText = decision === "Approved" 
+        ? `APPROVE — ${p?.name} of ${fmt.cur(a.amount)} over ${a.term} months.`
+        : `DECLINE — Insufficient creditworthiness.`;
+      a.creditMemo = formatCreditMemo(memo, recText, conditions);
+      a.conditions = conditions;
+      a.rate = decision === "Approved" ? (p?.baseRate || 14.5) : null;
+    }
+    
+    const updated = { ...a, status: decision, decided: Date.now(), approver, approvedAt: Date.now() };
+    
+    save({ ...data,
+      applications: applications.map(x => x.id === appId ? updated : x),
+      audit: [...audit, addAudit(`Credit Decision – ${decision}`, appId, approver, `${decision} by ${approver}. Risk: ${a.riskScore}. DSCR: ${a.dscr}x. Amount: ${fmt.cur(a.amount)}.`, "Decision")],
+      alerts: [...alerts, addAlert("Application", decision==="Approved"?"info":"warning", `${decision} – ${c?.name}`, `${appId} ${decision.toLowerCase()} by ${currentUser.name}. Amount: ${fmt.cur(a.amount)}.`)],
+    });
+    showToast(`Application ${decision.toLowerCase()}.`);
   };
 
   // ═══ Security Document Template Generator ═══
@@ -2617,6 +2837,7 @@ export default function App() {
       { key:"Draft", label:"Draft (QA Pending)", count:drafts.length },
       { key:"Submitted", label:"Submitted", count:applications.filter(a=>a.status==="Submitted").length },
       { key:"Underwriting", label:"Underwriting", count:applications.filter(a=>a.status==="Underwriting").length },
+      { key:"Pending Approval", label:"Pending Approval", count:applications.filter(a=>a.status==="Pending Approval").length },
       { key:"Approved", label:"Approved", count:applications.filter(a=>a.status==="Approved").length },
       { key:"Declined", label:"Declined", count:applications.filter(a=>a.status==="Declined").length },
       { key:"Withdrawn", label:"Withdrawn", count:applications.filter(a=>a.status==="Withdrawn").length },
@@ -4211,10 +4432,24 @@ export default function App() {
           </div>
         </div>}
         {a.creditMemo && isUW && <SectionCard title="Credit Memorandum"><div style={{ fontSize:12, color:C.textDim, lineHeight:1.5, whiteSpace:"pre-line" }}>{a.creditMemo}</div></SectionCard>}
-        {isUW && <div style={{ border:`1px solid ${C.border}`, padding:"12px 16px", marginTop:4 }}>
+        {isUW && a.status === "Underwriting" && <div style={{ border:`1px solid ${C.border}`, borderRadius:6, padding:"16px 20px", marginTop:4 }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-            <div><div style={{ fontSize:12, fontWeight:600, color:C.text }}>Credit Decision</div><div style={{ fontSize:11, color:C.textMuted }}>{allDDComplete?"All steps signed off. Ready for decision.":`${doneCount}/7 steps completed.`}</div></div>
-            <div style={{ display:"flex", gap:8 }}><Btn onClick={()=>decideLoan(a.id,"Approved")} disabled={!allDDComplete}>Approve</Btn><Btn variant="danger" onClick={()=>decideLoan(a.id,"Declined")} disabled={!allDDComplete}>Decline</Btn></div>
+            <div><div style={{ fontSize:12, fontWeight:600, color:C.text }}>Submit Recommendation</div><div style={{ fontSize:11, color:C.textMuted }}>{allDDComplete?`All steps signed off. Submit memo to ${getApprovalAuthority(a.amount).label}.`:`${doneCount}/7 steps completed.`}</div></div>
+            <div style={{ display:"flex", gap:8 }}><Btn onClick={()=>submitRecommendation(a.id,"Approve")} disabled={!allDDComplete}>Recommend Approve</Btn><Btn variant="danger" onClick={()=>submitRecommendation(a.id,"Decline")} disabled={!allDDComplete}>Recommend Decline</Btn></div>
+          </div>
+        </div>}
+        {a.status === "Pending Approval" && <div style={{ border:`1px solid ${C.accent}33`, borderRadius:6, padding:"16px 20px", marginTop:4, background:C.accentGlow }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+            <div>
+              <div style={{ fontSize:12, fontWeight:600, color:C.accent }}>Pending Approval — {a.approvalAuthority?.label}</div>
+              <div style={{ fontSize:11, color:C.textDim }}>Recommended: {a.recommendation} by {a.recommendedBy} on {fmt.date(a.recommendedAt)}. {a.approvalAuthority?.level === "Committee" ? "Requires Credit Committee adjudication." : `Requires ${a.approvalAuthority?.label} sign-off.`}</div>
+            </div>
+            {approvalLimit(role) >= a.amount && a.recommendedBy !== currentUser.name && <div style={{ display:"flex", gap:8 }}>
+              <Btn onClick={()=>decideLoan(a.id,"Approved")}>Approve</Btn>
+              <Btn variant="danger" onClick={()=>decideLoan(a.id,"Declined")}>Decline</Btn>
+            </div>}
+            {a.recommendedBy === currentUser.name && <Badge color="amber">Awaiting different authority</Badge>}
+            {approvalLimit(role) < a.amount && a.recommendedBy !== currentUser.name && <Badge color="red">Above your authority ({fmt.cur(approvalLimit(role))})</Badge>}
           </div>
         </div>}
         {a.status === "Booked" && (
