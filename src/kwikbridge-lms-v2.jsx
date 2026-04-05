@@ -257,8 +257,8 @@ function KPI({ label, value, sub, trend, color, accent, sparkData, alert }) {
   const trendIcon = trend === "up" ? "↑" : trend === "down" ? "↓" : "";
   const valueColor = alert ? C.red : C.text;
   return (
-    <div className="kb-kpi" style={{ background: C.surface, borderRadius: 4, padding: "16px 16px 16px 20px", border: `1px solid ${C.surface3}`, flex: "1 1 180px", minWidth: 160, position: "relative", overflow: "hidden", transition: "box-shadow .15s ease-out, transform .15s ease-out" }}>
-      <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: 3, background: C.accent, opacity: 0.7, transition: "opacity .15s ease-out" }} />
+    <div className="kb-kpi" style={{ background: C.surface, borderRadius: 4, padding: "20px 20px 20px 24px", border: `1px solid ${C.border}`, flex: "1 1 200px", minWidth: 180, position: "relative", overflow: "hidden", transition: "box-shadow .15s ease-out, transform .15s ease-out" }}>
+      <div style={{ position: "absolute", top: 4, left: 0, bottom: 4, width: 3, background: C.accent, borderRadius: "0 2px 2px 0", transition: "opacity .15s ease-out" }} />
       <div style={{ fontSize: 10, fontWeight: 600, color: C.textMuted, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 8 }}>{label}</div>
       <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
         <div style={{ fontSize: 22, fontWeight: 700, color: valueColor, letterSpacing: -0.3, lineHeight: 1, whiteSpace: "nowrap" }}>{value}</div>
@@ -372,7 +372,7 @@ function SectionCard({ title, children, actions }) {
         <h3 style={{ margin: 0, fontSize: 11, fontWeight: 600, color: C.textDim, textTransform: "uppercase", letterSpacing: 0.6 }}>{title}</h3>
         {actions && <div style={{ display: "flex", gap: 8 }}>{actions}</div>}
       </div>}
-      <div style={{ padding: 16 }}>{children}</div>
+      <div style={{ padding: 20 }}>{children}</div>
     </div>
   );
 }
@@ -2293,13 +2293,13 @@ export default function App() {
     };
 
     return (<div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
         <div>
           <h2 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: C.text, letterSpacing:-0.3 }}>Dashboard</h2>
           <p style={{ margin: "4px 0 0", fontSize: 12, color: C.textMuted }}>{currentUser.name} · {ROLES[role]?.label} · {roleSummary[role] || ""}</p>
         </div>
         <div style={{ display:"flex", gap:8, alignItems:"center" }}>
-          <button className="kb-cta-outline" onClick={() => setShowWidgetPanel(!showWidgetPanel)} style={{ background:"none", border:`1px solid ${C.border}`, borderRadius:6, padding:"6px 12px", fontSize:11, fontWeight:500, color:C.textDim, cursor:"pointer", fontFamily:"inherit", display:"flex", alignItems:"center", gap:4 }}>
+          <button className="kb-cta-outline" onClick={() => setShowWidgetPanel(!showWidgetPanel)} style={{ background:C.surface2, border:`1px solid ${C.border}`, borderRadius:6, padding:"6px 12px", fontSize:11, fontWeight:500, color:C.textDim, cursor:"pointer", fontFamily:"inherit", display:"flex", alignItems:"center", gap:4 }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 3v18M3 12h18"/><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
             Customise
           </button>
@@ -2308,7 +2308,7 @@ export default function App() {
       </div>
 
       {/* KPIs — tiered by role */}
-      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 20 }}>
+      <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 24 }}>
         {/* Everyone sees portfolio total and loan count */}
         <KPI label="Total Loan Book" value={fmt.cur(totalBook)} sub={`${loans.length} active loans`} trend={loans.length > 0 ? "up" : null} />
         {/* Tier 0-3: see full financial KPIs */}
@@ -2354,7 +2354,7 @@ export default function App() {
         </div>
       </div>}
 
-<div style={{ display: "grid", gridTemplateColumns: tier <= 2 ? "1fr 1fr 1fr" : tier <= 4 ? "1fr 1fr" : "1fr", gap: 16, marginBottom: 20 }}>
+<div style={{ display: "grid", gridTemplateColumns: tier <= 2 ? "1fr 1fr" : "1fr", gap: 20, marginBottom: 24 }}>
         {/* IFRS 9 */}
         <div data-widget="ifrs9" style={{order:widgetConfig.findIndex(w=>w.id==="ifrs9")}}>{visibleWidgets.some(w=>w.id==="ifrs9") && canDo("provisioning","view") && (
           <SectionCard title="IFRS 9 Staging">
@@ -2376,7 +2376,7 @@ export default function App() {
         {/* DPD Distribution */}
         <div data-widget="dpd" style={{order:widgetConfig.findIndex(w=>w.id==="dpd")}}>{visibleWidgets.some(w=>w.id==="dpd") && canDo("provisioning","view") && loans.length > 0 && (
           <SectionCard title="DPD Distribution">
-            <div style={{ display: "flex", alignItems: "flex-end", gap: 4, height: 120, padding: "0 4px" }}>
+            <div style={{ display: "flex", alignItems: "flex-end", gap: 4, height: 140, padding: "0 4px" }}>
               {[{label:"Current",min:0,max:0,color:C.green},{label:"1-30",min:1,max:30,color:C.amber},{label:"31-60",min:31,max:60,color:"#f97316"},{label:"61-90",min:61,max:90,color:C.red},{label:"90+",min:91,max:9999,color:"#7f1d1d"}].map(b => {
                 const count = loans.filter(l => l.dpd >= b.min && l.dpd <= b.max).length;
                 const pct = loans.length ? count / loans.length : 0;
@@ -2394,7 +2394,7 @@ export default function App() {
         {/* Product Mix */}
         <div data-widget="productMix" style={{order:widgetConfig.findIndex(w=>w.id==="productMix")}}>{visibleWidgets.some(w=>w.id==="productMix") && canDo("provisioning","view") && loans.length > 0 && (
           <SectionCard title="Product Mix">
-            {(() => { const prodCounts = {}; loans.forEach(l => { const p = products.find(pp => pp.id === l.product); const name = p ? p.name.split(" — ")[0].split(" ").slice(0,2).join(" ") : l.product; prodCounts[name] = (prodCounts[name]||0) + 1; }); const entries = Object.entries(prodCounts).sort((a,b)=>b[1]-a[1]); const colors = [C.accent,"#2563eb","#7c3aed","#db2777","#ea580c","#65a30d","#0d9488"]; return entries.map(([name, count], i) => {
+            {(() => { const prodCounts = {}; loans.forEach(l => { const p = products.find(pp => pp.id === l.product); const name = p ? p.name.split(" — ")[0].split(" ").slice(0,2).join(" ") : l.product; prodCounts[name] = (prodCounts[name]||0) + 1; }); const entries = Object.entries(prodCounts).sort((a,b)=>b[1]-a[1]); const colors = [C.accent,C.accent,C.accent,C.accent,C.accent,C.accent,C.accent]; return entries.map(([name, count], i) => {
               const pct = loans.length ? Math.round(count / loans.length * 100) : 0;
               return (<div key={name} style={{ marginBottom: 12 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 4 }}>
