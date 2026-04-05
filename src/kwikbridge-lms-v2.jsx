@@ -2088,6 +2088,44 @@ export default function App() {
   }
 
   function Dashboard() {
+
+    // ═══ Widget Customisation System ═══
+    const WIDGET_DEFAULTS = [
+      { id: "kpis", title: "KPI Summary", visible: true, locked: true },
+      { id: "ifrs9", title: "IFRS 9 Staging", visible: true },
+      { id: "pipeline", title: "Application Pipeline", visible: true },
+      { id: "dpd", title: "DPD Distribution", visible: true },
+      { id: "productMix", title: "Product Mix", visible: true },
+      { id: "impact", title: "Development Impact", visible: true },
+      { id: "statutory", title: "NCR Reporting Deadlines", visible: true },
+      { id: "tasks", title: "My Tasks", visible: true },
+      { id: "alerts", title: "Recent Alerts", visible: true },
+    ];
+    const [widgetConfig, setWidgetConfig] = useState(() => {
+      try { const saved = localStorage.getItem("kb-widgets"); return saved ? JSON.parse(saved) : WIDGET_DEFAULTS; }
+      catch { return WIDGET_DEFAULTS; }
+    });
+    const [showWidgetPanel, setShowWidgetPanel] = useState(false);
+    const [dragWidget, setDragWidget] = useState(null);
+
+    const toggleWidget = (id) => {
+      const updated = widgetConfig.map(w => w.id === id && !w.locked ? { ...w, visible: !w.visible } : w);
+      setWidgetConfig(updated);
+      localStorage.setItem("kb-widgets", JSON.stringify(updated));
+    };
+    const moveWidget = (fromIdx, toIdx) => {
+      const items = [...widgetConfig];
+      const [moved] = items.splice(fromIdx, 1);
+      items.splice(toIdx, 0, moved);
+      setWidgetConfig(items);
+      localStorage.setItem("kb-widgets", JSON.stringify(items));
+    };
+    const resetWidgets = () => {
+      setWidgetConfig(WIDGET_DEFAULTS);
+      localStorage.removeItem("kb-widgets");
+    };
+    const visibleWidgets = widgetConfig.filter(w => w.visible);
+
     const totalBook = loans.reduce((s, l) => s + l.balance, 0);
     const totalDisbursed = loans.reduce((s, l) => s + l.amount, 0);
     const arrLoans = loans.filter(l => l.dpd > 0);
@@ -2119,7 +2157,13 @@ export default function App() {
           <h2 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: C.text, letterSpacing:-0.3 }}>Dashboard</h2>
           <p style={{ margin: "4px 0 0", fontSize: 12, color: C.textMuted }}>{currentUser.name} · {ROLES[role]?.label} · {roleSummary[role] || ""}</p>
         </div>
-        {canDo("origination","create") && <Btn onClick={() => setModal("newApp")} icon={I.plus}>New Application</Btn>}
+        <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+          <button className="kb-cta-outline" onClick={() => setShowWidgetPanel(!showWidgetPanel)} style={{ background:"none", border:`1px solid ${C.border}`, borderRadius:6, padding:"6px 12px", fontSize:11, fontWeight:500, color:C.textDim, cursor:"pointer", fontFamily:"inherit", display:"flex", alignItems:"center", gap:4 }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 3v18M3 12h18"/><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            Customise
+          </button>
+          {canDo("origination","create") && <Btn onClick={() => setModal("newApp")} icon={I.plus}>New Application</Btn>}
+        </div>
       </div>
 
       {/* KPIs — tiered by role */}
@@ -2138,9 +2182,40 @@ export default function App() {
         {tier <= 2 && <KPI label="Weighted Avg Rate" value={`${avgRate}%`} />}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: tier <= 2 ? "1fr 1fr 1fr" : tier <= 4 ? "1fr 1fr" : "1fr", gap: 16, marginBottom: 20 }}>
-        {/* IFRS 9 — Finance, Credit, Compliance, Exec, Admin */}
-        {canDo("provisioning","view") && (
+      
+      {/* Widget Customisation Panel */}
+      {showWidgetPanel && <div style={{ position:"fixed", top:0, right:0, bottom:0, width:300, background:C.surface, borderLeft:`1px solid ${C.border}`, boxShadow:"-4px 0 16px rgba(0,0,0,0.08)", zIndex:100, display:"flex", flexDirection:"column", fontFamily:"inherit" }}>
+        <div style={{ padding:"16px 20px", borderBottom:`1px solid ${C.border}`, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+          <div><div style={{ fontSize:14, fontWeight:600, color:C.text }}>Customise Dashboard</div><div style={{ fontSize:11, color:C.textMuted, marginTop:2 }}>Drag to reorder · Toggle visibility</div></div>
+          <button onClick={() => setShowWidgetPanel(false)} style={{ background:"none", border:"none", cursor:"pointer", color:C.textDim, padding:4 }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+        </div>
+        <div style={{ flex:1, overflowY:"auto", padding:"8px 12px" }}>
+          {widgetConfig.map((w, idx) => (
+            <div key={w.id}
+              draggable={!w.locked}
+              onDragStart={() => setDragWidget(idx)}
+              onDragOver={(e) => { e.preventDefault(); }}
+              onDrop={() => { if (dragWidget !== null && dragWidget !== idx) moveWidget(dragWidget, idx); setDragWidget(null); }}
+              style={{ display:"flex", alignItems:"center", gap:8, padding:"10px 12px", marginBottom:4, background:dragWidget === idx ? C.accentGlow : C.surface, border:`1px solid ${dragWidget === idx ? C.accent : C.border}`, borderRadius:6, cursor:w.locked ? "default" : "grab", transition:"background .15s, border-color .15s" }}>
+              {!w.locked && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.textMuted} strokeWidth="2" style={{ flexShrink:0 }}><path d="M8 6h.01M8 12h.01M8 18h.01M16 6h.01M16 12h.01M16 18h.01"/></svg>}
+              {w.locked && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.textMuted} strokeWidth="2" style={{ flexShrink:0 }}><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>}
+              <span style={{ flex:1, fontSize:12, fontWeight:500, color:w.visible ? C.text : C.textMuted }}>{w.title}</span>
+              {!w.locked && <button onClick={() => toggleWidget(w.id)} style={{ background:"none", border:"none", cursor:"pointer", padding:2 }}>
+                <div style={{ width:32, height:18, borderRadius:9, background:w.visible ? C.accent : C.border, transition:"background .2s", position:"relative" }}>
+                  <div style={{ width:14, height:14, borderRadius:7, background:"#fff", position:"absolute", top:2, left:w.visible ? 16 : 2, transition:"left .2s", boxShadow:"0 1px 2px rgba(0,0,0,0.15)" }} />
+                </div>
+              </button>}
+            </div>
+          ))}
+        </div>
+        <div style={{ padding:"12px 16px", borderTop:`1px solid ${C.border}` }}>
+          <button onClick={resetWidgets} style={{ background:"none", border:`1px solid ${C.border}`, borderRadius:6, padding:"8px 16px", fontSize:11, color:C.textDim, cursor:"pointer", width:"100%", fontFamily:"inherit" }}>Reset to Default</button>
+        </div>
+      </div>}
+
+<div style={{ display: "grid", gridTemplateColumns: tier <= 2 ? "1fr 1fr 1fr" : tier <= 4 ? "1fr 1fr" : "1fr", gap: 16, marginBottom: 20 }}>
+        {/* IFRS 9 */}
+        {visibleWidgets.some(w=>w.id==="ifrs9") && canDo("provisioning","view") && (
           <SectionCard title="IFRS 9 Staging">
             {[1, 2, 3].map(s => {
               const sl = loans.filter(l => l.stage === s);
@@ -2157,8 +2232,44 @@ export default function App() {
             })}
           </SectionCard>
         )}
-        {/* Pipeline — Origination/Credit/Exec/Admin */}
-        {canDo("origination","view") && (
+        {/* DPD Distribution */}
+        {visibleWidgets.some(w=>w.id==="dpd") && canDo("provisioning","view") && loans.length > 0 && (
+          <SectionCard title="DPD Distribution">
+            <div style={{ display: "flex", alignItems: "flex-end", gap: 4, height: 120, padding: "0 4px" }}>
+              {[{label:"Current",min:0,max:0,color:C.green},{label:"1-30",min:1,max:30,color:C.amber},{label:"31-60",min:31,max:60,color:"#f97316"},{label:"61-90",min:61,max:90,color:C.red},{label:"90+",min:91,max:9999,color:"#7f1d1d"}].map(b => {
+                const count = loans.filter(l => l.dpd >= b.min && l.dpd <= b.max).length;
+                const pct = loans.length ? count / loans.length : 0;
+                const height = Math.max(4, pct * 100);
+                return (<div key={b.label} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                  <div style={{ fontSize: 10, fontWeight: 600, color: C.text }}>{count}</div>
+                  <div style={{ width: "100%", maxWidth: 40, height: `${height}%`, background: b.color, borderRadius: "4px 4px 0 0", transition: "height .5s ease", minHeight: 4 }} />
+                  <div style={{ fontSize: 10, color: C.textMuted, whiteSpace: "nowrap" }}>{b.label}</div>
+                </div>);
+              })}
+            </div>
+          </SectionCard>
+        )}
+
+        {/* Product Mix */}
+        {visibleWidgets.some(w=>w.id==="productMix") && canDo("provisioning","view") && loans.length > 0 && (
+          <SectionCard title="Product Mix">
+            {(() => { const prodCounts = {}; loans.forEach(l => { const p = products.find(pp => pp.id === l.product); const name = p ? p.name.split(" — ")[0].split(" ").slice(0,2).join(" ") : l.product; prodCounts[name] = (prodCounts[name]||0) + 1; }); const entries = Object.entries(prodCounts).sort((a,b)=>b[1]-a[1]); const colors = [C.accent,"#2563eb","#7c3aed","#db2777","#ea580c","#65a30d","#0d9488"]; return entries.map(([name, count], i) => {
+              const pct = loans.length ? Math.round(count / loans.length * 100) : 0;
+              return (<div key={name} style={{ marginBottom: 12 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 4 }}>
+                  <span style={{ color: C.text, fontWeight: 500 }}>{name}</span>
+                  <span style={{ color: C.textDim }}>{count} ({pct}%)</span>
+                </div>
+                <div style={{ height: 6, background: C.surface3, borderRadius: 4, overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${pct}%`, background: colors[i % colors.length], borderRadius: 4, transition: "width .5s ease" }} />
+                </div>
+              </div>);
+            }); })()}
+          </SectionCard>
+        )}
+
+        {/* Pipeline */}
+        {visibleWidgets.some(w=>w.id==="pipeline") && canDo("origination","view") && (
           <SectionCard title="Application Pipeline">
             {["Submitted","Underwriting","Approved","Declined"].map(s => {
               const count = applications.filter(a => a.status === s).length;
@@ -2170,6 +2281,7 @@ export default function App() {
           </SectionCard>
         )}
         {/* Impact — everyone */}
+        {visibleWidgets.some(w=>w.id==="impact") && (
         <SectionCard title="Development Impact">
           {[["Jobs Supported", fmt.num(jobs)], ["BEE Level 1-2 Clients", customers.filter(c => c.beeLevel <= 2).length], ["Women-Owned (>50%)", customers.filter(c => (c.womenOwned||0) > 50).length], ["Youth-Owned (>50%)", customers.filter(c => (c.youthOwned||0) > 50).length], ["Disability-Owned (>50%)", customers.filter(c => (c.disabilityOwned||0) > 50).length], ["Avg Social Impact Score", applications.filter(a => a.socialScore).length > 0 ? Math.round(applications.filter(a => a.socialScore).reduce((s, a) => s + a.socialScore, 0) / applications.filter(a => a.socialScore).length) : "—"]].map(([l, v], i) => (
             <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 0", borderBottom:`1px solid ${C.surface3}` }}>
@@ -2177,10 +2289,11 @@ export default function App() {
             </div>
           ))}
         </SectionCard>
+        )}
       </div>
 
       {/* Statutory Deadlines — Compliance, Finance, Admin, Exec only */}
-      {canDo("statutory","view") && (statutoryReports||[]).filter(r => r.status !== "Submitted").length > 0 && (
+      {visibleWidgets.some(w=>w.id==="statutory") && canDo("statutory","view") && (statutoryReports||[]).filter(r => r.status !== "Submitted").length > 0 && (
         <SectionCard title="NCR Statutory Reporting Deadlines" actions={<Btn size="sm" variant="ghost" onClick={() => setPage("statutory")}>View All {I.chev}</Btn>}>
           {(statutoryReports||[]).filter(r => r.status !== "Submitted").sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate)).slice(0, 4).map(r => {
             const days = Math.ceil((new Date(r.dueDate) - new Date()) / 864e5);
@@ -2204,7 +2317,7 @@ export default function App() {
       )}
 
       {/* My Tasks — role-specific action items */}
-      {(role === "LOAN_OFFICER" || role === "CREDIT" || role === "CREDIT_SNR" || role === "COLLECTIONS") && (
+      {visibleWidgets.some(w=>w.id==="tasks") && (role === "LOAN_OFFICER" || role === "CREDIT" || role === "CREDIT_SNR" || role === "COLLECTIONS") && (
         <SectionCard title="My Tasks">
           {role === "LOAN_OFFICER" && applications.filter(a => a.status === "Submitted").map(a => (
             <div key={a.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 0", borderBottom:`1px solid ${C.border}`, fontSize:12 }}>
@@ -2230,7 +2343,7 @@ export default function App() {
         </SectionCard>
       )}
 
-      {/* Alerts — filtered by role relevance */}
+      {visibleWidgets.some(w=>w.id==="alerts") && (
       <SectionCard title="Recent Alerts" actions={canDo("governance","view") ? <Btn size="sm" variant="ghost" onClick={() => setPage("governance")}>View All</Btn> : null}>
         {alerts.filter(a => {
           if (tier <= 1) return true; // Admin/Exec see all
@@ -2251,6 +2364,7 @@ export default function App() {
         ))}
         {alerts.length === 0 && <div style={{ fontSize:12, color:C.textMuted }}>No alerts.</div>}
       </SectionCard>
+      )}
     </div>);
   }
 
