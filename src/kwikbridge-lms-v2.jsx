@@ -2558,20 +2558,18 @@ export default function App() {
       </div>
 
       {/* KPIs — tiered by role */}
-      <div style={{ display: "flex", gap: 0, marginBottom: 20, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, overflow: "hidden" }}>
-        {/* Everyone sees portfolio total and loan count */}
+      {/* Primary KPIs */}
+      <div style={{ display: "flex", gap: 0, marginBottom: 8, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, overflow: "hidden" }}>
         <KPI label="Total Loan Book" value={fmt.cur(totalBook)} sub={`${loans.length} active loans`} trend={loans.length > 0 ? "up" : null} />
-        {/* Tier 0-3: see full financial KPIs */}
         {tier <= 3 && <KPI label="Total Disbursed" value={fmt.cur(totalDisbursed)} />}
-        {/* Origination roles see pipeline */}
         {canDo("origination","view") && <KPI label="Pipeline" value={fmt.cur(pipeAmt)} sub={`${pipeline.length} pending`} />}
-        {/* Collections and above see arrears */}
         {canDo("collections","view") && <KPI label="Arrears" value={fmt.cur(arrAmt)} sub={`${arrLoans.length} accounts`} alert={arrLoans.length > 0} trend={arrLoans.length > 0 ? "down" : null} />}
-        {/* Finance, Credit Head, Exec, Admin see ECL */}
-        {canDo("provisioning","view") && <KPI label="ECL Provision" value={fmt.cur(ecl)} sub="IFRS 9" />}
-        {/* Tier 0-2 see rate */}
-        {tier <= 2 && <KPI label="Weighted Avg Rate" value={`${avgRate}%`} />}
       </div>
+      {/* Secondary KPIs */}
+      {(canDo("provisioning","view") || tier <= 2) && <div style={{ display: "flex", gap: 0, marginBottom: 20, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, overflow: "hidden" }}>
+        {canDo("provisioning","view") && <KPI label="ECL Provision" value={fmt.cur(ecl)} sub="IFRS 9" />}
+        {tier <= 2 && <KPI label="Weighted Avg Rate" value={`${avgRate}%`} />}
+      </div>}
 
       
       {/* Widget Customisation Panel */}
@@ -2604,7 +2602,7 @@ export default function App() {
         </div>
       </div>}
 
-<div style={{ display: "grid", gridTemplateColumns: tier <= 2 ? "1fr 1fr 1fr" : tier <= 4 ? "1fr 1fr" : "1fr", gap: 12, marginBottom: 16 }}>
+<div style={{ display: "grid", gridTemplateColumns: tier <= 4 ? "1fr 1fr" : "1fr", gap: 12, marginBottom: 16 }}>
         {/* IFRS 9 */}
         <div data-widget="ifrs9" style={{order:widgetConfig.findIndex(w=>w.id==="ifrs9")}}>{visibleWidgets.some(w=>w.id==="ifrs9") && canDo("provisioning","view") && (
           <SectionCard title="IFRS 9 Staging">
