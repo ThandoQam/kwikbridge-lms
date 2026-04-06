@@ -1216,6 +1216,469 @@ export default function App() {
     P006: { required:["cropLien"], optional:["personalGuarantee","insurance"], desc:"Agricultural finance — crop lien over standing crops." },
     P007: { required:["cession","personalGuarantee"], optional:["bankAuth","assetPledge","insurance"], desc:"Contract-backed term loans require cession + director suretyship." },
   };
+
+// ═══════════════════════════════════════════════════════════════
+// AI CREDIT INTELLIGENCE ENGINE v2.0
+// Inspired by MYbank (Ant Group) + WeBank (Tencent)
+// ═══════════════════════════════════════════════════════════════
+
+// ─── 1. AI CREDIT MEMO AUTO-DRAFT ───
+// Analyses uploaded financials, bureau data, and DD findings
+// to auto-generate a structured credit memorandum
+const aiDraftCreditMemo = (app, customer, product, workflow) => {
+  const w = workflow || {};
+  const bureau = w.creditBureauScore || 0;
+  const dscr = app.dscr || 0;
+  const riskScore = app.riskScore || 0;
+  const socialScore = app.socialScore || 0;
+  const collateralTotal = w.collateralTotal || 0;
+  const ltv = app.amount && collateralTotal ? (app.amount / collateralTotal * 100) : 0;
+  
+  // AI-generated assessment summaries
+  const financialAssessment = dscr >= 1.5 ? "Strong debt service capacity with comfortable headroom above minimum threshold."
+    : dscr >= 1.25 ? "Adequate debt service coverage meeting policy requirements with limited buffer."
+    : dscr >= 1.0 ? "Marginal debt service capacity — recommend enhanced monitoring covenants."
+    : "Insufficient debt service coverage — significant affordability risk identified.";
+  
+  const bureauAssessment = bureau >= 700 ? "Excellent credit history — no adverse records, consistent payment patterns."
+    : bureau >= 600 ? "Good credit profile — minor historical issues, overall positive trajectory."
+    : bureau >= 500 ? "Fair credit standing — some adverse history noted, requires careful assessment."
+    : "Poor credit record — significant adverse history. Enhanced security recommended.";
+  
+  const collateralAssessment = ltv < 60 ? "Strong security position — LTV well within policy limits."
+    : ltv < 80 ? "Adequate security cover — LTV within acceptable parameters."
+    : ltv < 100 ? "Marginal security — recommend additional collateral or guarantees."
+    : "Under-secured — LTV exceeds 100%. Additional security required.";
+  
+  const socialAssessment = socialScore >= 80 ? "High development impact — strong BEE credentials, significant job creation."
+    : socialScore >= 60 ? "Good development impact — solid empowerment contribution."
+    : socialScore >= 40 ? "Moderate development impact — some transformation contribution."
+    : "Limited development impact information available.";
+  
+  // Overall recommendation logic
+  const positives = [];
+  const negatives = [];
+  if (dscr >= 1.25) positives.push("DSCR above threshold");
+  else negatives.push("DSCR below 1.25x");
+  if (bureau >= 600) positives.push("clean credit history");
+  else negatives.push("adverse credit history");
+  if (ltv < 80) positives.push("adequate security");
+  else negatives.push("insufficient collateral");
+  if (socialScore >= 60) positives.push("strong development impact");
+  if (w.siteVisitComplete) positives.push("site visit completed");
+  if (!w.kycComplete) negatives.push("KYC incomplete");
+  
+  const recommendation = negatives.length === 0 ? "APPROVE" 
+    : negatives.length <= 1 && positives.length >= 3 ? "APPROVE with conditions"
+    : negatives.length <= 2 && positives.length >= 2 ? "ESCALATE for committee review"
+    : "DECLINE";
+    
+  return {
+    financialAssessment,
+    bureauAssessment,
+    collateralAssessment,
+    socialAssessment,
+    positives,
+    negatives,
+    recommendation,
+    aiConfidence: Math.min(98, Math.max(40, Math.round(
+      (positives.length / (positives.length + negatives.length)) * 80 + 
+      (w.kycComplete ? 10 : 0) + (w.siteVisitComplete ? 8 : 0)
+    ))),
+    riskGrade: riskScore >= 80 ? "A" : riskScore >= 65 ? "B" : riskScore >= 50 ? "C" : riskScore >= 35 ? "D" : "E",
+  };
+};
+
+// ─── 2. PREDICTIVE EARLY WARNING SYSTEM (EWS) ───
+// Scores each loan daily based on behavioural + financial signals
+// Predicts probability of 30+ DPD in next 30 days
+const predictDelinquency = (loan, customer, collections, payments) => {
+  const signals = {};
+  let riskPoints = 0;
+  
+  // Signal 1: Payment pattern deterioration
+  const recentPayments = (payments || []).slice(-6);
+  const latePayments = recentPayments.filter(p => p.daysLate > 0).length;
+  signals.paymentPattern = latePayments === 0 ? "Consistent" : latePayments <= 2 ? "Occasional delays" : "Deteriorating";
+  riskPoints += latePayments * 8;
+  
+  // Signal 2: Partial payment trend
+  const partialPayments = recentPayments.filter(p => p.amount < (loan.monthlyPmt * 0.95)).length;
+  signals.partialPayments = partialPayments === 0 ? "Full payments" : `${partialPayments} partial in last 6`;
+  riskPoints += partialPayments * 6;
+  
+  // Signal 3: Current DPD momentum
+  signals.currentDpd = loan.dpd || 0;
+  riskPoints += Math.min(40, (loan.dpd || 0) * 2);
+  
+  // Signal 4: Communication responsiveness
+  const recentComms = (collections || []).filter(c => c.loanId === loan.id);
+  const unansweredCalls = recentComms.filter(c => c.action === "Phone Call" && c.notes?.includes("No answer")).length;
+  signals.communicationScore = unansweredCalls === 0 ? "Responsive" : unansweredCalls <= 2 ? "Partially responsive" : "Non-responsive";
+  riskPoints += unansweredCalls * 5;
+  
+  // Signal 5: Sector stress indicator
+  const sectorRisk = {
+    "Construction": 15, "Mining": 12, "Agriculture": 10, "Retail": 8,
+    "Manufacturing": 5, "Technology": 3, "Services": 4, "Healthcare": 2,
+  };
+  signals.sectorRisk = sectorRisk[customer?.industry] || 5;
+  riskPoints += signals.sectorRisk;
+  
+  // Signal 6: Loan age (newer loans are riskier)
+  const loanAgeDays = loan.disbursed ? Math.floor((Date.now() - loan.disbursed) / 86400000) : 0;
+  signals.loanAge = loanAgeDays < 90 ? "Seasoning (<90 days)" : loanAgeDays < 180 ? "Early stage" : "Seasoned";
+  if (loanAgeDays < 90) riskPoints += 8;
+  
+  // Signal 7: Utilisation (for revolving facilities)
+  signals.utilisation = loan.balance && loan.amount ? Math.round(loan.balance / loan.amount * 100) : 0;
+  
+  // Calculate probability
+  const rawProb = Math.min(95, Math.max(2, riskPoints));
+  const ewsScore = 100 - rawProb; // Higher = safer
+  
+  return {
+    loanId: loan.id,
+    ewsScore,
+    probability30DPD: rawProb,
+    riskLevel: rawProb > 60 ? "Critical" : rawProb > 40 ? "High" : rawProb > 20 ? "Medium" : "Low",
+    signals,
+    recommendation: rawProb > 60 ? "Immediate outreach — high default probability"
+      : rawProb > 40 ? "Proactive engagement — schedule courtesy call"
+      : rawProb > 20 ? "Monitor closely — review at next covenant check"
+      : "No action required — performing well",
+    nextAction: rawProb > 60 ? "Phone call within 24hrs" : rawProb > 40 ? "SMS reminder + call within 7 days" : rawProb > 20 ? "Review at month-end" : "Standard monitoring",
+  };
+};
+
+// ─── 3. BEHAVIOURAL WILLINGNESS-TO-REPAY SCORE ───
+// WeBank dual-score: Capacity (financial) + Willingness (behavioural)
+const calcWillingnessScore = (customer, app, collections, comms) => {
+  let score = 70; // Base score
+  
+  // Document submission timeliness
+  const w = app?.workflow || {};
+  if (w.docsComplete) score += 5;
+  if (w.kycComplete) score += 5;
+  
+  // Communication responsiveness
+  const custComms = (comms || []).filter(c => c.custId === customer?.id);
+  const responded = custComms.filter(c => c.response).length;
+  const total = custComms.length || 1;
+  score += Math.round((responded / total) * 15);
+  
+  // Collection history cooperation
+  const custCollections = (collections || []).filter(c => c.custId === customer?.id);
+  const ptpsKept = custCollections.filter(c => c.ptpDate && c.ptpMet).length;
+  const ptpsTotal = custCollections.filter(c => c.ptpDate).length || 1;
+  score += Math.round((ptpsKept / ptpsTotal) * 10);
+  
+  // Site visit cooperation
+  if (w.siteVisitComplete) score += 5;
+  
+  // Negative signals
+  const disputes = custCollections.filter(c => c.action === "Dispute").length;
+  score -= disputes * 10;
+  
+  const avoidance = custCollections.filter(c => c.notes?.toLowerCase().includes("no answer") || c.notes?.toLowerCase().includes("unreachable")).length;
+  score -= avoidance * 5;
+  
+  return {
+    score: Math.min(100, Math.max(0, score)),
+    grade: score >= 80 ? "High" : score >= 60 ? "Medium" : score >= 40 ? "Low" : "Very Low",
+    factors: {
+      docCompliance: w.docsComplete ? "Complete" : "Incomplete",
+      communication: responded > 0 ? `${responded}/${total} responded` : "No interactions",
+      ptpCompliance: ptpsTotal > 1 ? `${ptpsKept}/${ptpsTotal-1} kept` : "No PTPs",
+      cooperation: w.siteVisitComplete ? "Cooperative" : "Limited engagement",
+      redFlags: disputes + avoidance > 0 ? `${disputes} disputes, ${avoidance} unreachable` : "None",
+    },
+  };
+};
+
+// ─── 4. CASH FLOW PREDICTION ENGINE ───
+// Time-series analysis of bank statement data for forward DSCR
+const predictCashFlow = (historicalMonths, loanAmount, term, rate) => {
+  // historicalMonths: array of { month, revenue, expenses, netCashFlow }
+  if (!historicalMonths || historicalMonths.length < 3) {
+    return { predicted: [], confidence: 0, seasonalityDetected: false, forwardDSCR: null };
+  }
+  
+  const nets = historicalMonths.map(m => m.netCashFlow);
+  const avg = nets.reduce((s, n) => s + n, 0) / nets.length;
+  const stdDev = Math.sqrt(nets.reduce((s, n) => s + Math.pow(n - avg, 2), 0) / nets.length);
+  
+  // Detect seasonality (coefficient of variation > 30%)
+  const cv = avg > 0 ? (stdDev / avg) * 100 : 0;
+  const seasonalityDetected = cv > 30;
+  
+  // Simple trend: linear regression
+  const n = nets.length;
+  const xMean = (n - 1) / 2;
+  const slope = nets.reduce((s, y, i) => s + (i - xMean) * (y - avg), 0) / nets.reduce((s, _, i) => s + Math.pow(i - xMean, 2), 0);
+  
+  // Predict next 12 months
+  const monthlyPayment = loanAmount && term && rate ? 
+    (loanAmount * (rate / 100 / 12)) / (1 - Math.pow(1 + rate / 100 / 12, -term)) : 0;
+  
+  const predicted = [];
+  for (let i = 0; i < 12; i++) {
+    const trendValue = avg + slope * (n + i);
+    // Add seasonal pattern if detected (repeat historical pattern)
+    const seasonalAdj = seasonalityDetected && historicalMonths.length >= 12 
+      ? (historicalMonths[i % historicalMonths.length].netCashFlow - avg) * 0.3 : 0;
+    const predictedCashFlow = Math.max(0, trendValue + seasonalAdj);
+    predicted.push({
+      month: i + 1,
+      predictedCashFlow: Math.round(predictedCashFlow),
+      dscr: monthlyPayment > 0 ? Math.round(predictedCashFlow / monthlyPayment * 100) / 100 : 0,
+      stress: Math.round(predictedCashFlow * 0.7), // 30% stress scenario
+      stressDSCR: monthlyPayment > 0 ? Math.round(predictedCashFlow * 0.7 / monthlyPayment * 100) / 100 : 0,
+    });
+  }
+  
+  const avgForwardDSCR = predicted.reduce((s, p) => s + p.dscr, 0) / predicted.length;
+  const minDSCR = Math.min(...predicted.map(p => p.dscr));
+  const avgStressDSCR = predicted.reduce((s, p) => s + p.stressDSCR, 0) / predicted.length;
+  
+  return {
+    predicted,
+    confidence: Math.min(95, Math.round(60 + historicalMonths.length * 2.5 - cv * 0.3)),
+    seasonalityDetected,
+    trend: slope > 0 ? "Improving" : slope < -avg * 0.05 ? "Declining" : "Stable",
+    volatility: cv > 50 ? "High" : cv > 30 ? "Moderate" : "Low",
+    forwardDSCR: Math.round(avgForwardDSCR * 100) / 100,
+    minDSCR: Math.round(minDSCR * 100) / 100,
+    stressDSCR: Math.round(avgStressDSCR * 100) / 100,
+    monthlyPayment: Math.round(monthlyPayment),
+  };
+};
+
+// ─── 5. AI LOAN ASSISTANT (Conversational) ───
+// Processes borrower queries using structured context
+const aiLoanAssistant = (query, context) => {
+  const { loan, application, customer, product } = context;
+  const q = query.toLowerCase();
+  
+  // Pattern matching for common queries
+  if (q.includes("limit") || q.includes("why") && q.includes("amount")) {
+    const factors = [];
+    if (application?.dscr) factors.push(`Your debt service coverage ratio is ${application.dscr}x${application.dscr < 1.25 ? " (below our 1.25x minimum)" : ""}`);
+    if (application?.riskScore) factors.push(`Your credit risk score is ${application.riskScore}/100`);
+    if (customer?.beeLevel) factors.push(`BEE Level ${customer.beeLevel} qualification`);
+    return { answer: `Your credit limit was determined based on: ${factors.join("; ")}. Contact your relationship manager for a detailed review.`, type: "limit_explanation" };
+  }
+  
+  if (q.includes("payment") || q.includes("due") || q.includes("schedule")) {
+    return { answer: loan ? `Your monthly payment is ${fmt.cur(loan.monthlyPmt)}, due on the ${loan.paymentDay || 1}st of each month. Current balance: ${fmt.cur(loan.balance)}.` : "No active loan found.", type: "payment_info" };
+  }
+  
+  if (q.includes("increase") || q.includes("more") || q.includes("top up")) {
+    const eligible = loan && loan.dpd === 0 && loan.balance < loan.amount * 0.5;
+    return { answer: eligible ? "Based on your repayment history, you may qualify for a top-up. Submit updated financials through the portal." : "To be eligible for a credit increase, maintain a clean payment record for at least 6 months.", type: "increase_request" };
+  }
+  
+  if (q.includes("status") || q.includes("application") || q.includes("where")) {
+    return { answer: application ? `Application ${application.id} status: ${application.status}. ${application.status === "Pending Approval" ? "Awaiting approval authority sign-off." : application.status === "Underwriting" ? "Credit assessment in progress." : ""}` : "No pending application found.", type: "status_check" };
+  }
+  
+  if (q.includes("document") || q.includes("upload") || q.includes("submit")) {
+    return { answer: "Upload documents through the Documents section in your portal. Required: ID, proof of address, company registration, financial statements, and business plan.", type: "document_guidance" };
+  }
+  
+  if (q.includes("restructure") || q.includes("struggle") || q.includes("difficult") || q.includes("hardship")) {
+    return { answer: "If you're experiencing financial difficulty, contact us immediately. We offer payment holidays, term extensions, and restructuring options. Early engagement gives you the most flexibility.", type: "hardship_support" };
+  }
+  
+  return { answer: "I can help with payment information, application status, document requirements, and credit limit queries. What would you like to know?", type: "general" };
+};
+
+// ─── 6. ALTERNATIVE DATA SCORING ───
+// Enriches thin-file borrowers with non-bureau signals
+const calcAlternativeDataScore = (customer, bankStatements, mobileData) => {
+  let score = 50; // Neutral starting point
+  const signals = {};
+  
+  // Bank statement signals
+  if (bankStatements) {
+    // Transaction velocity (active business)
+    signals.monthlyTransactions = bankStatements.avgMonthlyTransactions || 0;
+    if (signals.monthlyTransactions > 100) score += 10;
+    else if (signals.monthlyTransactions > 50) score += 5;
+    
+    // Average balance maintenance
+    signals.avgBalance = bankStatements.avgBalance || 0;
+    signals.minBalance = bankStatements.minBalance || 0;
+    if (signals.minBalance > 0) score += 8; // Never went negative
+    
+    // Income stability (coefficient of variation)
+    signals.incomeCV = bankStatements.incomeCV || 0;
+    if (signals.incomeCV < 20) score += 10; // Very stable income
+    else if (signals.incomeCV < 40) score += 5;
+    else score -= 5; // Volatile income
+    
+    // Debit order regularity (bills paid consistently)
+    signals.debitOrdersRegular = bankStatements.regularDebitOrders || 0;
+    score += Math.min(10, signals.debitOrdersRegular * 2);
+    
+    // Gambling/high-risk transactions
+    signals.gamblingTransactions = bankStatements.gamblingTransactions || 0;
+    score -= signals.gamblingTransactions * 5;
+  }
+  
+  // Mobile/digital presence signals
+  if (mobileData) {
+    signals.hasWebsite = mobileData.hasWebsite || false;
+    if (signals.hasWebsite) score += 3;
+    
+    signals.socialMediaPresence = mobileData.socialMediaPresence || false;
+    if (signals.socialMediaPresence) score += 2;
+    
+    signals.googleReviews = mobileData.googleReviews || 0;
+    if (signals.googleReviews > 10) score += 5;
+    else if (signals.googleReviews > 3) score += 3;
+  }
+  
+  // CIPC filing history
+  signals.cipcFilingsCurrent = customer?.cipcCurrent || false;
+  if (signals.cipcFilingsCurrent) score += 5;
+  
+  // Years in business (longevity signal)
+  signals.yearsInBusiness = customer?.yearsInBusiness || 0;
+  score += Math.min(10, signals.yearsInBusiness * 2);
+  
+  return {
+    score: Math.min(100, Math.max(0, score)),
+    grade: score >= 75 ? "Strong" : score >= 55 ? "Adequate" : score >= 35 ? "Weak" : "Insufficient",
+    signals,
+    dataCompleteness: Math.round(Object.values(signals).filter(v => v !== 0 && v !== false && v !== "").length / Object.keys(signals).length * 100),
+    thinFileAdjustment: !customer?.bureauScore || customer.bureauScore === 0 ? "Thin-file — alternative data is primary scoring input" : "Bureau data available — alternative data supplements",
+  };
+};
+
+// ─── 7. SUPPLY CHAIN KNOWLEDGE GRAPH ───
+// Maps borrower position in supply chain for PO/Invoice products
+const buildSupplyChainGraph = (customer, product, allCustomers) => {
+  const graph = {
+    borrower: { id: customer?.id, name: customer?.name, industry: customer?.industry },
+    offTaker: null,
+    suppliers: [],
+    peers: [],
+    riskConcentration: 0,
+    networkHealth: "Unknown",
+  };
+  
+  // Identify off-taker for PO/Invoice products
+  if (product?.id === "P001") {
+    graph.offTaker = { name: "Eastern Cape Dept of Education", type: "Government", riskRating: "Sovereign", paymentHistory: "30-45 day cycle", reliability: "High" };
+  } else if (product?.id === "P002" || product?.id === "P003") {
+    graph.offTaker = { name: customer?.primaryDebtor || "Private sector", type: "Corporate", riskRating: "Commercial", paymentHistory: "Variable", reliability: "Medium" };
+  } else if (product?.id === "P004") {
+    graph.offTaker = { name: "Coega Development Corporation", type: "Parastatal", riskRating: "Near-sovereign", paymentHistory: "45-60 day cycle", reliability: "High" };
+  }
+  
+  // Find peers in same industry/supply chain
+  graph.peers = (allCustomers || [])
+    .filter(c => c.id !== customer?.id && c.industry === customer?.industry)
+    .map(c => ({ id: c.id, name: c.name, performance: c.loanStatus || "Unknown" }))
+    .slice(0, 5);
+  
+  // Risk concentration: how many borrowers share the same off-taker
+  const sameOffTaker = (allCustomers || []).filter(c => c.industry === customer?.industry).length;
+  graph.riskConcentration = sameOffTaker;
+  
+  // Network health assessment
+  const peerPerformance = graph.peers.filter(p => p.performance === "Active" || p.performance === "Performing").length;
+  graph.networkHealth = graph.peers.length === 0 ? "No peers" 
+    : peerPerformance / graph.peers.length > 0.8 ? "Healthy"
+    : peerPerformance / graph.peers.length > 0.5 ? "Mixed"
+    : "Stressed";
+  
+  return graph;
+};
+
+// ─── 8. AGRI SATELLITE ASSESSMENT ───
+// Simulated NDVI crop health analysis for P006 Agri product
+const assessCropHealth = (farmCoordinates, cropType, hectares) => {
+  // In production: calls Planet/Sentinel Hub API with GPS coordinates
+  // For demo: generates realistic assessment based on inputs
+  const cropYields = {
+    "Maize": { avgYield: 4.5, pricePerTon: 3800, season: "Oct-Apr" },
+    "Wheat": { avgYield: 3.2, pricePerTon: 5200, season: "May-Nov" },
+    "Soybeans": { avgYield: 2.1, pricePerTon: 7500, season: "Nov-Apr" },
+    "Citrus": { avgYield: 25, pricePerTon: 4200, season: "Year-round" },
+    "Sugarcane": { avgYield: 65, pricePerTon: 550, season: "Apr-Dec" },
+    "Vegetables": { avgYield: 15, pricePerTon: 6000, season: "Year-round" },
+    "Livestock": { avgYield: 0, pricePerTon: 0, season: "Year-round" },
+  };
+  
+  const crop = cropYields[cropType] || cropYields["Maize"];
+  const h = hectares || 10;
+  
+  // Simulated NDVI (0.0-1.0, higher = healthier vegetation)
+  const ndvi = Math.round((0.55 + Math.random() * 0.35) * 100) / 100;
+  const healthStatus = ndvi > 0.7 ? "Healthy" : ndvi > 0.5 ? "Moderate" : ndvi > 0.3 ? "Stressed" : "Poor";
+  
+  // Estimated yield and revenue
+  const yieldMultiplier = ndvi > 0.7 ? 1.1 : ndvi > 0.5 ? 0.9 : ndvi > 0.3 ? 0.6 : 0.3;
+  const estimatedYield = Math.round(crop.avgYield * h * yieldMultiplier);
+  const estimatedRevenue = estimatedYield * crop.pricePerTon;
+  
+  // Soil moisture estimate
+  const soilMoisture = Math.round((0.3 + Math.random() * 0.4) * 100) / 100;
+  
+  return {
+    coordinates: farmCoordinates,
+    cropType,
+    hectares: h,
+    ndvi,
+    healthStatus,
+    soilMoisture,
+    soilStatus: soilMoisture > 0.5 ? "Adequate" : soilMoisture > 0.3 ? "Low" : "Critical",
+    estimatedYield: `${estimatedYield} tons`,
+    estimatedRevenue,
+    season: crop.season,
+    assessmentDate: Date.now(),
+    riskFactors: [
+      ...(ndvi < 0.5 ? ["Low vegetation index — possible drought/pest damage"] : []),
+      ...(soilMoisture < 0.3 ? ["Critical soil moisture — irrigation required"] : []),
+      ...(h < 5 ? ["Small farm size — limited economies of scale"] : []),
+    ],
+    lendingCapacity: Math.round(estimatedRevenue * 0.4), // 40% of estimated revenue
+    confidence: Math.min(90, Math.round(60 + ndvi * 30)),
+  };
+};
+
+// ─── COMPOSITE AI RISK SCORE ───
+// Blends all AI signals into unified risk assessment
+const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
+  const financial = { score: app?.riskScore || 50, weight: 0.35 };
+  const willingness = calcWillingnessScore(customer, app, collections, comms);
+  const altData = calcAlternativeDataScore(customer);
+  
+  const composite = Math.round(
+    financial.score * financial.weight +
+    willingness.score * 0.25 +
+    altData.score * 0.20 +
+    (app?.socialScore || 50) * 0.10 +
+    (customer?.yearsInBusiness ? Math.min(100, customer.yearsInBusiness * 10) : 50) * 0.10
+  );
+  
+  return {
+    composite: Math.min(100, Math.max(0, composite)),
+    grade: composite >= 80 ? "A" : composite >= 65 ? "B" : composite >= 50 ? "C" : composite >= 35 ? "D" : "E",
+    components: {
+      financial: { score: financial.score, weight: "35%", label: "Financial Capacity" },
+      willingness: { score: willingness.score, weight: "25%", label: "Willingness to Repay" },
+      altData: { score: altData.score, weight: "20%", label: "Alternative Data" },
+      social: { score: app?.socialScore || 50, weight: "10%", label: "Development Impact" },
+      experience: { score: Math.min(100, (customer?.yearsInBusiness || 5) * 10), weight: "10%", label: "Business Maturity" },
+    },
+    willingnessDetail: willingness,
+    altDataDetail: altData,
+  };
+};
+
   const getProductSecurity = (productId) => {
     const prod = products.find(p => p.id === productId);
     if (prod?.requiredSecurity?.length > 0 || prod?.optionalSecurity?.length > 0) {
@@ -1944,7 +2407,10 @@ export default function App() {
       const debtEquity = +(Math.random() * 1.8).toFixed(2);
       const grossMargin = +(Math.random() * 0.25 + 0.2).toFixed(2);
       const affordable = dscr >= 1.2;
-      const riskScore = Math.min(99, Math.max(20, Math.round(bureauScore / 10 + dscr * 10 + (currentRatio > 1.2 ? 10 : 0) - (debtEquity > 1.0 ? 10 : 0))));
+      const baseRiskScore = Math.min(99, Math.max(20, Math.round(bureauScore / 10 + dscr * 10 + (currentRatio > 1.2 ? 10 : 0) - (debtEquity > 1.0 ? 10 : 0))));
+      // AI Composite Score — blends financial + behavioural + alternative data
+      const aiComposite = calcCompositeAIScore({...a, riskScore: baseRiskScore, dscr, currentRatio, debtEquity}, cust(a.custId), null, collections, comms);
+      const riskScore = Math.round(baseRiskScore * 0.6 + aiComposite.composite * 0.4); // 60% traditional + 40% AI
 
       const existing = w.creditFindings || [];
       const findings = existing.length > 0 && existing[0].analystNote !== undefined ? existing : [
@@ -1966,6 +2432,14 @@ export default function App() {
       updatedApp.currentRatio = currentRatio;
       updatedApp.debtEquity = debtEquity;
       updatedApp.riskScore = riskScore;
+      // AI Cash Flow Prediction
+      const historicalMonths = Array.from({length:12}, (_, i) => ({
+        month: i+1,
+        revenue: Math.round(50000 + Math.random() * (a.amount || 100000) * 0.3),
+        expenses: Math.round(30000 + Math.random() * (a.amount || 100000) * 0.2),
+        netCashFlow: Math.round(15000 + Math.random() * (a.amount || 100000) * 0.15),
+      }));
+      updatedApp.cashFlowPrediction = predictCashFlow(historicalMonths, a.amount, a.term, prod(a.product)?.baseRate || 18);
       newAudit.push(addAudit("Credit Report Pulled", a.id, "System (TransUnion API)", `Bureau: ${bureauScore}. DSCR: ${dscr}x. Risk: ${riskScore}. Affordability: ${affordable?"Pass":"Fail"}.`, "Underwriting"));
     }
 
@@ -2079,6 +2553,7 @@ export default function App() {
         findings: w.socialFindings || [],
       },
       analystNotes: w.analystNotes || "",
+      aiAssessment: aiDraftCreditMemo(app, cust(app.custId), prod(app.product), w),
     };
   };
 
@@ -2138,6 +2613,19 @@ export default function App() {
     sections.push(`   Youth-Owned:    ${memo.socialImpact.youthOwned || "—"}%`);
     sections.push("");
     if (memo.analystNotes) { sections.push("8. ANALYST NOTES"); sections.push(`   ${memo.analystNotes}`); sections.push(""); }
+    if (memo.aiAssessment) {
+      const ai = memo.aiAssessment;
+      sections.push("8b. AI CREDIT ASSESSMENT");
+      sections.push(`   Risk Grade:     ${ai.riskGrade} (${ai.aiConfidence}% confidence)`);
+      sections.push(`   Financial:      ${ai.financialAssessment}`);
+      sections.push(`   Bureau:         ${ai.bureauAssessment}`);
+      sections.push(`   Security:       ${ai.collateralAssessment}`);
+      sections.push(`   Impact:         ${ai.socialAssessment}`);
+      sections.push(`   Strengths:      ${ai.positives.join(", ") || "None identified"}`);
+      sections.push(`   Concerns:       ${ai.negatives.join(", ") || "None identified"}`);
+      sections.push(`   AI Rec:         ${ai.recommendation}`);
+      sections.push("");
+    }
     sections.push("9. RECOMMENDATION");
     sections.push(`   ${recommendation}`);
     sections.push("");
@@ -2723,6 +3211,26 @@ export default function App() {
           ))}
         </SectionCard>
         )}</div>
+
+        {/* AI Early Warning System */}
+        <div data-widget="ews" style={{ order: widgetConfig.findIndex(w2=>w2.id==="ews") >= 0 ? widgetConfig.findIndex(w2=>w2.id==="ews") : 99 }}>
+        <SectionCard title="AI Early Warning System">
+          {loans.filter(l=>l.status==="Active").length === 0 ? <div style={{ fontSize:12, color:C.textMuted }}>No active loans to monitor</div> :
+          loans.filter(l=>l.status==="Active").slice(0,5).map(l => {
+            const ews = predictDelinquency(l, cust(l.custId), collections, l.payments);
+            return <div key={l.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 0", borderBottom:`1px solid ${C.border}` }}>
+              <div>
+                <div style={{ fontSize:12, fontWeight:500, color:C.text }}>{l.id} · {cust(l.custId)?.name}</div>
+                <div style={{ fontSize:10, color:C.textDim }}>{ews.recommendation}</div>
+              </div>
+              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                <div style={{ fontSize:18, fontWeight:700, fontFamily:"monospace", color: ews.ewsScore >= 70 ? C.green : ews.ewsScore >= 40 ? C.amber : C.red }}>{ews.ewsScore}</div>
+                <Badge color={ews.riskLevel === "Low" ? "green" : ews.riskLevel === "Medium" ? "amber" : "red"}>{ews.riskLevel}</Badge>
+              </div>
+            </div>;
+          })}
+        </SectionCard>
+        </div>
       </div>
 
       {/* Statutory Deadlines — Compliance, Finance, Admin, Exec only */}
@@ -4599,6 +5107,35 @@ export default function App() {
           ]} rows={[...l.payments].sort((a,b)=>b.date-a.date)} />
           {canDo("servicing","create") && <div style={{ marginTop:12 }}><Btn size="sm" variant="secondary" onClick={()=>recordPayment(l.id, l.monthlyPmt)} icon={I.plus}>Record Payment</Btn></div>}
         </SectionCard>
+
+                {/* AI Credit Intelligence */}
+        {l.status==="Active" && <SectionCard title="AI Credit Intelligence">
+          {(() => {
+            const ews = predictDelinquency(l, cust(l.custId), collections, l.payments);
+            const willingness = calcWillingnessScore(cust(l.custId), null, collections, comms);
+            const altData = calcAlternativeDataScore(cust(l.custId));
+            return <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:16 }}>
+              <div>
+                <div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase", letterSpacing:1 }}>EWS Score</div>
+                <div style={{ fontSize:28, fontWeight:700, fontFamily:"monospace", color: ews.ewsScore >= 70 ? C.green : ews.ewsScore >= 40 ? C.amber : C.red }}>{ews.ewsScore}</div>
+                <Badge color={ews.riskLevel === "Low" ? "green" : ews.riskLevel === "Medium" ? "amber" : "red"}>{ews.riskLevel} Risk</Badge>
+                <div style={{ fontSize:10, color:C.textDim, marginTop:4 }}>{ews.nextAction}</div>
+              </div>
+              <div>
+                <div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase", letterSpacing:1 }}>Willingness</div>
+                <div style={{ fontSize:28, fontWeight:700, fontFamily:"monospace", color: willingness.score >= 70 ? C.green : willingness.score >= 40 ? C.amber : C.red }}>{willingness.score}</div>
+                <Badge color={willingness.grade === "High" ? "green" : willingness.grade === "Medium" ? "amber" : "red"}>{willingness.grade}</Badge>
+                <div style={{ fontSize:10, color:C.textDim, marginTop:4 }}>{willingness.factors.communication}</div>
+              </div>
+              <div>
+                <div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase", letterSpacing:1 }}>Alt Data</div>
+                <div style={{ fontSize:28, fontWeight:700, fontFamily:"monospace", color: altData.score >= 65 ? C.green : altData.score >= 45 ? C.amber : C.red }}>{altData.score}</div>
+                <Badge color={altData.grade === "Strong" ? "green" : altData.grade === "Adequate" ? "amber" : "red"}>{altData.grade}</Badge>
+                <div style={{ fontSize:10, color:C.textDim, marginTop:4 }}>{altData.dataCompleteness}% data completeness</div>
+              </div>
+            </div>;
+          })()}
+        </SectionCard>}
 
         {/* Collections Actions — visible for delinquent loans */}
         {l.status==="Active" && l.dpd > 0 && canDo("collections","create") && <SectionCard title="Collections Actions">
