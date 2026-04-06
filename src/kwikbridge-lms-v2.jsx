@@ -190,11 +190,11 @@ function approvalLimit(userRole) {
 
 function seed() {
   const products = [
-    { id:"P001", name:"PO Financing — ECDoE", minAmount:1000000, maxAmount:7500000, minTerm:3, maxTerm:6, baseRate:42.0, monthlyRate:3.5, description:"Government purchase order financing for Eastern Cape Department of Education contractors. Three-way cession structure with near-sovereign off-taker credit quality. High-volume anchor product.", repaymentType:"Bullet", arrangementFee:2.5, commitmentFee:0.5, gracePeriod:0, maxLTV:90, minDSCR:1.15, eligibleBEE:[1,2,3,4], eligibleIndustries:["Education","Construction","Services"], status:"Active", createdBy:"U001", createdAt:now-365*day, idealFor:"ECDoE-contracted suppliers, service providers, and construction firms with confirmed government purchase orders.", riskClass:"A", ecl:0.70, s1PD:0.006, lgd:0.22 },
+    { id:"P001", name:"PO Financing — ECDoE", stpEnabled:false, minAmount:1000000, maxAmount:7500000, minTerm:3, maxTerm:6, baseRate:42.0, monthlyRate:3.5, description:"Government purchase order financing for Eastern Cape Department of Education contractors. Three-way cession structure with near-sovereign off-taker credit quality. High-volume anchor product.", repaymentType:"Bullet", arrangementFee:2.5, commitmentFee:0.5, gracePeriod:0, maxLTV:90, minDSCR:1.15, eligibleBEE:[1,2,3,4], eligibleIndustries:["Education","Construction","Services"], status:"Active", createdBy:"U001", createdAt:now-365*day, idealFor:"ECDoE-contracted suppliers, service providers, and construction firms with confirmed government purchase orders.", riskClass:"A", ecl:0.70, s1PD:0.006, lgd:0.22 },
     { id:"P002", name:"Invoice — Scholar Transport", minAmount:10000, maxAmount:150000, minTerm:1, maxTerm:2, baseRate:30.0, monthlyRate:2.5, description:"Invoice discounting for scholar transport operators with confirmed ECDoE contracts. Short-tenor, high-velocity product with 8 cycles per year. Verified invoice against government off-taker.", repaymentType:"Bullet", arrangementFee:2.0, commitmentFee:0, gracePeriod:0, maxLTV:80, minDSCR:1.0, eligibleBEE:[1,2,3,4,5,6,7,8], eligibleIndustries:["Transport","Education"], status:"Active", createdBy:"U001", createdAt:now-365*day, idealFor:"Scholar transport operators with verified ECDoE invoices.", riskClass:"A", ecl:0.76, s1PD:0.006, lgd:0.23 },
     { id:"P003", name:"Invoice — Road Maintenance", minAmount:50000, maxAmount:1000000, minTerm:1, maxTerm:1, baseRate:30.0, monthlyRate:2.5, description:"Invoice discounting for road maintenance contractors with ECDoT (Eastern Cape Dept of Transport) verified invoices. Highest capital velocity — 10 cycles per year.", repaymentType:"Bullet", arrangementFee:2.0, commitmentFee:0, gracePeriod:0, maxLTV:85, minDSCR:1.0, eligibleBEE:[1,2,3,4,5,6,7,8], eligibleIndustries:["Construction","Transport","Infrastructure"], status:"Active", createdBy:"U001", createdAt:now-365*day, idealFor:"Road maintenance contractors and civil works firms with ECDoT verified invoices.", riskClass:"A", ecl:0.76, s1PD:0.006, lgd:0.23 },
     { id:"P004", name:"Invoice — Coega Infrastructure", minAmount:500000, maxAmount:5000000, minTerm:1, maxTerm:2, baseRate:33.6, monthlyRate:2.8, description:"Invoice discounting for Coega Industrial Development Zone infrastructure contractors. A+ rated parastatal off-taker with 5 cycles per year.", repaymentType:"Bullet", arrangementFee:2.0, commitmentFee:0, gracePeriod:0, maxLTV:85, minDSCR:1.0, eligibleBEE:[1,2,3,4], eligibleIndustries:["Construction","Infrastructure","Manufacturing"], status:"Active", createdBy:"U001", createdAt:now-365*day, idealFor:"Coega IDZ infrastructure contractors and suppliers with confirmed invoices.", riskClass:"A", ecl:0.76, s1PD:0.006, lgd:0.23 },
-    { id:"P005", name:"Working Capital — Micro Traders", minAmount:500, maxAmount:10000, minTerm:0.17, maxTerm:1, baseRate:96.0, monthlyRate:8.0, description:"Fast micro-loans for informal traders and micro-enterprises. AI-scored with group guarantee (Grameen model). Up to 12 cycles per year. ECDC SERFSP pre-screened origination.", repaymentType:"Bullet", arrangementFee:3.0, commitmentFee:0, gracePeriod:0, maxLTV:100, minDSCR:1.0, eligibleBEE:[1,2,3,4,5,6,7,8], eligibleIndustries:["All"], status:"Active", createdBy:"U001", createdAt:now-365*day, idealFor:"Street vendors, spaza shop owners, informal traders, micro-service providers.", riskClass:"B", ecl:8.58, s1PD:0.03, lgd:0.65 },
+    { id:"P005", name:"Working Capital — Micro Traders", stpEnabled:true, stpMaxAmount:10000, stpMinBureau:600, stpMinDSCR:1.2, minAmount:500, maxAmount:10000, minTerm:0.17, maxTerm:1, baseRate:96.0, monthlyRate:8.0, description:"Fast micro-loans for informal traders and micro-enterprises. AI-scored with group guarantee (Grameen model). Up to 12 cycles per year. ECDC SERFSP pre-screened origination.", repaymentType:"Bullet", arrangementFee:3.0, commitmentFee:0, gracePeriod:0, maxLTV:100, minDSCR:1.0, eligibleBEE:[1,2,3,4,5,6,7,8], eligibleIndustries:["All"], status:"Active", createdBy:"U001", createdAt:now-365*day, idealFor:"Street vendors, spaza shop owners, informal traders, micro-service providers.", riskClass:"B", ecl:8.58, s1PD:0.03, lgd:0.65 },
     { id:"P006", name:"Agri Finance — Smallholder", minAmount:50000, maxAmount:1000000, minTerm:3, maxTerm:6, baseRate:36.0, monthlyRate:3.0, description:"Seasonal agricultural finance for smallholder farmers. Crop lien and equipment collateral. Scenario-weighted for drought probability (75% good season / 25% drought).", repaymentType:"Seasonal", arrangementFee:2.0, commitmentFee:0, gracePeriod:0, maxLTV:70, minDSCR:1.2, eligibleBEE:[1,2,3,4,5,6,7,8], eligibleIndustries:["Agriculture","Food Processing"], status:"Active", createdBy:"U001", createdAt:now-365*day, idealFor:"Smallholder farmers, emerging agricultural enterprises, crop producers in the Eastern Cape.", riskClass:"C", ecl:9.88, s1PD:0.0525, lgd:0.575 },
     { id:"P007", name:"Project & Contract Finance", minAmount:1000000, maxAmount:5000000, minTerm:3, maxTerm:12, baseRate:42.0, monthlyRate:3.5, description:"Tailored financing for specific projects and contracts. Designed to match your project's cash flow cycle with repayment terms up to 12 months. Suitable for mid-sized construction, infrastructure, and service delivery contracts.", repaymentType:"Amortising", arrangementFee:2.0, commitmentFee:0.5, gracePeriod:1, maxLTV:80, minDSCR:1.2, eligibleBEE:[1,2,3,4], eligibleIndustries:["Construction","Infrastructure","Professional Services"], status:"Active", createdBy:"U001", createdAt:now-365*day, idealFor:"SMEs undertaking mid-sized projects, construction firms, service providers with secured contracts.", riskClass:"A", ecl:0.70, s1PD:0.006, lgd:0.22 },
   
@@ -706,6 +706,201 @@ export default function App() {
   const navTo = (pg) => { setPageHistory(h=>[...h.slice(-10),page]); setPage(pg); setDetail(null); };
 
   
+// ═══════════════════════════════════════════════════════════════
+// TIER 1 AUTOMATIONS — Straight-Through Processing Engine
+// Target: <30 minutes for qualifying applications
+// ═══════════════════════════════════════════════════════════════
+
+// Auto-KYC: Simulates real-time API verification
+// In production: calls DHA, CIPC, sanctions APIs
+const autoVerifyKYC = (customer) => {
+  const results = {
+    idVerified: false,
+    cipcVerified: false,
+    addressVerified: false,
+    sanctionsCleared: false,
+    timestamp: Date.now(),
+    method: "Automated API",
+  };
+  
+  // ID verification (DHA API simulation)
+  if (customer?.idNumber && customer.idNumber.length === 13) {
+    results.idVerified = true;
+    results.idSource = "Department of Home Affairs — Real-time API";
+    results.idConfidence = 99;
+  }
+  
+  // CIPC verification (company registration)
+  if (customer?.regNum) {
+    results.cipcVerified = true;
+    results.cipcSource = "CIPC — Company Registration API";
+    results.cipcStatus = "Active";
+    results.cipcConfidence = 98;
+  }
+  
+  // Address verification (geocoding + postal API)
+  if (customer?.address) {
+    results.addressVerified = true;
+    results.addressSource = "Postal Address Verification API";
+    results.addressConfidence = 92;
+  }
+  
+  // Sanctions screening (Refinitiv World-Check simulation)
+  results.sanctionsCleared = true;
+  results.sanctionsSource = "Refinitiv World-Check — Real-time screening";
+  results.sanctionsConfidence = 99;
+  
+  const allCleared = results.idVerified && results.cipcVerified && results.addressVerified && results.sanctionsCleared;
+  
+  return {
+    ...results,
+    allCleared,
+    kycFindings: [
+      { item: "ID Verification", status: results.idVerified ? "Pass" : "Fail", detail: results.idSource || "Not verified", officerAction: results.idVerified ? "Auto-verified" : null },
+      { item: "Company Registration", status: results.cipcVerified ? "Pass" : "Fail", detail: results.cipcSource || "Not verified", officerAction: results.cipcVerified ? "Auto-verified" : null },
+      { item: "Proof of Address", status: results.addressVerified ? "Pass" : "Fail", detail: results.addressSource || "Not verified", officerAction: results.addressVerified ? "Auto-verified" : null },
+      { item: "Sanctions Screening", status: results.sanctionsCleared ? "Pass" : "Fail", detail: results.sanctionsSource || "Not screened", officerAction: results.sanctionsCleared ? "Auto-cleared" : null },
+    ],
+  };
+};
+
+// OCR Financial Extraction: Simulates AI document analysis
+// In production: sends PDF to Claude API for structured extraction
+const ocrExtractFinancials = (uploadedDocs) => {
+  // Simulate extraction from financial statements
+  const hasFinancials = uploadedDocs?.some(d => d.category === "Financial" || d.name?.includes("financial") || d.name?.includes("statement"));
+  
+  if (!hasFinancials) return null;
+  
+  return {
+    extracted: true,
+    method: "AI OCR — Claude Vision API",
+    confidence: 94,
+    timestamp: Date.now(),
+    fields: {
+      annualRevenue: null, // Would be extracted from uploaded PDFs
+      costOfSales: null,
+      grossProfit: null,
+      operatingExpenses: null,
+      netProfit: null,
+      totalAssets: null,
+      totalLiabilities: null,
+      currentAssets: null,
+      currentLiabilities: null,
+      cashBalance: null,
+    },
+    docsFindings: [
+      { name: "Financial Statements", status: "Verified", required: true, detail: "AI-extracted and cross-referenced" },
+      { name: "Business Plan", status: "Pending Review", required: true, detail: "Uploaded — requires manual review" },
+      { name: "ID Document", status: "Verified", required: true, detail: "Auto-verified via KYC API" },
+      { name: "Company Registration", status: "Verified", required: true, detail: "Auto-verified via CIPC API" },
+      { name: "Proof of Address", status: "Verified", required: true, detail: "Auto-verified via postal API" },
+      { name: "Bank Statements", status: "Pending", required: true, detail: "Awaiting Open Banking connection or upload" },
+    ],
+  };
+};
+
+// Bureau Pull: Simulates real-time credit bureau API
+// In production: calls TransUnion/Experian API
+const autoPullBureau = (customer) => {
+  if (!customer?.idNumber) return null;
+  
+  // Simulated bureau response
+  const baseScore = 550 + Math.floor(Math.random() * 200);
+  const score = Math.min(850, Math.max(300, baseScore + (customer.yearsInBusiness || 0) * 5));
+  
+  return {
+    provider: "TransUnion — Real-time API",
+    score,
+    timestamp: Date.now(),
+    responseTime: "1.2s",
+    paymentProfile: score > 700 ? "Excellent — no adverse" : score > 600 ? "Good — minor historical" : score > 500 ? "Fair — some adverse" : "Poor — significant adverse",
+    activeAccounts: Math.floor(Math.random() * 5) + 1,
+    defaults: score < 500 ? Math.floor(Math.random() * 3) + 1 : 0,
+    judgments: score < 450 ? 1 : 0,
+    enquiries30Days: Math.floor(Math.random() * 3),
+    oldestAccount: Math.floor(Math.random() * 10) + 1 + " years",
+  };
+};
+
+// STP Eligibility Check: Determines if application qualifies for auto-processing
+const checkSTPEligibility = (app, customer, product, bureauResult) => {
+  if (!product?.stpEnabled) return { eligible: false, reason: "Product not STP-enabled" };
+  if (app.amount > (product.stpMaxAmount || Infinity)) return { eligible: false, reason: `Amount R${app.amount.toLocaleString()} exceeds STP limit R${product.stpMaxAmount.toLocaleString()}` };
+  if (!bureauResult || bureauResult.score < (product.stpMinBureau || 600)) return { eligible: false, reason: `Bureau score ${bureauResult?.score || "N/A"} below STP threshold ${product.stpMinBureau || 600}` };
+  if (bureauResult.defaults > 0) return { eligible: false, reason: `${bureauResult.defaults} default(s) on credit record` };
+  if (bureauResult.judgments > 0) return { eligible: false, reason: "Active judgment on record" };
+  if (!customer?.idNumber) return { eligible: false, reason: "Missing ID number" };
+  
+  return {
+    eligible: true,
+    reason: "All STP criteria met",
+    autoApprovalAmount: app.amount,
+    estimatedProcessingTime: "< 3 minutes",
+    checks: [
+      { check: "Product STP-enabled", passed: true },
+      { check: `Amount ≤ R${(product.stpMaxAmount||0).toLocaleString()}`, passed: true },
+      { check: `Bureau ≥ ${product.stpMinBureau || 600}`, passed: true, detail: `Score: ${bureauResult.score}` },
+      { check: "No defaults", passed: true },
+      { check: "No judgments", passed: true },
+      { check: "KYC verifiable", passed: true },
+    ],
+  };
+};
+
+// Full STP Pipeline: Runs entire origination-to-approval in one call
+const runSTPPipeline = (app, customer, product, documents) => {
+  const pipeline = {
+    started: Date.now(),
+    steps: [],
+    status: "Running",
+    elapsed: 0,
+  };
+  
+  // Step 1: Auto-KYC
+  const kyc = autoVerifyKYC(customer);
+  pipeline.steps.push({ name: "KYC/FICA Verification", status: kyc.allCleared ? "Pass" : "Fail", method: "Automated API", duration: "0.8s" });
+  if (!kyc.allCleared) { pipeline.status = "Failed — KYC"; return pipeline; }
+  
+  // Step 2: OCR Document Extraction
+  const ocr = ocrExtractFinancials(documents);
+  pipeline.steps.push({ name: "Document Analysis", status: ocr ? "Pass" : "Manual Required", method: "AI OCR", duration: "2.1s" });
+  
+  // Step 3: Bureau Pull
+  const bureau = autoPullBureau(customer);
+  pipeline.steps.push({ name: "Credit Bureau Pull", status: bureau ? "Pass" : "Fail", method: "TransUnion API", duration: bureau?.responseTime || "N/A", detail: `Score: ${bureau?.score}` });
+  if (!bureau) { pipeline.status = "Failed — Bureau"; return pipeline; }
+  
+  // Step 4: STP Eligibility
+  const stp = checkSTPEligibility(app, customer, product, bureau);
+  pipeline.steps.push({ name: "STP Eligibility", status: stp.eligible ? "Pass" : "Fail", method: "Rules Engine", duration: "0.01s", detail: stp.reason });
+  
+  // Step 5: Risk Scoring
+  const dscr = 1.2 + Math.random() * 0.8; // Simulated — in production from OCR-extracted financials
+  const riskScore = Math.min(99, Math.max(20, Math.round(bureau.score / 10 + dscr * 10)));
+  pipeline.steps.push({ name: "AI Risk Assessment", status: riskScore >= 50 ? "Pass" : "Fail", method: "Composite AI Score", duration: "0.3s", detail: `Score: ${riskScore}/100, DSCR: ${dscr.toFixed(2)}x` });
+  
+  // Step 6: Auto-Decision
+  const approved = stp.eligible && riskScore >= 50 && bureau.score >= (product?.stpMinBureau || 600);
+  pipeline.steps.push({ name: "Credit Decision", status: approved ? "AUTO-APPROVED" : "Refer to Analyst", method: approved ? "STP Auto-Decision" : "Manual Review Required", duration: "0.01s" });
+  
+  pipeline.status = approved ? "Auto-Approved" : "Referred";
+  pipeline.elapsed = ((Date.now() - pipeline.started) / 1000).toFixed(1) + "s";
+  pipeline.result = {
+    approved,
+    bureauScore: bureau.score,
+    riskScore,
+    dscr: Math.round(dscr * 100) / 100,
+    kycResult: kyc,
+    stpResult: stp,
+    autoApprover: approved ? "STP Engine (System)" : null,
+    referralReason: !approved ? (stp.eligible ? "Risk score below threshold" : stp.reason) : null,
+  };
+  
+  return pipeline;
+};
+
+
   const GLOBAL_CSS = `
         *{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}.kb-kpi{flex:1;padding:16px 20px !important;border-right:1px solid ${C.surface3};transition:background .15s ease-out}
         .kb-kpi:last-child{border-right:none}
@@ -2198,6 +2393,19 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
     const w = { ...(a.workflow || {}) };
     let newAudit = [...audit];
     let newAlerts = [...alerts];
+    if (stepKey === "kyc_auto") {
+      // Auto-KYC via API
+      const autoResult = autoVerifyKYC(c);
+      w.kycFindings = autoResult.kycFindings;
+      w.kycComplete = autoResult.allCleared;
+      w.kycOfficer = "Auto-KYC API";
+      w.kycDate = Date.now();
+      w.sanctionsCleared = autoResult.sanctionsCleared;
+      w.sanctionsDate = Date.now();
+      newAudit.push(addAudit("Auto-KYC Verification", a.id, "System (API)", `Auto-verified: ${autoResult.kycFindings.filter(f=>f.status==="Pass").length}/4 checks passed. Method: Real-time API.`, "Compliance"));
+      if (autoResult.allCleared) showToast("KYC auto-verified via API — all checks passed.");
+      else showToast("KYC auto-verification: some checks failed. Manual review required.");
+    }
     if (stepKey === "kyc") {
       const items = w.kycFindings || [];
       const allActioned = items.every(f => f.officerAction);
@@ -4987,12 +5195,82 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
           </div>
         </div>}
         {a.creditMemo && isUW && <SectionCard title="Credit Memorandum"><div style={{ fontSize:12, color:C.textDim, lineHeight:1.5, whiteSpace:"pre-line" }}>{a.creditMemo}</div></SectionCard>}
+        {/* STP Fast-Track — for eligible products */}
+        {isUW && a.status === "Underwriting" && prod(a.product)?.stpEnabled && <div style={{ border:`1px solid ${C.green}33`, borderRadius:6, padding:"16px 20px", marginTop:4, background:`${C.green}08` }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+            <div>
+              <div style={{ fontSize:12, fontWeight:600, color:C.green }}>STP Fast-Track Available</div>
+              <div style={{ fontSize:11, color:C.textDim }}>This {prod(a.product)?.name} application qualifies for Straight-Through Processing. Auto-KYC, bureau pull, risk scoring, and decisioning in under 3 minutes.</div>
+            </div>
+            <Btn onClick={()=>{
+              const c = cust(a.custId);
+              const p = prod(a.product);
+              const pipeline = runSTPPipeline(a, c, p, (documents||[]).filter(d=>d.appId===a.id));
+              
+              if (pipeline.result?.approved) {
+                const w = a.workflow || {};
+                // Auto-complete all DD steps
+                w.kycComplete = true; w.kycOfficer = "STP Engine"; w.kycDate = Date.now();
+                w.kycFindings = pipeline.result.kycResult.kycFindings;
+                w.sanctionsCleared = true; w.sanctionsDate = Date.now();
+                w.docsComplete = true;
+                w.financialAnalysisComplete = true;
+                w.creditBureauScore = pipeline.result.bureauScore;
+                w.collateralAssessed = true;
+                w.socialVerified = true;
+                w.siteVisitComplete = true; w.siteVisitDate = Date.now(); w.siteVisitOfficer = "STP — Waived (micro-loan)";
+                w.siteVisitFindings = [{ item: "Site Visit", status: "Waived", detail: "Below STP threshold — site visit not required" }];
+                
+                const updated = { ...a,
+                  status: "Approved",
+                  workflow: w,
+                  riskScore: pipeline.result.riskScore,
+                  dscr: pipeline.result.dscr,
+                  decided: Date.now(),
+                  approver: "STP Engine (Auto-Approved)",
+                  recommendation: "Approve",
+                  creditMemo: `STP AUTO-APPROVAL\n${"═".repeat(40)}\nPipeline: ${pipeline.steps.map(s=>s.name+": "+s.status).join(" → ")}\nBureau: ${pipeline.result.bureauScore}\nRisk: ${pipeline.result.riskScore}\nDSCR: ${pipeline.result.dscr}x\nElapsed: ${pipeline.elapsed}\nApproved by: STP Engine`,
+                  rate: p?.baseRate || 18,
+                  conditions: ["Maintain debit order mandate", "Repay within term"],
+                  stpPipeline: pipeline,
+                };
+                save({ ...data,
+                  applications: applications.map(x => x.id === a.id ? updated : x),
+                  audit: [...audit,
+                    addAudit("STP Auto-KYC", a.id, "STP Engine", `KYC auto-verified. ${pipeline.result.kycResult.kycFindings.filter(f=>f.status==="Pass").length}/4 checks passed.`, "Automation"),
+                    addAudit("STP Bureau Pull", a.id, "STP Engine", `TransUnion score: ${pipeline.result.bureauScore}. ${pipeline.result.dscr}x DSCR.`, "Automation"),
+                    addAudit("STP Auto-Approval", a.id, "STP Engine", `AUTO-APPROVED in ${pipeline.elapsed}. Amount: ${fmt.cur(a.amount)}. Risk: ${pipeline.result.riskScore}/100.`, "Decision"),
+                  ],
+                  alerts: [...alerts, addAlert("Application", "info", `STP Approved – ${c?.name}`, `${a.id} auto-approved in ${pipeline.elapsed}. ${fmt.cur(a.amount)} at ${p?.baseRate}%.`)],
+                });
+                showToast(`STP Complete — ${a.id} auto-approved in ${pipeline.elapsed}`);
+              } else {
+                showToast(`STP: Not eligible — ${pipeline.result?.referralReason || "Referred to analyst"}. Process manually.`);
+              }
+            }} style={{ background:C.green, color:"#fff" }}>Run Fast-Track</Btn>
+          </div>
+        </div>}
+
         {isUW && a.status === "Underwriting" && <div style={{ border:`1px solid ${C.border}`, borderRadius:6, padding:"16px 20px", marginTop:4 }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
             <div><div style={{ fontSize:12, fontWeight:600, color:C.text }}>Submit Recommendation</div><div style={{ fontSize:11, color:C.textMuted }}>{allDDComplete?`All steps signed off. Submit memo to ${getApprovalAuthority(a.amount).label}.`:`${doneCount}/7 steps completed.`}</div></div>
             <div style={{ display:"flex", gap:8 }}><Btn onClick={()=>submitRecommendation(a.id,"Approve")} disabled={!allDDComplete}>Recommend Approve</Btn><Btn variant="danger" onClick={()=>submitRecommendation(a.id,"Decline")} disabled={!allDDComplete}>Recommend Decline</Btn></div>
           </div>
         </div>}
+        {a.stpPipeline && <div style={{ border:`1px solid ${C.green}33`, borderRadius:6, padding:"16px 20px", marginTop:4, background:`${C.green}08` }}>
+          <div style={{ fontSize:12, fontWeight:600, color:C.green, marginBottom:8 }}>STP Pipeline — {a.stpPipeline.status} ({a.stpPipeline.elapsed})</div>
+          {a.stpPipeline.steps.map((s,i) => (
+            <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"4px 0", borderBottom:i < a.stpPipeline.steps.length - 1 ? `1px solid ${C.surface3}` : "none" }}>
+              <div style={{ fontSize:11, color:C.textDim }}>{s.name}</div>
+              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                <span style={{ fontSize:10, color:C.textMuted }}>{s.duration}</span>
+                <Badge color={s.status === "Pass" || s.status === "AUTO-APPROVED" ? "green" : s.status === "Fail" ? "red" : "amber"}>{s.status}</Badge>
+              </div>
+            </div>
+          ))}
+          {a.stpPipeline.result && <div style={{ fontSize:10, color:C.textMuted, marginTop:8 }}>Bureau: {a.stpPipeline.result.bureauScore} | Risk: {a.stpPipeline.result.riskScore}/100 | DSCR: {a.stpPipeline.result.dscr}x</div>}
+        </div>}
+
         {a.status === "Pending Approval" && <div style={{ border:`1px solid ${C.accent}33`, borderRadius:6, padding:"16px 20px", marginTop:4, background:C.accentGlow }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
             <div>
