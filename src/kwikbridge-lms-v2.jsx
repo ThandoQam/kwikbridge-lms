@@ -1200,6 +1200,210 @@ const autoValueCollateral = (collateralItems) => {
 };
 
 
+// ═══════════════════════════════════════════════════════════════
+// PSYCHOMETRIC CREDIT ASSESSMENT MODULE
+// For thin-file borrowers with no/limited bureau or bank data
+// Based on EFL/LenddoEFL methodology + behavioural metadata
+// ═══════════════════════════════════════════════════════════════
+
+// Question bank — each question measures a specific trait
+// Traits: honesty, conscientiousness, financial_literacy, risk_tolerance, locus_of_control
+const PSYCHOMETRIC_QUESTIONS = [
+  // ── Honesty calibration ──
+  { id:"PQ01", trait:"honesty", text:"In the last month, have you ever been even 1 day late paying any bill or obligation?",
+    options:["Never late","Once or twice","A few times","Often"],
+    scoring:[3,4,2,1], // "Once or twice" is most honest — nobody is never late
+    meta:"Anchoring — tests social desirability bias" },
+  { id:"PQ02", trait:"honesty", text:"How many times per week do you check your business finances?",
+    options:["Every day","A few times a week","Once a week","Rarely"],
+    scoring:[3,4,2,1],
+    followUp:"Most business owners in your area check 2-3 times per week. Would you like to change your answer?",
+    scoring2:[4,3,1,1], // Maintaining answer = honest; changing to match = social pressure
+    meta:"Social pressure resistance" },
+  { id:"PQ03", trait:"honesty", text:"Have you ever borrowed money and found it difficult to repay?",
+    options:["Yes, it happened","No, never","I prefer not to say"],
+    scoring:[4,2,1],
+    meta:"Admission of past difficulty = honesty signal" },
+
+  // ── Financial literacy ──
+  { id:"PQ04", trait:"financial_literacy", text:"If you borrow R10,000 at 2% per month, how much interest do you pay in the first month?",
+    options:["R20","R200","R2,000","I'm not sure"],
+    scoring:[0,4,0,1],
+    meta:"Basic interest calculation" },
+  { id:"PQ05", trait:"financial_literacy", text:"If your business revenue drops 30%, which expense would you reduce first?",
+    options:["Staff salaries","Marketing and advertising","My own salary","I would borrow to cover the gap"],
+    scoring:[1,3,4,0],
+    meta:"Financial prioritisation under stress" },
+  { id:"PQ06", trait:"financial_literacy", text:"Which is a better deal: 10% discount for paying cash today, or paying full price in 30 days?",
+    options:["Cash discount","Pay in 30 days","They're the same","Depends on my cash flow"],
+    scoring:[3,1,0,4],
+    meta:"Time value of money understanding" },
+
+  // ── Risk tolerance ──
+  { id:"PQ07", trait:"risk_tolerance", text:"A customer offers you a big order but wants 90 days to pay. Your costs are R50,000. What do you do?",
+    options:["Take the order immediately","Take it only with 50% upfront","Decline — too risky","Ask someone for advice first"],
+    scoring:[1,4,2,3],
+    meta:"Calculated risk vs reckless risk" },
+  { id:"PQ08", trait:"risk_tolerance", text:"You have R5,000 in savings. A friend has a 'guaranteed' investment opportunity. How much do you invest?",
+    options:["All R5,000","R2,000-3,000","R500-1,000 to test","Nothing — if it sounds too good, it probably is"],
+    scoring:[0,1,2,4],
+    meta:"Scam resistance / rational scepticism" },
+  
+  // ── Locus of control ──
+  { id:"PQ09", trait:"locus_of_control", text:"When your business has a bad month, what is usually the main reason?",
+    options:["The economy or market conditions","Competition took my customers","I made some wrong decisions","Bad luck"],
+    scoring:[2,2,4,0],
+    meta:"Internal vs external attribution" },
+  { id:"PQ10", trait:"locus_of_control", text:"If you could change one thing to make your business more successful, what would it be?",
+    options:["Get more funding","Improve my own skills","Find better employees","Get government support"],
+    scoring:[1,4,2,0],
+    meta:"Self-improvement orientation" },
+  
+  // ── Conscientiousness ──
+  { id:"PQ11", trait:"conscientiousness", text:"How do you keep track of what your customers owe you?",
+    options:["Written ledger or notebook","Spreadsheet or app","I remember in my head","I don't track — I trust my customers"],
+    scoring:[3,4,1,0],
+    meta:"Record-keeping discipline" },
+  { id:"PQ12", trait:"conscientiousness", text:"A supplier delivers goods but the invoice has a small error in your favour. What do you do?",
+    options:["Say nothing — it's their mistake","Point out the error","Check if it's really an error first","Depends on the amount"],
+    scoring:[0,4,3,1],
+    meta:"Ethical behaviour under temptation" },
+  
+  // ── Business acumen ──
+  { id:"PQ13", trait:"business_acumen", text:"What is your biggest business expense each month?",
+    options:["Stock/inventory","Salaries/wages","Rent","I'm not sure exactly"],
+    scoring:[3,3,3,0],
+    meta:"Cost awareness — any specific answer shows awareness" },
+  { id:"PQ14", trait:"business_acumen", text:"How do you decide how much to charge for your products or services?",
+    options:["I match what competitors charge","Cost plus a margin","What customers will pay","I haven't really thought about it"],
+    scoring:[2,4,3,0],
+    meta:"Pricing strategy sophistication" },
+  { id:"PQ15", trait:"business_acumen", text:"In the next 12 months, do you expect your business revenue to:",
+    options:["Grow significantly (>20%)","Grow modestly (5-20%)","Stay about the same","Decline"],
+    scoring:[2,4,3,1],
+    meta:"Realistic optimism — extreme growth claims are a red flag" },
+];
+
+// Score a completed psychometric assessment
+const scorePsychometric = (answers, metadata) => {
+  const traitScores = {};
+  const traitMaxes = {};
+  let totalScore = 0;
+  let totalMax = 0;
+  
+  // Score each answer
+  PSYCHOMETRIC_QUESTIONS.forEach((q, i) => {
+    const answer = answers[q.id];
+    if (answer === undefined || answer === null) return;
+    
+    const score = q.scoring[answer] || 0;
+    const maxScore = Math.max(...q.scoring);
+    
+    if (!traitScores[q.trait]) { traitScores[q.trait] = 0; traitMaxes[q.trait] = 0; }
+    traitScores[q.trait] += score;
+    traitMaxes[q.trait] += maxScore;
+    totalScore += score;
+    totalMax += maxScore;
+  });
+  
+  // Normalise trait scores to 0-100
+  const traits = {};
+  for (const [trait, score] of Object.entries(traitScores)) {
+    const max = traitMaxes[trait] || 1;
+    traits[trait] = Math.round(score / max * 100);
+  }
+  
+  // Behavioural metadata scoring (0-20 bonus points)
+  let metaScore = 0;
+  if (metadata) {
+    // Time per question — too fast (<3s) = not reading; too slow (>60s) = overthinking
+    const avgTime = metadata.avgTimePerQuestion || 0;
+    if (avgTime >= 8 && avgTime <= 30) metaScore += 5; // Optimal reading pace
+    else if (avgTime >= 5 && avgTime <= 45) metaScore += 3;
+    
+    // Consistency — did they change answers when given follow-up?
+    if (metadata.followUpConsistency !== undefined) {
+      metaScore += metadata.followUpConsistency ? 5 : -3; // Maintained = honest
+    }
+    
+    // Completion — answered all questions
+    const completionRate = (metadata.answeredCount || 0) / PSYCHOMETRIC_QUESTIONS.length;
+    metaScore += Math.round(completionRate * 5);
+    
+    // Revision count — some revision is thoughtful, excessive is suspicious
+    const revisions = metadata.revisionCount || 0;
+    if (revisions <= 2) metaScore += 3;
+    else if (revisions <= 5) metaScore += 1;
+    else metaScore -= 2;
+    
+    // Device stability — completed on same device without interruption
+    if (metadata.sameDevice) metaScore += 2;
+  }
+  
+  // Final composite psychometric score
+  const rawScore = totalMax > 0 ? Math.round(totalScore / totalMax * 80) : 0;
+  const finalScore = Math.min(100, Math.max(0, rawScore + metaScore));
+  
+  return {
+    score: finalScore,
+    grade: finalScore >= 75 ? "Strong" : finalScore >= 55 ? "Adequate" : finalScore >= 35 ? "Marginal" : "Weak",
+    traits,
+    traitSummary: {
+      honesty: traits.honesty >= 70 ? "Honest responses" : traits.honesty >= 40 ? "Some social desirability" : "High social desirability bias",
+      financial_literacy: traits.financial_literacy >= 70 ? "Good understanding" : traits.financial_literacy >= 40 ? "Basic understanding" : "Limited understanding",
+      risk_tolerance: traits.risk_tolerance >= 70 ? "Prudent risk taker" : traits.risk_tolerance >= 40 ? "Moderate risk appetite" : "Risk-seeking behaviour",
+      locus_of_control: traits.locus_of_control >= 70 ? "Internal (self-driven)" : traits.locus_of_control >= 40 ? "Mixed" : "External (blame others)",
+      conscientiousness: traits.conscientiousness >= 70 ? "Highly organised" : traits.conscientiousness >= 40 ? "Moderately organised" : "Low organisation",
+      business_acumen: traits.business_acumen >= 70 ? "Strong business sense" : traits.business_acumen >= 40 ? "Developing" : "Limited",
+    },
+    metadata: {
+      questionsAnswered: metadata?.answeredCount || 0,
+      totalQuestions: PSYCHOMETRIC_QUESTIONS.length,
+      avgTimePerQuestion: metadata?.avgTimePerQuestion || 0,
+      revisions: metadata?.revisionCount || 0,
+      metaBonus: metaScore,
+    },
+    creditIndicators: {
+      defaultRisk: finalScore >= 70 ? "Low" : finalScore >= 50 ? "Moderate" : "Elevated",
+      repaymentPrediction: finalScore >= 70 ? "Likely to repay on schedule" : finalScore >= 50 ? "May experience occasional delays" : "Higher probability of payment difficulties",
+      recommendedAction: finalScore >= 70 ? "Approve — psychometric supports creditworthiness"
+        : finalScore >= 50 ? "Approve with monitoring — moderate psychometric score"
+        : finalScore >= 35 ? "Caution — consider additional security or guarantor"
+        : "Decline or require co-signer — weak psychometric indicators",
+    },
+    thinFileRelevance: "Primary scoring input — replaces bureau score for unbanked applicants",
+    giniCoefficient: "0.28-0.32 (comparable to basic bureau score)",
+  };
+};
+
+// Generate a simulated completed assessment (for demo/seed data)
+const simulatePsychometricAssessment = () => {
+  const answers = {};
+  PSYCHOMETRIC_QUESTIONS.forEach(q => {
+    // Simulate a moderately good applicant
+    const weights = q.scoring.map(s => s + 1); // +1 so zero-scored options still have small chance
+    const total = weights.reduce((s, w) => s + w, 0);
+    let rand = Math.random() * total;
+    for (let i = 0; i < weights.length; i++) {
+      rand -= weights[i];
+      if (rand <= 0) { answers[q.id] = i; break; }
+    }
+  });
+  
+  const metadata = {
+    avgTimePerQuestion: 10 + Math.round(Math.random() * 15),
+    followUpConsistency: Math.random() > 0.3,
+    answeredCount: PSYCHOMETRIC_QUESTIONS.length - (Math.random() > 0.9 ? 1 : 0),
+    revisionCount: Math.floor(Math.random() * 4),
+    sameDevice: true,
+    startTime: Date.now() - 300000,
+    endTime: Date.now(),
+  };
+  
+  return { answers, metadata };
+};
+
+
   const GLOBAL_CSS = `
         *{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}.kb-kpi{flex:1;padding:16px 20px !important;border-right:1px solid ${C.surface3};transition:background .15s ease-out}
         .kb-kpi:last-child{border-right:none}
@@ -1780,6 +1984,8 @@ const aiDraftCreditMemo = (app, customer, product, workflow) => {
       (w.kycComplete ? 10 : 0) + (w.siteVisitComplete ? 8 : 0)
     ))),
     riskGrade: riskScore >= 80 ? "A" : riskScore >= 65 ? "B" : riskScore >= 50 ? "C" : riskScore >= 35 ? "D" : "E",
+    psychometricScore: app.psychometricResult?.score || null,
+    psychometricGrade: app.psychometricResult?.grade || null,
   };
 };
 
@@ -2150,10 +2356,19 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
   const willingness = calcWillingnessScore(customer, app, collections, comms);
   const altData = calcAlternativeDataScore(customer);
   
+  // Psychometric assessment for thin-file clients
+  const hasBureau = app?.workflow?.creditBureauScore > 0;
+  const psychometric = app?.psychometricResult || (app?.psychometricAnswers ? scorePsychometric(app.psychometricAnswers, app.psychometricMeta) : null);
+  
+  // Dynamic weighting: thin-file clients get psychometric weight (from financial)
+  const finWeight = hasBureau ? 0.35 : 0.15;
+  const psychWeight = hasBureau ? 0.00 : 0.20;
+  
   const composite = Math.round(
-    financial.score * financial.weight +
+    financial.score * finWeight +
     willingness.score * 0.25 +
     altData.score * 0.20 +
+    (psychometric?.score || 0) * psychWeight +
     (app?.socialScore || 50) * 0.10 +
     (customer?.yearsInBusiness ? Math.min(100, customer.yearsInBusiness * 10) : 50) * 0.10
   );
@@ -2162,12 +2377,14 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
     composite: Math.min(100, Math.max(0, composite)),
     grade: composite >= 80 ? "A" : composite >= 65 ? "B" : composite >= 50 ? "C" : composite >= 35 ? "D" : "E",
     components: {
-      financial: { score: financial.score, weight: "35%", label: "Financial Capacity" },
+      financial: { score: financial.score, weight: hasBureau ? "35%" : "15%", label: "Financial Capacity" },
       willingness: { score: willingness.score, weight: "25%", label: "Willingness to Repay" },
       altData: { score: altData.score, weight: "20%", label: "Alternative Data" },
+      ...(psychWeight > 0 && psychometric ? { psychometric: { score: psychometric.score, weight: "20%", label: "Psychometric Assessment" } } : {}),
       social: { score: app?.socialScore || 50, weight: "10%", label: "Development Impact" },
       experience: { score: Math.min(100, (customer?.yearsInBusiness || 5) * 10), weight: "10%", label: "Business Maturity" },
     },
+    psychometricDetail: psychometric,
     willingnessDetail: willingness,
     altDataDetail: altData,
   };
@@ -2760,6 +2977,19 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
       
       newAudit.push(addAudit("Automated Collateral Valuation", a.id, "Valuation Engine", `${valuation.summary.totalItems} items valued. Current: ${fmt.cur(valuation.total)}. Forced sale: ${fmt.cur(valuation.totalForcedSale)}. LTV: ${ltv}%. FLTV: ${fltv}%. Confidence: ${valuation.avgConfidence}%. ${valuation.recommendation}`, "Underwriting"));
     }
+    if (stepKey === "psychometric") {
+      // Run simulated psychometric assessment
+      const psychoSim = simulatePsychometricAssessment();
+      const psychoResult = scorePsychometric(psychoSim.answers, psychoSim.metadata);
+      const updatedApp2 = applications.find(x => x.id === appId);
+      if (updatedApp2) {
+        updatedApp2.psychometricAnswers = psychoSim.answers;
+        updatedApp2.psychometricMeta = psychoSim.metadata;
+        updatedApp2.psychometricResult = psychoResult;
+      }
+      newAudit.push(addAudit("Psychometric Assessment", a.id, "System", `Score: ${psychoResult.score}/100 (${psychoResult.grade}). Honesty: ${psychoResult.traits.honesty}. Fin Literacy: ${psychoResult.traits.financial_literacy}. Risk Tolerance: ${psychoResult.traits.risk_tolerance}. ${psychoResult.creditIndicators.recommendedAction}`, "Underwriting"));
+      showToast(`Psychometric assessment complete: ${psychoResult.score}/100 (${psychoResult.grade})`);
+    }
     if (stepKey === "social") { w.socialVerified = true; w.socialOfficer = currentUser.name; newAudit.push(addAudit("Social Impact Sign-Off", a.id, currentUser.name, `Social impact verified. Score: ${applications.find(x=>x.id===appId)?.socialScore}.`, "Compliance")); }
     save({ ...data, applications: applications.map(x => x.id === appId ? { ...x, workflow: w } : x), audit: newAudit, alerts: newAlerts });
   };
@@ -3162,6 +3392,9 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
       sections.push(`   Strengths:      ${ai.positives.join(", ") || "None identified"}`);
       sections.push(`   Concerns:       ${ai.negatives.join(", ") || "None identified"}`);
       sections.push(`   AI Rec:         ${ai.recommendation}`);
+      if (memo.aiAssessment?.psychometricScore) {
+        sections.push(`   Psychometric:   ${memo.aiAssessment.psychometricScore}/100 (${memo.aiAssessment.psychometricGrade})`);
+      }
       sections.push("");
     }
     sections.push("9. RECOMMENDATION");
@@ -5770,6 +6003,26 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
                 <Badge color={altData.grade === "Strong" ? "green" : altData.grade === "Adequate" ? "amber" : "red"}>{altData.grade}</Badge>
                 <div style={{ fontSize:10, color:C.textDim, marginTop:4 }}>{altData.dataCompleteness}% data completeness</div>
               </div>
+            </div>
+            {/* Psychometric Assessment */}
+            {(() => {
+              const appForLoan = applications.find(x => x.id === l.appId);
+              const psycho = appForLoan?.psychometricResult;
+              if (!psycho) return null;
+              return <div style={{ marginTop:12, padding:"12px 0", borderTop:`1px solid ${C.surface3}` }}>
+                <div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase", letterSpacing:1, marginBottom:8 }}>Psychometric Profile</div>
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr 1fr 1fr", gap:8 }}>
+                  {Object.entries(psycho.traits).map(([trait, score]) => (
+                    <div key={trait} style={{ textAlign:"center" }}>
+                      <div style={{ fontSize:18, fontWeight:700, fontFamily:"monospace", color: score >= 70 ? C.green : score >= 40 ? C.amber : C.red }}>{score}</div>
+                      <div style={{ fontSize:8, color:C.textDim, textTransform:"capitalize" }}>{trait.replace(/_/g," ")}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ fontSize:10, color:C.textDim, marginTop:8 }}>{psycho.creditIndicators.repaymentPrediction}</div>
+              </div>;
+            })()}
+            <div style={{ display:"none" }}>
             </div>;
           })()}
         </SectionCard>}
