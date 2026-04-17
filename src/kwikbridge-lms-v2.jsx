@@ -1783,6 +1783,262 @@ const formatTermSheetText = (ts) => {
 };
 
 
+// ═══════════════════════════════════════════════════════════════
+// FORMAL LOAN OFFER GENERATOR
+// Post-approval binding offer letter with final terms
+// ═══════════════════════════════════════════════════════════════
+
+const generateLoanOffer = (application, customer, product) => {
+  const a = application;
+  const c = customer;
+  const p = product;
+  if (!a || !c || !p) return;
+  
+  const amount = a.amount || 0;
+  const fee = p.arrangementFee || 2.5;
+  const grossAmount = Math.round(amount / (1 - fee / 100) * 100) / 100;
+  const feeAmount = Math.round((grossAmount - amount) * 100) / 100;
+  const rate = a.rate || p.baseRate || 42;
+  const monthlyRate = a.monthlyRate || p.monthlyRate || (rate / 12);
+  const term = a.term || p.maxTerm || 6;
+  const ref = `KB-LO-${new Date().getFullYear()}/${String(new Date().getMonth()+1).padStart(2,"0")}-${String(Math.floor(Math.random()*900)+100)}`;
+  const today = new Date().toLocaleDateString("en-ZA", { day:"numeric", month:"long", year:"numeric" });
+  const expiryDate = new Date(Date.now() + 14*24*60*60*1000).toLocaleDateString("en-ZA", { day:"numeric", month:"long", year:"numeric" });
+  
+  // Compute repayment schedule summary
+  const monthlyInterest = amount * (monthlyRate / 100);
+  const totalInterest = Math.round(monthlyInterest * term);
+  const totalRepayable = amount + totalInterest + feeAmount;
+  
+  // Monthly instalment (amortising) or bullet
+  let instalment, scheduleDesc;
+  if (p.repaymentType === "Bullet") {
+    instalment = Math.round(monthlyInterest);
+    scheduleDesc = `Monthly interest payments of approximately ${fmt.cur(instalment)} with bullet repayment of principal (${fmt.cur(amount)}) at maturity.`;
+  } else {
+    // Amortising
+    const mr = monthlyRate / 100;
+    instalment = Math.round(amount * mr / (1 - Math.pow(1 + mr, -term)));
+    scheduleDesc = `${term} equal monthly instalments of approximately ${fmt.cur(instalment)} commencing 30 days after first drawdown.`;
+  }
+  
+  // Security from product config
+  const prodSec = PRODUCT_SECURITY[p.id] || {};
+  const reqSec = (prodSec.required || []).map(id => SECURITY_INSTRUMENTS[id]?.name).filter(Boolean);
+  const optSec = (prodSec.optional || []).map(id => SECURITY_INSTRUMENTS[id]?.name).filter(Boolean);
+  
+  // Conditions from approval
+  const conditions = a.conditions || [];
+  
+  // Build the HTML document
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Loan Offer — ${a.id} — ${c.name}</title>
+<style>
+  @page { size: A4; margin: 25mm 20mm 20mm 25mm; }
+  @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } .no-print { display:none; } }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #1a1a1a; line-height: 1.6; padding: 40px; max-width: 800px; margin: 0 auto; }
+  .header { border-bottom: 3px solid #1B7A6E; padding-bottom: 12px; margin-bottom: 24px; }
+  .header h1 { font-size: 16px; color: #1B7A6E; letter-spacing: 2px; margin-bottom: 2px; }
+  .header p { font-size: 9px; color: #777; }
+  .title { text-align: center; margin: 30px 0 20px; }
+  .title h2 { font-size: 18px; font-weight: 700; color: #1a1a1a; margin-bottom: 4px; }
+  .title p { font-size: 11px; color: #1B7A6E; }
+  .meta { display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 10px; color: #555; }
+  .section { margin-bottom: 20px; }
+  .section h3 { font-size: 12px; font-weight: 700; color: #1B7A6E; border-bottom: 1px solid #ddd; padding-bottom: 4px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .row { display: flex; border-bottom: 1px solid #eee; padding: 6px 0; }
+  .row-label { width: 180px; font-weight: 600; color: #333; flex-shrink: 0; }
+  .row-value { flex: 1; color: #1a1a1a; }
+  .highlight { background: #f8fffe; border: 1px solid #1B7A6E33; border-radius: 4px; padding: 12px 16px; margin: 12px 0; }
+  .highlight .big { font-size: 22px; font-weight: 700; color: #1B7A6E; }
+  .highlight .label { font-size: 9px; color: #777; text-transform: uppercase; letter-spacing: 0.5px; }
+  .warn { background: #fff8f0; border: 1px solid #e8a84c33; border-radius: 4px; padding: 10px 14px; margin: 12px 0; font-size: 10px; color: #8a6d3b; }
+  ol, ul { margin-left: 20px; margin-bottom: 8px; }
+  li { margin-bottom: 4px; }
+  .sig-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 30px; }
+  .sig-block { border-top: 1px solid #1a1a1a; padding-top: 8px; margin-top: 60px; }
+  .sig-block p { font-size: 10px; color: #777; margin-bottom: 2px; }
+  .footer { margin-top: 40px; border-top: 1px solid #ddd; padding-top: 10px; font-size: 8px; color: #999; text-align: center; }
+  .btn-print { position: fixed; top: 20px; right: 20px; background: #1B7A6E; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 12px; font-family: inherit; }
+  .btn-print:hover { background: #156b61; }
+</style>
+</head>
+<body>
+
+<button class="btn-print no-print" onclick="window.print()">Print / Save as PDF</button>
+
+<div class="header">
+  <h1>TQA CAPITAL (PTY) LTD</h1>
+  <p>NCR Credit Provider | Registration: NCRCP22396 | East London, Nahoon Valley, Eastern Cape</p>
+</div>
+
+<div class="title">
+  <h2>FORMAL LOAN OFFER</h2>
+  <p>${p.name}</p>
+</div>
+
+<div class="meta">
+  <div><strong>Date:</strong> ${today}</div>
+  <div><strong>Reference:</strong> ${ref}</div>
+  <div><strong>Application:</strong> ${a.id}</div>
+  <div><strong>Valid until:</strong> ${expiryDate}</div>
+</div>
+
+<div class="section">
+  <h3>Dear ${c.contact || c.name},</h3>
+  <p>We are pleased to advise that your application for credit has been approved. This letter constitutes a formal offer of financing on the terms and conditions set out below. Please review these terms carefully. This offer is valid for 14 calendar days from the date above and is subject to the conditions precedent listed herein.</p>
+</div>
+
+<div class="section">
+  <h3>1. Parties</h3>
+  <div class="row"><div class="row-label">Lender</div><div class="row-value">TQA Capital (Pty) Ltd t/a KwikBridge<br>NCR Registration: NCRCP22396</div></div>
+  <div class="row"><div class="row-label">Borrower</div><div class="row-value">${c.name}<br>${c.regNum ? 'Registration: ' + c.regNum + '<br>' : ''}${c.address || ''}</div></div>
+</div>
+
+<div class="section">
+  <h3>2. Facility Details</h3>
+  <div class="highlight" style="display:flex;gap:30px;">
+    <div><div class="label">Approved Amount</div><div class="big">${fmt.cur(amount)}</div></div>
+    <div><div class="label">Interest Rate</div><div class="big">${rate}% p.a.</div></div>
+    <div><div class="label">Term</div><div class="big">${term} months</div></div>
+    <div><div class="label">Monthly Instalment</div><div class="big">${fmt.cur(instalment)}</div></div>
+  </div>
+  <div class="row"><div class="row-label">Product</div><div class="row-value">${p.name} (${p.id})</div></div>
+  <div class="row"><div class="row-label">Facility Amount</div><div class="row-value">${fmt.cur(amount)} net (gross ${fmt.cur(grossAmount)} inclusive of arrangement fee)</div></div>
+  <div class="row"><div class="row-label">Interest Rate</div><div class="row-value">${rate}% per annum (${monthlyRate.toFixed(2)}% per month), calculated daily on the outstanding balance</div></div>
+  <div class="row"><div class="row-label">Arrangement Fee</div><div class="row-value">${fee}% = ${fmt.cur(feeAmount)}, deducted at source from the drawdown</div></div>
+  <div class="row"><div class="row-label">Net Disbursement</div><div class="row-value">${fmt.cur(amount)} to your verified bank account</div></div>
+  <div class="row"><div class="row-label">Term</div><div class="row-value">${term} months from date of first drawdown</div></div>
+  <div class="row"><div class="row-label">Repayment</div><div class="row-value">${scheduleDesc}</div></div>
+  <div class="row"><div class="row-label">Purpose</div><div class="row-value">${a.purpose || '—'}</div></div>
+  ${a.riskScore ? '<div class="row"><div class="row-label">Risk Grade</div><div class="row-value">' + (a.riskScore >= 80 ? 'A' : a.riskScore >= 65 ? 'B' : a.riskScore >= 50 ? 'C' : 'D') + ' (AI Composite Score: ' + a.riskScore + '/100)</div></div>' : ''}
+</div>
+
+<div class="section">
+  <h3>3. Total Cost of Credit</h3>
+  <div class="row"><div class="row-label">Principal</div><div class="row-value">${fmt.cur(amount)}</div></div>
+  <div class="row"><div class="row-label">Arrangement Fee</div><div class="row-value">${fmt.cur(feeAmount)}</div></div>
+  <div class="row"><div class="row-label">Total Interest (est.)</div><div class="row-value">${fmt.cur(totalInterest)} over ${term} months at ${rate}% p.a.</div></div>
+  <div class="row" style="font-weight:700;border-bottom:2px solid #1B7A6E;"><div class="row-label">Total Amount Repayable</div><div class="row-value">${fmt.cur(totalRepayable)}</div></div>
+  <div class="warn">The total interest shown above is an estimate based on the full term. Actual interest will depend on the drawdown date and repayment pattern. Early repayment will reduce total interest payable. No early repayment penalty applies.</div>
+</div>
+
+<div class="section">
+  <h3>4. Security Required</h3>
+  <p>The following security must be in place before disbursement:</p>
+  <ol>
+    ${reqSec.map(s => '<li>' + s + '</li>').join('\n    ')}
+    <li>Irrevocable debit order mandate on the Borrower's primary business bank account</li>
+  </ol>
+  ${optSec.length > 0 ? '<p style="margin-top:8px;">The following security is recommended (optional):</p><ul>' + optSec.map(s => '<li>' + s + '</li>').join('\n    ') + '</ul>' : ''}
+</div>
+
+<div class="section">
+  <h3>5. Conditions Precedent to Disbursement</h3>
+  <p>Disbursement is subject to the following conditions being fulfilled:</p>
+  <ol>
+    <li>This loan offer accepted and signed by the Borrower</li>
+    <li>Loan agreement executed by both parties</li>
+    <li>All security instruments duly signed and, where applicable, registered</li>
+    <li>Satisfactory FICA/KYC documentation on file</li>
+    <li>No material adverse change in the Borrower's financial condition since the date of application</li>
+    <li>No event of default or potential event of default subsisting</li>
+    <li>Payment of arrangement fee (deducted from drawdown)</li>
+    ${conditions.map(c2 => '<li>' + c2 + '</li>').join('\n    ')}
+  </ol>
+</div>
+
+<div class="section">
+  <h3>6. Key Covenants</h3>
+  <p>Throughout the term of the facility, the Borrower undertakes to:</p>
+  <ol>
+    <li>Make all repayments on the due dates specified in the repayment schedule</li>
+    <li>Maintain adequate insurance coverage as required by the Lender</li>
+    <li>Provide financial information as reasonably requested by the Lender</li>
+    <li>Notify the Lender immediately of any material adverse change in the Borrower's financial position or business operations</li>
+    <li>Not incur additional borrowing without the prior written consent of the Lender</li>
+    <li>Not dispose of, encumber, or otherwise deal with the security assets without the Lender's consent</li>
+    <li>Comply with all applicable laws and regulations, including tax obligations</li>
+  </ol>
+</div>
+
+<div class="section">
+  <h3>7. Events of Default</h3>
+  <p>The Lender may declare the facility immediately due and payable upon the occurrence of any of the following:</p>
+  <ol>
+    <li>Failure to pay any amount when due and such failure continuing for 7 business days after written notice</li>
+    <li>Breach of any covenant or undertaking</li>
+    <li>Any representation or warranty found to be materially inaccurate</li>
+    <li>Insolvency, business rescue, or winding-up proceedings</li>
+    <li>Cross-default on any other material financial obligation</li>
+    <li>Material adverse change in the Borrower's financial condition</li>
+  </ol>
+</div>
+
+<div class="section">
+  <h3>8. General</h3>
+  <div class="row"><div class="row-label">Governing Law</div><div class="row-value">Laws of the Republic of South Africa</div></div>
+  <div class="row"><div class="row-label">Jurisdiction</div><div class="row-value">Eastern Cape Division of the High Court</div></div>
+  <div class="row"><div class="row-label">Costs</div><div class="row-value">The Borrower bears all costs of negotiation, execution, and enforcement</div></div>
+  <div class="row"><div class="row-label">Credit Life</div><div class="row-value">Credit life insurance at 3.0% p.a. of the outstanding balance may be required as a condition of the facility</div></div>
+  <div class="row"><div class="row-label">Complaints</div><div class="row-value">NCR: 0860 627 627 | Credit Ombud: 0861 662 837</div></div>
+</div>
+
+<div class="section">
+  <h3>9. Acceptance</h3>
+  <p>By signing below, the Borrower accepts this loan offer on the terms and conditions set out herein, and acknowledges that:</p>
+  <ol>
+    <li>The Borrower has read, understood, and agrees to all terms and conditions</li>
+    <li>The Borrower has had the opportunity to seek independent legal and financial advice</li>
+    <li>The information provided in the loan application is true and correct in all material respects</li>
+    <li>The Borrower consents to the Lender processing personal information in accordance with POPIA</li>
+  </ol>
+</div>
+
+<div class="sig-grid">
+  <div>
+    <p style="font-weight:600;font-size:10px;">FOR AND ON BEHALF OF THE LENDER:</p>
+    <p style="font-size:10px;">TQA Capital (Pty) Ltd</p>
+    <div class="sig-block">
+      <p>Authorised Signatory</p>
+      <p>Name: ___________________________</p>
+      <p>Title: ___________________________</p>
+      <p>Date: ___________________________</p>
+    </div>
+  </div>
+  <div>
+    <p style="font-weight:600;font-size:10px;">FOR AND ON BEHALF OF THE BORROWER:</p>
+    <p style="font-size:10px;">${c.name}</p>
+    <div class="sig-block">
+      <p>Authorised Signatory</p>
+      <p>Name: ${c.contact || '___________________________'}</p>
+      <p>Title: ___________________________</p>
+      <p>Date: ___________________________</p>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  ${ref} | ${a.id} | Generated by KwikBridge LMS | TQA Capital (Pty) Ltd | NCR: NCRCP22396 | Confidential
+</div>
+
+</body>
+</html>`;
+
+  // Open in new window
+  const w2 = window.open("", "_blank");
+  if (w2) {
+    w2.document.write(html);
+    w2.document.close();
+  }
+  return { ref, date: today, amount, rate, term, instalment, totalRepayable };
+};
+
+
   const GLOBAL_CSS = `
         *{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}.kb-kpi{flex:1;padding:16px 20px !important;border-right:1px solid ${C.surface3};transition:background .15s ease-out}
         .kb-kpi:last-child{border-right:none}
@@ -6230,7 +6486,19 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
                   <div style={{ fontSize:11, color:C.textMuted }}>Verify conditions precedent and create loan record.</div>
                 </div>
               <Btn variant="secondary" onClick={() => { const c3 = customers.find(x=>x.id===a.custId); const p3 = products.find(x=>x.id===a.product); generateLoanAgreement(null, a, c3, p3); }}>Generate Agreement</Btn>
-                <Btn onClick={()=>bookLoan(a.id)}>Book Loan</Btn>
+                <Btn variant="secondary" onClick={()=>{
+                const c3 = customers.find(x=>x.id===a.custId);
+                const p3 = products.find(x=>x.id===a.product);
+                const result = generateLoanOffer(a, c3, p3);
+                if (result) {
+                  save({ ...data,
+                    applications: applications.map(x => x.id === a.id ? { ...x, loanOfferRef: result.ref, loanOfferDate: Date.now() } : x),
+                    audit: [...audit, addAudit("Loan Offer Generated", a.id, currentUser.name, `Ref: ${result.ref}. Amount: ${fmt.cur(result.amount)}. Rate: ${result.rate}% p.a. Term: ${result.term}m. Instalment: ${fmt.cur(result.instalment)}. Total repayable: ${fmt.cur(result.totalRepayable)}.`, "Origination")],
+                  });
+                  showToast("Loan offer generated — " + result.ref);
+                }
+              }}>Print Loan Offer</Btn>
+              <Btn onClick={()=>bookLoan(a.id)}>Book Loan</Btn>
               </div>
             </div>
           )}
@@ -6468,9 +6736,18 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
                   {l.arrangementFee > 0 && <span> · Arrangement fee: {fmt.cur(l.arrangementFee)}</span>}
                 </div>
               </div>
-              {canDoAny("servicing",["create"]) && canDoAny("loans",["update"]) && (
-                <Btn onClick={()=>disburseLoan(l.id)}>Disburse Funds</Btn>
-              )}
+              {canDoAny("servicing",["create"]) && canDoAny("loans",["update"]) && <>
+                {(() => {
+                const appForLoan = applications.find(x => x.id === l.appId);
+                return appForLoan ? <Btn variant="secondary" onClick={()=>{
+                  const c3 = customers.find(x=>x.id===l.custId);
+                  const p3 = products.find(x=>x.id===l.product);
+                  generateLoanOffer(appForLoan, c3, p3);
+                  showToast("Loan offer reprinted");
+                }}>Reprint Offer</Btn> : null;
+              })()}
+              <Btn onClick={()=>disburseLoan(l.id)}>Disburse Funds</Btn>
+              </>}
             </div>
           </div>
         )}
