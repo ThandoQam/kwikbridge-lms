@@ -4315,9 +4315,9 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
       case "documents": return <Documents />;
       case "reports": return <Reports />;
       case "comms": return <Comms />;
-      case "admin": return <Administration />;
-      case "products": return <Administration />;
-      case "settings": return <Administration />;
+      case "admin": return Administration();
+      case "products": return Administration();
+      case "settings": return Administration();
       default: return <Dashboard />;
     }
   }
