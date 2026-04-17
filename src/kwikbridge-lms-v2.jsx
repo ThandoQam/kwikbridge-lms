@@ -1405,6 +1405,384 @@ const simulatePsychometricAssessment = () => {
 };
 
 
+// ═══════════════════════════════════════════════════════════════
+// INDICATIVE TERM SHEET GENERATOR
+// Auto-generates from LMS product config + applicant security position
+// ═══════════════════════════════════════════════════════════════
+
+const generateTermSheet = (application, customer, product, securityPosition) => {
+  // securityPosition: { awardLetter, purchaseOrder, signedSLA, signedInvoice, cessionExecuted, progressCert }
+  const sp = securityPosition || {};
+  const amount = application?.amount || 0;
+  const fee = product?.arrangementFee || 2.5;
+  const grossAmount = amount / (1 - fee / 100);
+  const feeAmount = grossAmount - amount;
+  
+  // Determine facility type based on security position
+  const hasSLA = sp.signedSLA || false;
+  const hasPO = sp.purchaseOrder || false;
+  const hasAward = sp.awardLetter || false;
+  const hasInvoice = sp.signedInvoice || false;
+  const hasCession = sp.cessionExecuted || false;
+  const hasProgressCert = sp.progressCert || false;
+  
+  // Determine rate based on security position
+  let preRate, postRate, facilityType, rateNote;
+  if (hasInvoice || hasCession) {
+    // Full security — use product base rate
+    preRate = product?.monthlyRate || 3.5;
+    postRate = preRate;
+    facilityType = product?.name || "Secured Facility";
+    rateNote = "Rate based on verified security in place.";
+  } else if (hasSLA && hasPO) {
+    // Post-SLA — moderate rate
+    preRate = product?.monthlyRate || 3.5;
+    postRate = preRate;
+    facilityType = "Contract-Backed Facility";
+    rateNote = "Rate based on signed SLA and formal Purchase Order.";
+  } else if (hasAward && !hasSLA) {
+    // Pre-contract — premium rate with step-down
+    preRate = Math.min((product?.monthlyRate || 3.5) + 0.75, 3.75);
+    postRate = Math.min(preRate - 0.25, 2.00);
+    facilityType = "Pre-Contract Bridging Facility";
+    rateNote = "Pre-SLA premium applied. Rate steps down upon receipt of signed SLA and executed cession.";
+  } else {
+    // No security docs — highest rate
+    preRate = Math.min((product?.monthlyRate || 3.5) + 1.0, 4.0);
+    postRate = product?.monthlyRate || 3.5;
+    facilityType = "Unsecured Bridging Facility";
+    rateNote = "Premium rate — no contract security in place. Rate adjusts upon security delivery.";
+  }
+  
+  // Determine repayment structure
+  const tenor = product?.maxTerm || 6;
+  const repaymentType = product?.repaymentType || "Bullet";
+  
+  // Determine tranching based on security position and amount
+  const tranches = [];
+  if (hasInvoice || (hasSLA && hasPO)) {
+    // Full security — single tranche
+    tranches.push({
+      number: 1,
+      label: "Full Drawdown",
+      netAmount: amount,
+      grossAmount: grossAmount,
+      feeAmount: feeAmount,
+      condition: "Upon execution of facility agreement and fulfilment of all conditions precedent.",
+      disbursement: "To Borrower's verified business account.",
+      status: "Immediate",
+    });
+  } else if (hasAward && !hasSLA) {
+    // Pre-contract — 3-tranche structure
+    const t1Net = Math.round(amount * 0.10); // 10% immediate
+    const t2Net = Math.round(amount * 0.40); // 40% on SLA
+    const t3Net = amount - t1Net - t2Net;     // 50% on progress cert
+    
+    const t1Gross = Math.round(t1Net / (1 - fee / 100) * 100) / 100;
+    const t2Gross = Math.round(t2Net / (1 - fee / 100) * 100) / 100;
+    const t3Gross = Math.round(t3Net / (1 - fee / 100) * 100) / 100;
+    
+    tranches.push({
+      number: 1, label: "Immediate",
+      netAmount: t1Net, grossAmount: t1Gross, feeAmount: Math.round((t1Gross - t1Net) * 100) / 100,
+      condition: "Upon execution of facility agreement.",
+      disbursement: "To Borrower's business account. Purpose: mobilisation costs and preliminary expenses.",
+      status: "Immediate",
+    });
+    tranches.push({
+      number: 2, label: "Conditional (Post-SLA)",
+      netAmount: t2Net, grossAmount: t2Gross, feeAmount: Math.round((t2Gross - t2Net) * 100) / 100,
+      condition: "Upon receipt of (a) signed SLA between Borrower and off-taker, and (b) formal Purchase Order.",
+      disbursement: "Directly to verified supplier accounts and/or Borrower's designated payroll account.",
+      status: "Conditional",
+    });
+    tranches.push({
+      number: 3, label: "Conditional (Post-Commencement)",
+      netAmount: t3Net, grossAmount: t3Gross, feeAmount: Math.round((t3Gross - t3Net) * 100) / 100,
+      condition: "Upon (a) all Tranche 2 conditions met, (b) satisfactory project commencement, (c) first progress certificate.",
+      disbursement: "Directly to verified supplier accounts and/or Borrower's designated payroll account.",
+      status: "Conditional",
+    });
+  } else {
+    // Minimal security — conservative single tranche
+    tranches.push({
+      number: 1, label: "Full Drawdown",
+      netAmount: amount, grossAmount: grossAmount, feeAmount: feeAmount,
+      condition: "Subject to enhanced due diligence and additional security requirements.",
+      disbursement: "To Borrower's verified business account.",
+      status: "Subject to DD",
+    });
+  }
+  
+  // Determine security requirements
+  const securityRequired = [];
+  const securityAdditional = [];
+  
+  // Product-specific required security
+  const prodSec = PRODUCT_SECURITY[product?.id];
+  if (prodSec?.required) {
+    prodSec.required.forEach(id => {
+      const instr = SECURITY_INSTRUMENTS[id];
+      if (instr) securityRequired.push(instr.name);
+    });
+  }
+  
+  // Always require personal guarantee for bridging/pre-contract
+  if (!hasSLA && hasAward) {
+    if (!securityRequired.includes("Personal Guarantee / Suretyship")) {
+      securityRequired.push("Personal Guarantee / Suretyship by director(s), unlimited in amount");
+    }
+    securityRequired.push("Irrevocable debit order mandate on primary business bank account");
+    securityRequired.push("Cession of all rights in the award letter and any resulting SLA/PO");
+    securityAdditional.push("Step-in rights — Lender's right to assume Borrower's position under the contract upon default");
+    securityAdditional.push("Bank letter of authority directing off-taker payments to Lender's nominated account");
+    securityAdditional.push("Insurance cession — contract works and professional indemnity policies");
+  }
+  
+  if (prodSec?.optional) {
+    prodSec.optional.forEach(id => {
+      const instr = SECURITY_INSTRUMENTS[id];
+      if (instr && !securityRequired.includes(instr.name)) securityAdditional.push(instr.name);
+    });
+  }
+  
+  // Conditions precedent
+  const cpsTranche1 = [
+    "Signed facility agreement",
+    "FICA documentation (ID, proof of address, company registration)",
+    "Latest available financial statements or management accounts",
+    "Satisfactory KYC and credit checks",
+    "Payment of arrangement fee (deducted from drawdown)",
+  ];
+  if (hasAward) cpsTranche1.push("Certified copy of the award letter / appointment letter");
+  if (!hasSLA && hasAward) cpsTranche1.push("Personal guarantee executed by director(s)");
+  cpsTranche1.push("Debit order mandate");
+  
+  const cpsTranche2 = tranches.length > 1 ? [
+    "All Tranche 1 conditions precedent satisfied",
+    "Signed Service Level Agreement between Borrower and off-taker",
+    "Formal Purchase Order from off-taker",
+    "Executed cession of receivables",
+    "Bank letter of authority acknowledged by off-taker",
+    "Written consent from off-taker to Lender's step-in rights",
+    "Insurance cession",
+    "Approved supplier payment schedule and/or payroll register",
+    "No material adverse change in the Borrower's financial condition",
+  ] : [];
+  
+  const cpsTranche3 = tranches.length > 2 ? [
+    "All Tranche 1 and 2 conditions precedent satisfied",
+    "Confirmation of satisfactory project commencement",
+    "Receipt of first progress certificate from off-taker",
+    "Updated supplier invoices and/or payroll register",
+    "Satisfactory project progress report from Borrower",
+    "No event of default subsisting",
+  ] : [];
+  
+  // Build the term sheet object
+  const ref = "KB-TS-" + new Date().getFullYear() + "/" + String(new Date().getMonth() + 1).padStart(2, "0") + "-" + String(Math.floor(Math.random() * 900) + 100);
+  
+  return {
+    // Header
+    ref,
+    date: new Date().toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" }),
+    validity: "14 calendar days from date of issue",
+    
+    // Parties
+    lender: {
+      name: "TQA Capital (Pty) Ltd, trading as KwikBridge",
+      ncr: "NCRCP22396",
+      address: "East London, Nahoon Valley, Eastern Cape",
+    },
+    borrower: {
+      name: customer?.name || "—",
+      regNum: customer?.regNum || "—",
+      contact: customer?.contact || "—",
+      address: customer?.address || "—",
+      attention: customer?.contact || "—",
+    },
+    
+    // Facility
+    facilityType,
+    totalNet: amount,
+    totalGross: Math.round(tranches.reduce((s, t2) => s + t2.grossAmount, 0) * 100) / 100,
+    totalFees: Math.round(tranches.reduce((s, t2) => s + t2.feeAmount, 0) * 100) / 100,
+    tranches,
+    scalingAvailable: amount < (product?.maxAmount || amount),
+    scalingMax: product?.maxAmount || amount,
+    
+    // Pricing
+    interestRate: {
+      preSecurityMonthly: preRate,
+      preSecurityAnnual: Math.round(preRate * 12 * 100) / 100,
+      postSecurityMonthly: postRate,
+      postSecurityAnnual: Math.round(postRate * 12 * 100) / 100,
+      rateNote,
+    },
+    arrangementFee: fee,
+    commitmentFee: product?.commitmentFee || 0.5,
+    
+    // Repayment
+    term: tenor,
+    repaymentType,
+    extensionAvailable: true,
+    extensionTerm: tenor,
+    maxTotalTerm: tenor * 2,
+    
+    // Security
+    securityRequired,
+    securityAdditional,
+    stepInRights: !hasSLA && hasAward,
+    
+    // CPs
+    cpsTranche1,
+    cpsTranche2,
+    cpsTranche3,
+    
+    // Security position assessment
+    securityAssessment: {
+      awardLetter: hasAward ? "In hand" : "Not provided",
+      purchaseOrder: hasPO ? "In hand" : "Pending",
+      signedSLA: hasSLA ? "Executed" : "Pending",
+      signedInvoice: hasInvoice ? "Verified" : "N/A",
+      cessionExecuted: hasCession ? "Executed" : "Pending",
+      progressCert: hasProgressCert ? "Received" : "Pending",
+      overallRisk: hasCession ? "Low" : hasSLA ? "Low-Medium" : hasAward ? "Medium" : "High",
+    },
+    
+    // Product source
+    productCode: product?.id,
+    productName: product?.name,
+    
+    // Metadata
+    generatedAt: Date.now(),
+    generatedBy: "KwikBridge LMS — Term Sheet Generator",
+    status: "Indicative — Not a Binding Offer",
+  };
+};
+
+// Format term sheet as printable text
+const formatTermSheetText = (ts) => {
+  const lines = [];
+  const hr = "═".repeat(60);
+  const sr = "─".repeat(60);
+  
+  lines.push(hr);
+  lines.push("TQA CAPITAL (PTY) LTD");
+  lines.push("NCR Credit Provider | NCRCP22396");
+  lines.push(hr);
+  lines.push("");
+  lines.push("INDICATIVE TERM SHEET");
+  lines.push(ts.facilityType);
+  lines.push("");
+  lines.push("Strictly Confidential | Subject to Credit Approval | Not a Binding Offer");
+  lines.push("");
+  lines.push(`Date:      ${ts.date}`);
+  lines.push(`Reference: ${ts.ref}`);
+  lines.push(`Validity:  ${ts.validity}`);
+  lines.push("");
+  lines.push(sr);
+  lines.push("PARTIES");
+  lines.push(sr);
+  lines.push(`Lender:    ${ts.lender.name}`);
+  lines.push(`           NCR: ${ts.lender.ncr}`);
+  lines.push(`           ${ts.lender.address}`);
+  lines.push("");
+  lines.push(`Borrower:  ${ts.borrower.name}`);
+  lines.push(`           Reg: ${ts.borrower.regNum}`);
+  lines.push(`           ${ts.borrower.address}`);
+  lines.push("");
+  lines.push(sr);
+  lines.push("FACILITY");
+  lines.push(sr);
+  lines.push(`Type:      ${ts.facilityType}`);
+  lines.push(`Net:       R${ts.totalNet.toLocaleString("en-ZA", {minimumFractionDigits:2})}`);
+  lines.push(`Gross:     R${ts.totalGross.toLocaleString("en-ZA", {minimumFractionDigits:2})} (incl. fees)`);
+  lines.push(`Fees:      R${ts.totalFees.toLocaleString("en-ZA", {minimumFractionDigits:2})} (${ts.arrangementFee}% per tranche)`);
+  if (ts.scalingAvailable) lines.push(`Scaling:   Up to R${ts.scalingMax.toLocaleString("en-ZA")} subject to DD and underwriting approval`);
+  lines.push("");
+  
+  ts.tranches.forEach(tr => {
+    lines.push(`Tranche ${tr.number} (${tr.label}):`);
+    lines.push(`  Net:       R${tr.netAmount.toLocaleString("en-ZA", {minimumFractionDigits:2})}`);
+    lines.push(`  Gross:     R${tr.grossAmount.toLocaleString("en-ZA", {minimumFractionDigits:2})} (fee: R${tr.feeAmount.toLocaleString("en-ZA", {minimumFractionDigits:2})})`);
+    lines.push(`  Condition: ${tr.condition}`);
+    lines.push(`  Disburse:  ${tr.disbursement}`);
+    lines.push("");
+  });
+  
+  lines.push(sr);
+  lines.push("PRICING");
+  lines.push(sr);
+  lines.push(`Rate:      ${ts.interestRate.preSecurityAnnual}% p.a. (${ts.interestRate.preSecurityMonthly}% per month)`);
+  if (ts.interestRate.preSecurityMonthly !== ts.interestRate.postSecurityMonthly) {
+    lines.push(`Step-down: ${ts.interestRate.postSecurityAnnual}% p.a. (${ts.interestRate.postSecurityMonthly}% per month) upon security delivery`);
+  }
+  lines.push(`           ${ts.interestRate.rateNote}`);
+  lines.push(`Arr. Fee:  ${ts.arrangementFee}% per tranche, deducted at source`);
+  if (ts.commitmentFee) lines.push(`Commit:    ${ts.commitmentFee}% per month on undrawn balance`);
+  lines.push("");
+  
+  lines.push(sr);
+  lines.push("REPAYMENT");
+  lines.push(sr);
+  lines.push(`Term:      ${ts.term} months from first drawdown`);
+  lines.push(`Type:      ${ts.repaymentType}`);
+  if (ts.extensionAvailable) lines.push(`Extension: Up to ${ts.maxTotalTerm} months total, at Lender's discretion`);
+  lines.push("");
+  
+  lines.push(sr);
+  lines.push("SECURITY");
+  lines.push(sr);
+  lines.push("Required:");
+  ts.securityRequired.forEach(s => lines.push(`  • ${s}`));
+  if (ts.securityAdditional.length > 0) {
+    lines.push("Additional (upon SLA):");
+    ts.securityAdditional.forEach(s => lines.push(`  • ${s}`));
+  }
+  if (ts.stepInRights) lines.push("\nStep-in rights clause will be included in the loan agreement.");
+  lines.push("");
+  
+  lines.push(sr);
+  lines.push("CONDITIONS PRECEDENT");
+  lines.push(sr);
+  lines.push("Before Tranche 1:");
+  ts.cpsTranche1.forEach((cp, i) => lines.push(`  (${String.fromCharCode(97+i)}) ${cp}`));
+  if (ts.cpsTranche2.length > 0) {
+    lines.push("\nBefore Tranche 2:");
+    ts.cpsTranche2.forEach((cp, i) => lines.push(`  (${String.fromCharCode(97+i)}) ${cp}`));
+  }
+  if (ts.cpsTranche3.length > 0) {
+    lines.push("\nBefore Tranche 3:");
+    ts.cpsTranche3.forEach((cp, i) => lines.push(`  (${String.fromCharCode(97+i)}) ${cp}`));
+  }
+  lines.push("");
+  
+  lines.push(sr);
+  lines.push("SECURITY POSITION ASSESSMENT");
+  lines.push(sr);
+  Object.entries(ts.securityAssessment).forEach(([k, v]) => {
+    const label = k.replace(/([A-Z])/g, " $1").replace(/^./, s => s.toUpperCase());
+    lines.push(`  ${label.padEnd(20)} ${v}`);
+  });
+  lines.push("");
+  
+  lines.push(sr);
+  lines.push("IMPORTANT NOTICE");
+  lines.push(sr);
+  lines.push("This indicative term sheet is provided for discussion purposes only and");
+  lines.push("does not constitute a binding offer. Subject to credit approval, due");
+  lines.push("diligence, and execution of definitive legal documentation.");
+  lines.push("");
+  lines.push(`Generated: ${new Date(ts.generatedAt).toLocaleString("en-ZA")}`);
+  lines.push(`Product:   ${ts.productCode} — ${ts.productName}`);
+  lines.push(`Source:    ${ts.generatedBy}`);
+  lines.push(hr);
+  
+  return lines.join("\n");
+};
+
+
   const GLOBAL_CSS = `
         *{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}.kb-kpi{flex:1;padding:16px 20px !important;border-right:1px solid ${C.surface3};transition:background .15s ease-out}
         .kb-kpi:last-child{border-right:none}
@@ -5983,6 +6361,43 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
             <div style={{ display:"flex", gap:8 }}><Btn onClick={()=>submitRecommendation(a.id,"Approve")} disabled={!allDDComplete}>Recommend Approve</Btn><Btn variant="danger" onClick={()=>submitRecommendation(a.id,"Decline")} disabled={!allDDComplete}>Recommend Decline</Btn></div>
           </div>
         </div>}
+        {/* Generate Indicative Term Sheet */}
+        {(a.status === "Submitted" || a.status === "Pre-Approval" || a.status === "Underwriting") && canDo("origination","create") && <div style={{ border:`1px solid ${C.accent}33`, borderRadius:6, padding:"16px 20px", marginTop:4 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+            <div>
+              <div style={{ fontSize:12, fontWeight:600, color:C.accent }}>Indicative Term Sheet</div>
+              <div style={{ fontSize:11, color:C.textDim }}>Auto-generate from LMS product data and applicant security position</div>
+            </div>
+            <Btn size="sm" onClick={()=>{
+              const c3 = cust(a.custId);
+              const p3 = prod(a.product);
+              const secPos = {
+                awardLetter: (documents||[]).some(d=>d.appId===a.id && (d.name||"").toLowerCase().includes("award")),
+                purchaseOrder: (documents||[]).some(d=>d.appId===a.id && (d.name||"").toLowerCase().includes("purchase order")),
+                signedSLA: (documents||[]).some(d=>d.appId===a.id && (d.name||"").toLowerCase().includes("sla")),
+                signedInvoice: (documents||[]).some(d=>d.appId===a.id && (d.name||"").toLowerCase().includes("invoice")),
+                cessionExecuted: (documents||[]).some(d=>d.appId===a.id && (d.name||"").toLowerCase().includes("cession")),
+                progressCert: (documents||[]).some(d=>d.appId===a.id && (d.name||"").toLowerCase().includes("progress")),
+              };
+              const ts = generateTermSheet(a, c3, p3, secPos);
+              const tsText = formatTermSheetText(ts);
+              // Store on application and open in new window
+              const updated = { ...a, termSheet: ts, termSheetText: tsText, termSheetDate: Date.now() };
+              save({ ...data,
+                applications: applications.map(x => x.id === a.id ? updated : x),
+                audit: [...audit, addAudit("Term Sheet Generated", a.id, currentUser.name, `${ts.facilityType}. Net: ${fmt.cur(ts.totalNet)}. ${ts.tranches.length} tranche(s). Rate: ${ts.interestRate.preSecurityAnnual}% p.a. Security: ${ts.securityAssessment.overallRisk} risk.`, "Origination")],
+              });
+              // Open printable term sheet
+              const w2 = window.open("", "_blank");
+              if (w2) {
+                w2.document.write("<html><head><title>Term Sheet — " + a.id + "</title><style>body{font-family:Consolas,monospace;font-size:12px;white-space:pre-wrap;padding:40px;max-width:800px;margin:0 auto;line-height:1.5}@media print{body{padding:20px}}</style></head><body>" + tsText.replace(/\n/g,"\n") + "</body></html>");
+                w2.document.close();
+              }
+              showToast("Term sheet generated — " + ts.tranches.length + " tranche(s), " + ts.interestRate.preSecurityAnnual + "% p.a.");
+            }}>Generate Term Sheet</Btn>
+          </div>
+        </div>}
+
         {a.stpPipeline && <div style={{ border:`1px solid ${C.green}33`, borderRadius:6, padding:"16px 20px", marginTop:4, background:`${C.green}08` }}>
           <div style={{ fontSize:12, fontWeight:600, color:C.green, marginBottom:8 }}>STP Pipeline — {a.stpPipeline.status} ({a.stpPipeline.elapsed})</div>
           {a.stpPipeline.steps.map((s,i) => (
