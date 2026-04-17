@@ -194,9 +194,10 @@ function seed() {
     { id:"P002", name:"Invoice — Scholar Transport", minAmount:10000, maxAmount:150000, minTerm:1, maxTerm:2, baseRate:30.0, monthlyRate:2.5, description:"Invoice discounting for scholar transport operators with confirmed ECDoE contracts. Short-tenor, high-velocity product with 8 cycles per year. Verified invoice against government off-taker.", repaymentType:"Bullet", arrangementFee:2.0, commitmentFee:0, gracePeriod:0, maxLTV:80, minDSCR:1.0, eligibleBEE:[1,2,3,4,5,6,7,8], eligibleIndustries:["Transport","Education"], status:"Active", createdBy:"U001", createdAt:now-365*day, idealFor:"Scholar transport operators with verified ECDoE invoices.", riskClass:"A", ecl:0.76, s1PD:0.006, lgd:0.23 },
     { id:"P003", name:"Invoice — Road Maintenance", minAmount:50000, maxAmount:1000000, minTerm:1, maxTerm:1, baseRate:30.0, monthlyRate:2.5, description:"Invoice discounting for road maintenance contractors with ECDoT (Eastern Cape Dept of Transport) verified invoices. Highest capital velocity — 10 cycles per year.", repaymentType:"Bullet", arrangementFee:2.0, commitmentFee:0, gracePeriod:0, maxLTV:85, minDSCR:1.0, eligibleBEE:[1,2,3,4,5,6,7,8], eligibleIndustries:["Construction","Transport","Infrastructure"], status:"Active", createdBy:"U001", createdAt:now-365*day, idealFor:"Road maintenance contractors and civil works firms with ECDoT verified invoices.", riskClass:"A", ecl:0.76, s1PD:0.006, lgd:0.23 },
     { id:"P004", name:"Invoice — Coega Infrastructure", minAmount:500000, maxAmount:5000000, minTerm:1, maxTerm:2, baseRate:33.6, monthlyRate:2.8, description:"Invoice discounting for Coega Industrial Development Zone infrastructure contractors. A+ rated parastatal off-taker with 5 cycles per year.", repaymentType:"Bullet", arrangementFee:2.0, commitmentFee:0, gracePeriod:0, maxLTV:85, minDSCR:1.0, eligibleBEE:[1,2,3,4], eligibleIndustries:["Construction","Infrastructure","Manufacturing"], status:"Active", createdBy:"U001", createdAt:now-365*day, idealFor:"Coega IDZ infrastructure contractors and suppliers with confirmed invoices.", riskClass:"A", ecl:0.76, s1PD:0.006, lgd:0.23 },
-    { id:"P005", name:"Working Capital — Micro Traders", stpEnabled:true, stpMaxAmount:10000, stpMinBureau:600, stpMinDSCR:1.2, minAmount:500, maxAmount:10000, minTerm:0.17, maxTerm:1, baseRate:96.0, monthlyRate:8.0, description:"Fast micro-loans for informal traders and micro-enterprises. AI-scored with group guarantee (Grameen model). Up to 12 cycles per year. ECDC SERFSP pre-screened origination.", repaymentType:"Bullet", arrangementFee:3.0, commitmentFee:0, gracePeriod:0, maxLTV:100, minDSCR:1.0, eligibleBEE:[1,2,3,4,5,6,7,8], eligibleIndustries:["All"], status:"Active", createdBy:"U001", createdAt:now-365*day, idealFor:"Street vendors, spaza shop owners, informal traders, micro-service providers.", riskClass:"B", ecl:8.58, s1PD:0.03, lgd:0.65 },
+    { id:"P005", name:"Working Capital — Micro Traders", stpEnabled:true, stpMaxAmount:10000, stpMinBureau:600, stpMinDSCR:1.2, minAmount:500, maxAmount:10000, minTerm:0.17, maxTerm:1, baseRate:102.0, monthlyRate:8.5, description:"Fast micro-loans for informal traders and micro-enterprises. AI-scored with group guarantee (Grameen model). Up to 12 cycles per year. ECDC SERFSP pre-screened origination.", repaymentType:"Bullet", arrangementFee:3.5, commitmentFee:0, gracePeriod:0, maxLTV:100, minDSCR:1.0, eligibleBEE:[1,2,3,4,5,6,7,8], eligibleIndustries:["All"], status:"Active", createdBy:"U001", createdAt:now-365*day, idealFor:"Street vendors, spaza shop owners, informal traders, micro-service providers.", riskClass:"B", ecl:8.58, s1PD:0.03, lgd:0.65 },
     { id:"P006", name:"Agri Finance — Smallholder", minAmount:50000, maxAmount:1000000, minTerm:3, maxTerm:6, baseRate:36.0, monthlyRate:3.0, description:"Seasonal agricultural finance for smallholder farmers. Crop lien and equipment collateral. Scenario-weighted for drought probability (75% good season / 25% drought).", repaymentType:"Seasonal", arrangementFee:2.0, commitmentFee:0, gracePeriod:0, maxLTV:70, minDSCR:1.2, eligibleBEE:[1,2,3,4,5,6,7,8], eligibleIndustries:["Agriculture","Food Processing"], status:"Active", createdBy:"U001", createdAt:now-365*day, idealFor:"Smallholder farmers, emerging agricultural enterprises, crop producers in the Eastern Cape.", riskClass:"C", ecl:9.88, s1PD:0.0525, lgd:0.575 },
-    { id:"P007", name:"Project & Contract Finance", minAmount:1000000, maxAmount:5000000, minTerm:3, maxTerm:12, baseRate:42.0, monthlyRate:3.5, description:"Tailored financing for specific projects and contracts. Designed to match your project's cash flow cycle with repayment terms up to 12 months. Suitable for mid-sized construction, infrastructure, and service delivery contracts.", repaymentType:"Amortising", arrangementFee:2.0, commitmentFee:0.5, gracePeriod:1, maxLTV:80, minDSCR:1.2, eligibleBEE:[1,2,3,4], eligibleIndustries:["Construction","Infrastructure","Professional Services"], status:"Active", createdBy:"U001", createdAt:now-365*day, idealFor:"SMEs undertaking mid-sized projects, construction firms, service providers with secured contracts.", riskClass:"A", ecl:0.70, s1PD:0.006, lgd:0.22 },
+    { id:"P007", name:"Project & Contract Finance", minAmount:1000000, maxAmount:5000000, minTerm:3, maxTerm:12, baseRate:45.0, monthlyRate:3.75, description:"Tailored financing for specific projects and contracts. Designed to match your project's cash flow cycle with repayment terms up to 12 months. Suitable for mid-sized construction, infrastructure, and service delivery contracts.", repaymentType:"Amortising", arrangementFee:2.0, commitmentFee:0.5, gracePeriod:1, maxLTV:80, minDSCR:1.2, eligibleBEE:[1,2,3,4], eligibleIndustries:["Construction","Infrastructure","Professional Services"], status:"Active", createdBy:"U001", createdAt:now-365*day, idealFor:"SMEs undertaking mid-sized projects, construction firms, service providers with secured contracts.", riskClass:"A", ecl:0.70, s1PD:0.006, lgd:0.22 },
+    { id:"P008", name:"Pre-Contract Bridging — T2/T3", minAmount:50000, maxAmount:2000000, minTerm:1, maxTerm:6, baseRate:42.0, monthlyRate:3.5, description:"Post-SLA bridging tranches disbursed to verified suppliers and payroll. Signed SLA + formal PO cession. Step-down from T1 pre-contract rate.", repaymentType:"Bullet", arrangementFee:2.5, commitmentFee:0.5, gracePeriod:0, maxLTV:85, minDSCR:1.20, eligibleBEE:[1,2,3,4], stpEnabled:false, eclRate:0.70, riskClass:"A", cycleCap:1 },
   
 ];
 
@@ -1915,6 +1916,16 @@ const simulatePsychometricAssessment = () => {
     P007: { required:["cession","personalGuarantee"], optional:["bankAuth","assetPledge","insurance"], desc:"Contract-backed term loans require cession + director suretyship." },
   };
 
+// ═══ NON-INTEREST INCOME CONFIG (Financial Model Alignment) ═══
+const NON_INTEREST_INCOME = {
+  creditLifeInsurance: { rate: 0.03, basis: "annual_on_balance", description: "3.0% p.a. of outstanding balance (NCA max 4.5%). Daily accrual, billed monthly." },
+  picManagementFee: { rate: 0.025, basis: "annual_on_deployed", deployedAmount: 325000000, description: "2.5% p.a. on R325M PIC deployed capital. Annual, accrued monthly." },
+  paymentsFloat: { rate: 0.015, basis: "transaction_throughput", description: "1.5% of transaction throughput via KwikBridge embedded payments." },
+  commitmentFee: { rate: 0.005, basis: "monthly_on_undrawn", description: "0.5% per month on committed-but-undrawn balance. Bridging products only (P007/P008)." },
+};
+
+
+
 // ═══════════════════════════════════════════════════════════════
 // AI CREDIT INTELLIGENCE ENGINE v2.0
 // Inspired by MYbank (Ant Group) + WeBank (Tencent)
@@ -1987,6 +1998,151 @@ const aiDraftCreditMemo = (app, customer, product, workflow) => {
     psychometricScore: app.psychometricResult?.score || null,
     psychometricGrade: app.psychometricResult?.grade || null,
   };
+};
+
+
+// ═══ ECL PARAMETERS BY CLASS (Financial Model Alignment — configurable for Milliman review) ═══
+const ECL_PARAMS = {
+  classA: {
+    label: "Government-Backed Receivables (P001-P004)",
+    products: ["P001", "P002", "P003", "P004"],
+    s1pd: 0.0060, s2pd: 0.0200,
+    lgdS1: { P001: 0.22, P002: 0.23, P003: 0.23, P004: 0.23 },
+    lgdS2: { P001: 0.22, P002: 0.23, P003: 0.23, P004: 0.23 },
+    lgdS3: { P001: 0.20, P002: 0.22, P003: 0.22, P004: 0.22 },
+    stageAlloc: { s1: 0.91, s2: 0.06, s3: 0.03 },
+    eclRate: { P001: 0.0070, P002: 0.0076, P003: 0.0076, P004: 0.0076 },
+  },
+  classA_adj: {
+    label: "Pre-Contract Bridging T1 (P007)",
+    products: ["P007"],
+    s1pd: 0.0090, s2pd: 0.0350,
+    lgdS1: 0.28, lgdS2: 0.28, lgdS3: 0.25,
+    stageAlloc: { s1: 0.88, s2: 0.08, s3: 0.04 },
+    eclRate: 0.0115,
+    note: "Migrates to Class A upon SLA signing (→ P008)",
+  },
+  classA_post: {
+    label: "Post-SLA Bridging T2/T3 (P008)",
+    products: ["P008"],
+    s1pd: 0.0060, s2pd: 0.0200,
+    lgdS1: 0.22, lgdS2: 0.22, lgdS3: 0.20,
+    stageAlloc: { s1: 0.91, s2: 0.06, s3: 0.03 },
+    eclRate: 0.0070,
+  },
+  classB_y1y3: {
+    label: "WC Micro Years 1-3 (P005, pre-AI v2)",
+    products: ["P005"],
+    activeFrom: "FY2027", activeTo: "FY2029",
+    s1pd: 0.0300, s2pd: 0.2200,
+    lgdS1: 0.65, lgdS2: 0.68, lgdS3: 0.72,
+    stageAlloc: { s1: 0.72, s2: 0.18, s3: 0.10 },
+    eclRate: 0.0858,
+  },
+  classB_y4: {
+    label: "WC Micro Year 4+ (P005, post-AI v2)",
+    products: ["P005"],
+    activeFrom: "FY2030",
+    s1pd: 0.0250, s2pd: 0.2000,
+    lgdS1: 0.62, lgdS2: 0.65, lgdS3: 0.70,
+    stageAlloc: { s1: 0.77, s2: 0.15, s3: 0.08 },
+    eclRate: 0.0665,
+    activationCondition: "CCO approves parameter switch when AI v2 deployed and validated",
+  },
+  classC: {
+    label: "Agri Finance (P006)",
+    products: ["P006"],
+    s1pd: 0.0525, s2pd: 0.2500,
+    lgdS1: 0.60, lgdS2: 0.62, lgdS3: 0.57,
+    stageAlloc: { s1: 0.75, s2: 0.14, s3: 0.11 },
+    eclRate: 0.0550,
+    note: "5.50% ONLY when Summerpride cession signed. Without cession: 45% recovery / 9.88% ECL.",
+    eclRateNoCession: 0.0988,
+  },
+};
+
+
+// ═══ PHASE GATE CONFIG (Financial Model Alignment) ═══
+const PHASE_GATES = {
+  phase1: {
+    provinces: ["EC"],
+    status: "Active",
+    targetYear: "FY2027",
+  },
+  phase2: {
+    provinces: ["KZN", "WC"],
+    status: "Locked",
+    targetYear: "FY2030",
+    gates: {
+      credit: "NBFI blended NPL < 5.0% for 2 consecutive EC quarters",
+      coverage: "DSCR > 1.50x for 2 consecutive quarters",
+      funding: "SEFA/IDC R200M facility signed",
+    },
+    action: "Block KZN/WC origination until all gates met; alert CEO and CFO",
+  },
+  phase3: {
+    provinces: ["GP", "MP", "LP", "NW", "FS", "NC"],
+    status: "Locked",
+    targetYear: "FY2032",
+    gates: {
+      credit: "NPL < 5.0% across all active provinces; WC Micro 12-mo avg < 8.0%",
+      coverage: "DSCR > 1.40x for 2 consecutive quarters; Book > R500M",
+      funding: "IFC/DBSA R650M facility signed",
+    },
+    action: "Block new province onboarding; alert board; maintain Phase 2 book",
+  },
+};
+
+
+// ═══ DFI COVENANT DASHBOARD CONFIG (Financial Model Alignment) ═══
+const DFI_COVENANTS = {
+  sedfa_dscr: { floor: 1.25, appliesFrom: "FY2027", reporting: "Quarterly", key: "nbfi.dscr.sedfa" },
+  sedfa_npl: { ceiling: 0.06, appliesFrom: "FY2027", reporting: "Quarterly", key: "nbfi.npl.blended" },
+  pic_dscr_p1: { floor: 1.50, appliesFrom: "FY2028", reporting: "Quarterly", key: "nbfi.dscr.pic" },
+  pic_dscr_p2: { floor: 1.60, appliesFrom: "FY2030", reporting: "Quarterly", key: "nbfi.dscr.pic_phase2" },
+  pic_npl: { ceiling: 0.05, appliesFrom: "FY2028", reporting: "Quarterly", key: "nbfi.npl.blended" },
+  ifc_dscr: { floor: 1.40, appliesFrom: "FY2032", reporting: "Quarterly", key: "nbfi.dscr.ifc" },
+  wc_micro_npl: { ceiling: 0.08, appliesFrom: "FY2027", reporting: "Monthly", key: "nbfi.npl.wc_micro.rolling12" },
+  gross_spread: { floor: 0.10, appliesFrom: "FY2027", reporting: "Quarterly", key: "nbfi.spread.gross" },
+  concentration: { ceiling: 0.20, alertAt: 0.15, appliesFrom: "FY2027", reporting: "Monthly", key: "nbfi.concentration.top_offtaker" },
+  ltv: { ceiling: 0.85, appliesFrom: "FY2028", reporting: "Quarterly", key: "nbfi.ltv" },
+};
+
+
+// ═══ USSD CHANNEL CONFIG (Financial Model Alignment — FY2028 Y2) ═══
+const USSD_CONFIG = {
+  shortCode: "*134*TQA#",
+  requiredBy: "FY2028 Y2",
+  status: "Planned",
+  products: ["P005"],
+  description: "Real-time WC Micro origination and repeat loan disbursement. Required for 8+ cycles/yr.",
+  impact: "Without USSD: WC Micro max practical cycles = 4/yr (halves yield contribution)",
+};
+
+
+// ═══ IFRS 9 QUALITATIVE STAGE TRIGGERS (Financial Model Alignment) ═══
+const IFRS9_QUALITATIVE_TRIGGERS = {
+  classA: {
+    label: "Government payment freeze",
+    description: "Off-taker account frozen or government payment moratorium declared",
+    affectedProducts: ["P001", "P002", "P003", "P004"],
+    action: "Auto-migrate to Stage 2; alert CCO same day; freeze new origination to affected off-taker",
+    stage: 2,
+  },
+  classB: {
+    label: "Group guarantee activation",
+    description: "Group guarantee invoked due to borrower default; or documented income loss >30%",
+    affectedProducts: ["P005"],
+    action: "Auto-migrate to Stage 2; alert CCO same day; flag group for monitoring",
+    stage: 2,
+  },
+  classC: {
+    label: "Crop failure or weather event",
+    description: "Documented crop failure, drought, flood, or weather event affecting Summerpride off-taker region",
+    affectedProducts: ["P006"],
+    action: "Auto-migrate to Stage 2; alert CCO same day; reassess LGD using non-cession recovery rate (45% → 9.88% ECL)",
+    stage: 2,
+  },
 };
 
 // ─── 2. PREDICTIVE EARLY WARNING SYSTEM (EWS) ───
@@ -3650,7 +3806,14 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
     if (cpFail.length > 0) { showToast(`Conditions precedent not met:\n${cpFail.join("\n")}\n\nResolve before booking.`); return; }
     const rate = a.rate || p?.baseRate || 14.5;
     const monthlyPmt = Math.round(a.amount * (rate / 100 / 12) / (1 - Math.pow(1 + rate / 100 / 12, -a.term)));
-    const loan = { id:`LN-${String(loans.length+1).padStart(3,"0")}`, appId, custId:a.custId, status:"Booked", amount:a.amount, balance:a.amount, rate, term:a.term, monthlyPmt, disbursed:null, nextDue:null, lastPmt:null, lastPmtAmt:null, totalPaid:0, dpd:0, stage:1, payments:[], bookedAt:Date.now(), bookedBy:currentUser.id, disbursedBy:null, disbursementAuth2:null, preDisbursementAML:null, covenants:(a.conditions||[]).map(c=>({name:c,status:"Compliant",value:"—",checked:Date.now()})), collateral:w.collateralFindings?.filter(f=>f.item!=="Security Coverage").map(f=>({type:f.item,value:0,description:f.detail}))||[], arrangementFee: Math.round(a.amount * ((p?.arrangementFee||1)/100)) };
+    const loan = { id:`LN-${String(loans.length+1).padStart(3,"0")}`, appId, custId:a.custId, status:"Booked", amount:a.amount, balance:a.amount, rate, term:a.term, monthlyPmt, disbursed:null,
+        // AI v2 Training Fields (Financial Model Alignment — capture from first loan)
+        poReference:null, invoiceAmountVerified:null, invoiceDueDate:null,
+        agriCessionActive:false, groupGuaranteeId:null,
+        priorLoansCount: loans.filter(l2=>l2.custId===a.custId).length,
+        priorNplFlag: loans.some(l2=>l2.custId===a.custId && l2.stage===3),
+        collectionMethod:null, disbursementDestination:null,
+        province: c?.province || "EC", municipality: c?.municipality || null, nextDue:null, lastPmt:null, lastPmtAmt:null, totalPaid:0, dpd:0, stage:1, payments:[], bookedAt:Date.now(), bookedBy:currentUser.id, disbursedBy:null, disbursementAuth2:null, preDisbursementAML:null, covenants:(a.conditions||[]).map(c=>({name:c,status:"Compliant",value:"—",checked:Date.now()})), collateral:w.collateralFindings?.filter(f=>f.item!=="Security Coverage").map(f=>({type:f.item,value:0,description:f.detail}))||[], arrangementFee: Math.round(a.amount * ((p?.arrangementFee||1)/100)) };
     const updatedApp = { ...a, status:"Booked" };
     showToast("Loan booked and activated");
     save({ ...data,
