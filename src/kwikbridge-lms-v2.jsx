@@ -476,7 +476,7 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState(true);
   const [authMode, setAuthMode] = useState("login"); // login | signup
   const [authForm, setAuthForm] = useState({ email:"", password:"", name:"", error:"" });
-  const [publicAppForm, setPublicAppForm] = useState({ step:1, name:"", contact:"", email:"", phone:"", password:"", idNum:"", regNum:"", businessName:"", industry:"Retail", sector:"", revenue:"", employees:"", years:"", address:"", province:"Eastern Cape", beeLevel:3, womenOwned:0, youthOwned:0, disabilityOwned:0, product:"", amount:"", term:"", purpose:"", error:"", submitted:false, preApprovalResult:null, trackingRef:null });
+  const [publicAppForm, setPublicAppForm] = useState({ step:1, name:"", contact:"", email:"", phone:"", password:"", idNum:"", regNum:"", businessName:"", industry:"Retail", sector:"", revenue:"", employees:"", years:"", address:"", province:"Eastern Cape", beeLevel:3, womenOwned:0, youthOwned:0, disabilityOwned:0, product:"", amount:"", term:"", purpose:"", monthlyDebt:"", monthlyRent:"", businessBank:"", offTaker:"", offTakerRef:"", securityInHand:[], error:"", submitted:false, preApprovalResult:null, trackingRef:null });
   const [portalPtp, setPortalPtp] = useState({ loanId:null, date:"", amount:"", notes:"" });
   const [portalPayment, setPortalPayment] = useState({ loanId:null, amount:"", method:"EFT", ref:"" });
   const [portalVerify, setPortalVerify] = useState({ bankStatus:null, creditStatus:null, running:false });
@@ -2231,11 +2231,16 @@ const generateLoanOffer = (application, customer, product) => {
             // Create customer + application in data
             const custId = `C${String((data?.customers?.length||0)+1).padStart(3,"0")}`;
             const appId = `APP-${String((data?.applications?.length||0)+1).padStart(3,"0")}`;
-            const newCust = { id:custId, name:f.businessName, contact:f.contact, email:f.email, phone:f.phone, idNum:f.idNum, regNum:f.regNum, industry:f.industry, sector:f.sector, revenue:+f.revenue||0, employees:+f.employees||0, years:+f.years||0, beeLevel:+f.beeLevel||3, beeStatus:"Pending Review", beeExpiry:null, address:f.address, province:f.province, ficaStatus:"Pending", ficaDate:null, riskCategory:"Medium", created:Date.now(), womenOwned:+f.womenOwned||0, youthOwned:+f.youthOwned||0, disabilityOwned:+f.disabilityOwned||0 };
-            const newApp = { id:appId, custId, status:"Pre-Approval", product:f.product, amount:+f.amount, term:+f.term, purpose:f.purpose, rate:null, riskScore:null, dscr:null, currentRatio:null, debtEquity:null, socialScore:null, recommendation:null, approver:null, creditMemo:null, submitted:Date.now(), decided:null, conditions:[], assignedTo:null, createdBy:"PUBLIC", createdAt:Date.now(), expiresAt:Date.now()+30*day, sanctionsFlag:false, sanctionsDate:null, withdrawnAt:null, withdrawnBy:null, qaSignedOff:false, qaOfficer:null, qaDate:null, qaFindings:null };
+            const newCust = { id:custId, name:f.businessName, contact:f.contact, email:f.email, phone:f.phone, idNum:f.idNum, regNum:f.regNum, industry:f.industry, sector:f.sector, revenue:+f.revenue||0, employees:+f.employees||0, years:+f.years||0, beeLevel:+f.beeLevel||3, beeStatus:"Pending Review", beeExpiry:null, address:f.address, province:f.province, ficaStatus:"Pending", ficaDate:null, riskCategory:"Medium", created:Date.now(), womenOwned:+f.womenOwned||0, youthOwned:+f.youthOwned||0, disabilityOwned:+f.disabilityOwned||0, monthlyDebt:+f.monthlyDebt||0, monthlyRent:+f.monthlyRent||0, businessBank:f.businessBank||"" };
+            const monthlyRevenue = (+f.revenue||0)/12;
+            const proposedInstalment = selProd?.repaymentType==="Bullet" ? (+f.amount||0)*(selProd?.monthlyRate||3.5)/100 : (+f.amount||0)*((selProd?.monthlyRate||3.5)/100)/(1-Math.pow(1+(selProd?.monthlyRate||3.5)/100,-(+f.term||6)));
+            const roughDSCR = proposedInstalment > 0 ? Math.round((monthlyRevenue - (+f.monthlyDebt||0) - (+f.monthlyRent||0)) / proposedInstalment * 100)/100 : null;
+            const isThinFile = f.businessBank === "No account — cash only" || f.businessBank === "No business account — personal";
+            const offTakerRiskLevel = f.offTaker?.includes("ECDoE") || f.offTaker?.includes("ECDoT") ? "Sovereign" : f.offTaker?.includes("Coega") || f.offTaker?.includes("Parastatal") ? "Near-sovereign" : f.offTaker?.includes("Municipality") ? "Government" : f.offTaker?.includes("Large Corporate") ? "Corporate" : f.offTaker ? "Commercial" : "None";
+            const newApp = { id:appId, custId, status:"Pre-Approval", product:f.product, amount:+f.amount, term:+f.term, purpose:f.purpose, rate:null, riskScore:null, dscr:roughDSCR, currentRatio:null, debtEquity:null, socialScore:null, recommendation:null, approver:null, creditMemo:null, submitted:Date.now(), decided:null, conditions:[], assignedTo:null, createdBy:"PUBLIC", createdAt:Date.now(), expiresAt:Date.now()+30*day, sanctionsFlag:false, sanctionsDate:null, withdrawnAt:null, withdrawnBy:null, qaSignedOff:false, qaOfficer:null, qaDate:null, qaFindings:null, offTaker:f.offTaker||null, offTakerRef:f.offTakerRef||null, offTakerRiskLevel, securityInHand:f.securityInHand||[], isThinFile, roughDSCR, monthlyDebt:+f.monthlyDebt||0, monthlyRent:+f.monthlyRent||0, businessBank:f.businessBank||"" };
             const newComm = { id:uid(), custId, loanId:null, channel:"Email", direction:"Outbound", from:"System", subject:`Application ${appId} Received — Pre-Approval Pending`, body:`Dear ${f.contact},\n\nThank you for applying for ${selProd?.name||"financing"} of ${fmt.cur(f.amount)}.\n\nYour application reference is ${appId}. We are currently reviewing your pre-approval request.\n\nOnce pre-approval is granted, you will receive a notification to upload your KYB/FICA documentation (ID, company registration, proof of address, bank confirmation, financial statements) to complete the origination process.\n\nA formal loan application tracking number will be assigned once supporting documentation is received.\n\nRegards,\nTQA Capital`, ts:Date.now(), type:"Application" };
             const newAlert = { id:uid(), type:"Application", severity:"info", title:`New Public Application — ${f.businessName}`, msg:`${appId}: ${selProd?.name} ${fmt.cur(f.amount)} over ${f.term}m. Pre-approval review required.`, read:false, ts:Date.now(), custId, loanId:null };
-            const newAudit = { id:uid(), action:"Public Application Submitted", entity:appId, user:"Public Applicant", detail:`${f.businessName} (${f.email}) applied for ${selProd?.name} ${fmt.cur(f.amount)} over ${f.term}m. Status: Pre-Approval.`, ts:Date.now(), category:"Origination" };
+            const newAudit = { id:uid(), action:"Public Application Submitted", entity:appId, user:"Public Applicant", detail:`${f.businessName} (${f.email}) applied for ${selProd?.name} ${fmt.cur(f.amount)} over ${f.term}m. Off-taker: ${f.offTaker||"None"}. Security: ${(f.securityInHand||[]).join(", ")||"None"}. Rough DSCR: ${roughDSCR||"N/A"}. Bank: ${f.businessBank||"Not specified"}. ${isThinFile?"THIN-FILE CLIENT.":""} Status: Pre-Approval.`, ts:Date.now(), category:"Origination" };
             save({ ...data, customers:[...(data.customers||[]), newCust], applications:[...(data.applications||[]), newApp], comms:[...(data.comms||[]), newComm], alerts:[...(data.alerts||[]), newAlert], audit:[...(data.audit||[]), newAudit] });
             setPublicAppForm({...f, submitted:true, preApprovalResult:"pending", trackingRef:appId });
           };
@@ -2304,6 +2309,15 @@ const generateLoanOffer = (application, customer, product) => {
                 <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Years in Business</label><input type="number" value={f.years} onChange={e=>sf("years",e.target.value)} style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
                 <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Province</label><select value={f.province} onChange={e=>sf("province",e.target.value)} style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit", background:"#fff" }}>{["Eastern Cape","Western Cape","Gauteng","KwaZulu-Natal","Free State","North West","Limpopo","Mpumalanga","Northern Cape"].map(v=><option key={v}>{v}</option>)}</select></div>
                 <div style={{ gridColumn:"1/-1" }}><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Business Address</label><input value={f.address} onChange={e=>sf("address",e.target.value)} placeholder="Street address, city" style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
+              </div>
+              {/* Affordability & Banking — dipstick pre-approval fields */}
+              <div style={{ marginTop:16, padding:"14px 16px", background:C.surface, border:`1px solid ${C.border}`, borderRadius:6 }}>
+                <div style={{ fontSize:12, fontWeight:600, color:C.text, marginBottom:12 }}>Financial Position</div>
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12 }}>
+                  <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Monthly Debt Repayments (R)</label><input type="number" value={f.monthlyDebt} onChange={e=>sf("monthlyDebt",e.target.value)} placeholder="All existing loans" style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
+                  <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Monthly Rent / Lease (R)</label><input type="number" value={f.monthlyRent} onChange={e=>sf("monthlyRent",e.target.value)} placeholder="Business premises" style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
+                  <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Business Bank Account</label><select value={f.businessBank} onChange={e=>sf("businessBank",e.target.value)} style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit", background:"#fff" }}><option value="">— Select —</option>{["FNB","Standard Bank","ABSA","Nedbank","Capitec","TymeBank","Other bank","No business account — personal","No account — cash only"].map(v=><option key={v} value={v}>{v}</option>)}</select></div>
+                </div>
               </div>
               <div style={{ display:"flex", justifyContent:"space-between", marginTop:16 }}>
                 <button onClick={()=>sf("step",1)} style={{ background:"none", border:`1px solid ${C.border}`, padding:"10px 24px", fontSize:13, color:C.textDim, cursor:"pointer", fontFamily:"inherit" }}>← Back</button>
@@ -4988,6 +5002,7 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
         { label:"App ID", render:r=>cell.id(r.id) },
         { label:"Applicant", render:r=>cell.name(cust(r.custId)?.name) },
         { label:"Product", render:r=>cell.text(prod(r.product)?.name || r.product) },
+            { label:"DSCR", render:r=>r.roughDSCR ? <span style={{fontFamily:"monospace",fontSize:12,color:r.roughDSCR>=1.25?C.green:r.roughDSCR>=1.0?C.amber:C.red}}>{r.roughDSCR}x</span> : <span style={{color:C.textMuted,fontSize:11}}>—</span> },
         { label:"Amount", render:r=>cell.money(r.amount) },
         { label:"Term", render:r=>cell.text(r.term+"m") },
         { label:"Date", render:r=>cell.date(r.submitted || r.createdAt) },
@@ -6639,13 +6654,14 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
             <Btn size="sm" onClick={()=>{
               const c3 = cust(a.custId);
               const p3 = prod(a.product);
+              const appSec = a.securityInHand || [];
               const secPos = {
-                awardLetter: (documents||[]).some(d=>d.appId===a.id && (d.name||"").toLowerCase().includes("award")),
-                purchaseOrder: (documents||[]).some(d=>d.appId===a.id && (d.name||"").toLowerCase().includes("purchase order")),
-                signedSLA: (documents||[]).some(d=>d.appId===a.id && (d.name||"").toLowerCase().includes("sla")),
-                signedInvoice: (documents||[]).some(d=>d.appId===a.id && (d.name||"").toLowerCase().includes("invoice")),
+                awardLetter: appSec.includes("Award letter") || (documents||[]).some(d=>d.appId===a.id && (d.name||"").toLowerCase().includes("award")),
+                purchaseOrder: appSec.includes("Purchase order") || (documents||[]).some(d=>d.appId===a.id && (d.name||"").toLowerCase().includes("purchase order")),
+                signedSLA: appSec.includes("Signed contract / SLA") || (documents||[]).some(d=>d.appId===a.id && (d.name||"").toLowerCase().includes("sla")),
+                signedInvoice: appSec.includes("Verified invoice") || (documents||[]).some(d=>d.appId===a.id && (d.name||"").toLowerCase().includes("invoice")),
                 cessionExecuted: (documents||[]).some(d=>d.appId===a.id && (d.name||"").toLowerCase().includes("cession")),
-                progressCert: (documents||[]).some(d=>d.appId===a.id && (d.name||"").toLowerCase().includes("progress")),
+                progressCert: appSec.includes("Progress certificate") || (documents||[]).some(d=>d.appId===a.id && (d.name||"").toLowerCase().includes("progress")),
               };
               const ts = generateTermSheet(a, c3, p3, secPos);
               const tsText = formatTermSheetText(ts);
