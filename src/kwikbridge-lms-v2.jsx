@@ -2238,11 +2238,32 @@ const generateLoanOffer = (application, customer, product) => {
             const isThinFile = f.businessBank === "No account — cash only" || f.businessBank === "No business account — personal";
             const offTakerRiskLevel = f.offTaker?.includes("ECDoE") || f.offTaker?.includes("ECDoT") ? "Sovereign" : f.offTaker?.includes("Coega") || f.offTaker?.includes("Parastatal") ? "Near-sovereign" : f.offTaker?.includes("Municipality") ? "Government" : f.offTaker?.includes("Large Corporate") ? "Corporate" : f.offTaker ? "Commercial" : "None";
             const newApp = { id:appId, custId, status:"Pre-Approval", product:f.product, amount:+f.amount, term:+f.term, purpose:f.purpose, rate:null, riskScore:null, dscr:roughDSCR, currentRatio:null, debtEquity:null, socialScore:null, recommendation:null, approver:null, creditMemo:null, submitted:Date.now(), decided:null, conditions:[], assignedTo:null, createdBy:"PUBLIC", createdAt:Date.now(), expiresAt:Date.now()+30*day, sanctionsFlag:false, sanctionsDate:null, withdrawnAt:null, withdrawnBy:null, qaSignedOff:false, qaOfficer:null, qaDate:null, qaFindings:null, offTaker:f.offTaker||null, offTakerRef:f.offTakerRef||null, offTakerRiskLevel, securityInHand:f.securityInHand||[], isThinFile, roughDSCR, monthlyDebt:+f.monthlyDebt||0, monthlyRent:+f.monthlyRent||0, businessBank:f.businessBank||"" };
-            const newComm = { id:uid(), custId, loanId:null, channel:"Email", direction:"Outbound", from:"System", subject:`Application ${appId} Received — Pre-Approval Pending`, body:`Dear ${f.contact},\n\nThank you for applying for ${selProd?.name||"financing"} of ${fmt.cur(f.amount)}.\n\nYour application reference is ${appId}. We are currently reviewing your pre-approval request.\n\nOnce pre-approval is granted, you will receive a notification to upload your KYB/FICA documentation (ID, company registration, proof of address, bank confirmation, financial statements) to complete the origination process.\n\nA formal loan application tracking number will be assigned once supporting documentation is received.\n\nRegards,\nTQA Capital`, ts:Date.now(), type:"Application" };
+            const newComm = { id:uid(), custId, loanId:null, channel:"Email", direction:"Outbound", from:"System", subject:`Application ${appId} Received — Pre-Approval Pending`, body:`Dear ${f.contact},\n\nThank you for applying for ${selProd?.name||"financing"} of ${fmt.cur(f.amount)}.\n\nYour application reference is ${appId}.\n\nIMPORTANT: Please verify your email address by clicking the link we have sent to ${f.email}. Once verified, you can log in to the KwikBridge Borrower Portal to:\n\n• Track your application status in real-time\n• Receive your pre-approval decision\n• Upload KYB/FICA documents when requested\n• View and accept your loan offer\n\nPortal: ${typeof window!=="undefined"?window.location.origin:""}/\n\nWe are currently reviewing your pre-approval request and will notify you at this email address once a decision is made. Typical turnaround is 24 hours for standard applications.\n\nRegards,\nTQA Capital\nNCR: NCRCP22396`, ts:Date.now(), type:"Application" };
             const newAlert = { id:uid(), type:"Application", severity:"info", title:`New Public Application — ${f.businessName}`, msg:`${appId}: ${selProd?.name} ${fmt.cur(f.amount)} over ${f.term}m. Pre-approval review required.`, read:false, ts:Date.now(), custId, loanId:null };
             const newAudit = { id:uid(), action:"Public Application Submitted", entity:appId, user:"Public Applicant", detail:`${f.businessName} (${f.email}) applied for ${selProd?.name} ${fmt.cur(f.amount)} over ${f.term}m. Off-taker: ${f.offTaker||"None"}. Security: ${(f.securityInHand||[]).join(", ")||"None"}. Rough DSCR: ${roughDSCR||"N/A"}. Bank: ${f.businessBank||"Not specified"}. ${isThinFile?"THIN-FILE CLIENT.":""} Status: Pre-Approval.`, ts:Date.now(), category:"Origination" };
             save({ ...data, customers:[...(data.customers||[]), newCust], applications:[...(data.applications||[]), newApp], comms:[...(data.comms||[]), newComm], alerts:[...(data.alerts||[]), newAlert], audit:[...(data.audit||[]), newAudit] });
-            setPublicAppForm({...f, submitted:true, preApprovalResult:"pending", trackingRef:appId });
+            
+            // Create Supabase Auth account for the applicant
+            (async () => {
+              try {
+                const authResult = await authSignUp(f.email, f.password, f.contact);
+                if (authResult?.id || authResult?.user?.id) {
+                  console.log("[KwikBridge] Auth account created for", f.email);
+                  setPublicAppForm({...f, submitted:true, preApprovalResult:"pending", trackingRef:appId, authCreated:true, authError:null });
+                } else if (authResult?.error?.message || authResult?.msg) {
+                  const errMsg = authResult?.error?.message || authResult?.msg || "Account creation failed";
+                  console.warn("[KwikBridge] Auth signup issue:", errMsg);
+                  // Still show success — the application was submitted, auth can be retried
+                  setPublicAppForm({...f, submitted:true, preApprovalResult:"pending", trackingRef:appId, authCreated:false, authError:errMsg });
+                } else {
+                  console.log("[KwikBridge] Auth signup response:", JSON.stringify(authResult).slice(0,200));
+                  setPublicAppForm({...f, submitted:true, preApprovalResult:"pending", trackingRef:appId, authCreated:true, authError:null });
+                }
+              } catch(authErr) {
+                console.error("[KwikBridge] Auth signup error:", authErr);
+                setPublicAppForm({...f, submitted:true, preApprovalResult:"pending", trackingRef:appId, authCreated:false, authError:"Network error during account creation." });
+              }
+            })();
           };
 
           if (f.submitted) return (
@@ -2255,13 +2276,63 @@ const generateLoanOffer = (application, customer, product) => {
                 <div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase", letterSpacing:1 }}>Application Reference</div>
                 <div style={{ fontSize:28, fontWeight:800, color:C.text, letterSpacing:1, marginTop:4 }}>{f.trackingRef}</div>
               </div>
+
+              {/* Account verification notice */}
+              <div style={{ background:"#f0faf8", border:`1px solid ${C.accent}33`, borderRadius:8, padding:"20px 24px", maxWidth:520, margin:"0 auto 20px", textAlign:"left" }}>
+                <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:10 }}>
+                  <span style={{ fontSize:18 }}>📧</span>
+                  <span style={{ fontSize:13, fontWeight:600, color:C.text }}>Verify Your Email to Track Your Application</span>
+                </div>
+                <div style={{ fontSize:12, color:C.textDim, lineHeight:1.6, marginBottom:12 }}>
+                  {f.authCreated ? (
+                    <>We've sent a verification link to <strong>{f.email}</strong>. Please check your inbox (and spam folder) and click the link to activate your account.</>
+                  ) : f.authError ? (
+                    <>We could not create your portal account automatically ({f.authError}). Your application has been submitted successfully. Please contact us at <strong>support@tqacapital.co.za</strong> to set up your portal access.</>
+                  ) : (
+                    <>Setting up your account — please wait...</>
+                  )}
+                </div>
+                <div style={{ fontSize:12, color:C.textDim, lineHeight:1.6 }}>
+                  Once verified, you can log in to the <strong>Borrower Portal</strong> to:
+                </div>
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:6, marginTop:8 }}>
+                  {["Track application status","Receive pre-approval decision","Upload KYB/FICA documents","View & accept loan offer"].map(item => (
+                    <div key={item} style={{ display:"flex", alignItems:"center", gap:6, fontSize:11, color:C.textDim }}>
+                      <span style={{ color:C.accent, fontSize:14 }}>✓</span> {item}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Pre-approval timeline */}
+              <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:"16px 24px", maxWidth:520, margin:"0 auto 20px", textAlign:"left" }}>
+                <div style={{ fontSize:13, fontWeight:600, color:C.text, marginBottom:10 }}>What Happens Next</div>
+                <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                  {[
+                    { step:"1", label:"Application Review", desc:"Our team reviews your pre-approval request within 24 hours.", status:"in-progress" },
+                    { step:"2", label:"Pre-Approval Decision", desc:"You'll receive an email with the decision and indicative terms.", status:"pending" },
+                    { step:"3", label:"Document Upload", desc:"If pre-approved, upload your KYB/FICA documents via the portal.", status:"pending" },
+                    { step:"4", label:"Full Assessment & Offer", desc:"Complete underwriting, credit decision, and formal loan offer.", status:"pending" },
+                  ].map(s => (
+                    <div key={s.step} style={{ display:"flex", gap:12, alignItems:"flex-start" }}>
+                      <div style={{ width:24, height:24, borderRadius:12, background:s.status==="in-progress"?C.accent:C.surface2, border:`1px solid ${s.status==="in-progress"?C.accent:C.border}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                        <span style={{ fontSize:10, fontWeight:700, color:s.status==="in-progress"?"#fff":C.textMuted }}>{s.step}</span>
+                      </div>
+                      <div>
+                        <div style={{ fontSize:12, fontWeight:600, color:s.status==="in-progress"?C.text:C.textMuted }}>{s.label}</div>
+                        <div style={{ fontSize:11, color:C.textDim }}>{s.desc}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               <div style={{ fontSize:13, color:C.textDim, maxWidth:480, margin:"0 auto 24px", lineHeight:1.6 }}>
-                We will review your pre-approval request and notify you at <strong>{f.email}</strong> once a decision is made.
-                Upon pre-approval, you will be asked to upload KYB/FICA documentation to proceed with formal origination.
+                We will notify you at <strong>{f.email}</strong> at each stage. You can also track progress anytime using your application reference <strong>{f.trackingRef}</strong>.
               </div>
               <div style={{ display:"flex", gap:12, justifyContent:"center" }}>
-                <button onClick={()=>{setAuthMode("login");setZone("auth");setAuthForm({email:f.email,password:"",name:"",error:""})}} style={{ background:C.accent, color:"#fff", border:"none", padding:"10px 24px", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Sign In to Track Progress</button>
-                <button onClick={()=>{setPublicAppForm({...publicAppForm,step:1,submitted:false,preApprovalResult:null,trackingRef:null,error:""});setPage("public_home")}} style={{ background:"none", border:`1px solid ${C.border}`, padding:"10px 24px", fontSize:13, fontWeight:500, color:C.text, cursor:"pointer", fontFamily:"inherit" }}>Back to Home</button>
+                <button onClick={()=>{setAuthMode("login");setZone("auth");setAuthForm({email:f.email,password:"",name:"",error:""})}} style={{ background:C.accent, color:"#fff", border:"none", borderRadius:6, padding:"10px 24px", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Sign In to Borrower Portal</button>
+                <button onClick={()=>{setPublicAppForm({...publicAppForm,step:1,submitted:false,preApprovalResult:null,trackingRef:null,error:""});setPage("public_home")}} style={{ background:"none", border:`1px solid ${C.border}`, borderRadius:6, padding:"10px 24px", fontSize:13, fontWeight:500, color:C.text, cursor:"pointer", fontFamily:"inherit" }}>Back to Home</button>
               </div>
             </div>
           );
