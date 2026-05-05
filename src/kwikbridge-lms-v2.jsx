@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { ErrorBoundary } from "./components/system/ErrorBoundary";
 import { DataProvider } from "./contexts/DataContext";
+import { UIProvider } from "./contexts/UIContext";
+import { ActionsProvider } from "./contexts/ActionsContext";
+import { AuthProvider } from "./contexts/AuthContext";
 
 /* ═══════════════════════════════════════════════════════════════════
    KWIKBRIDGE LOAN MANAGEMENT SYSTEM v2.0
@@ -6764,19 +6767,63 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
     return { passed, failed: failed.length, total: results.length };
   };
 
-  // ═══ DataProvider context value — exposes shared state to extracted features ═══
-  // Extracted feature components can use useData() instead of receiving data via props.
-  // This is the bridge that lets us continue extracting Dashboard/Administration/renderDetail
-  // without threading 60+ individual props through every call site.
-  const dataContextValue = {
+  // ═══ Context values for the three-layer Provider stack ═══
+  //
+  // Three contexts instead of one to prevent cross-cutting re-renders:
+  //   - DataContext changes when business data mutates (rare bursts)
+  //   - ActionsContext is stable (handlers memoized once at mount)
+  //   - UIContext changes on UI state transitions (modal open, page nav)
+  //   - AuthContext is mostly stable (changes only on sign-in/out)
+  //
+  // Extracted feature components opt into the contexts they need via
+  // useData(), useActions(), useUI(), useAuth() — no prop drilling.
+
+  const dataContextValue = useMemo(() => ({
     customers, applications, loans, products, documents, audit, alerts,
     provisions, comms, collections, statutoryReports, settings,
     save, cust, prod, addAudit,
-  };
+  }), [customers, applications, loans, products, documents, audit, alerts,
+       provisions, comms, collections, statutoryReports, settings,
+       save, cust, prod, addAudit]);
+
+  const actionsContextValue = useMemo(() => ({
+    createCustomer, updateCustomer, updateFicaStatus, updateBeeStatus,
+    submitApp, saveAnalystNotes, updateFindingNote, approveDocument,
+    saveSiteVisitNotes, saveSiteVisitField, saveSiteVisitRating,
+    saveCreditFinding, runDDStep, generateCreditMemo, submitRecommendation,
+    decideLoan, generateSecurityDoc, generateLoanAgreement, bookLoan,
+    disburseLoan, recordPayment, addCollectionAction, createPTP,
+    approveWriteOff, updateStatutoryStatus, saveProduct, toggleProductStatus,
+    reset,
+  }), [createCustomer, updateCustomer, updateFicaStatus, updateBeeStatus,
+       submitApp, saveAnalystNotes, updateFindingNote, approveDocument,
+       saveSiteVisitNotes, saveSiteVisitField, saveSiteVisitRating,
+       saveCreditFinding, runDDStep, generateCreditMemo, submitRecommendation,
+       decideLoan, generateSecurityDoc, generateLoanAgreement, bookLoan,
+       disburseLoan, recordPayment, addCollectionAction, createPTP,
+       approveWriteOff, updateStatutoryStatus, saveProduct, toggleProductStatus,
+       reset]);
+
+  const uiContextValue = useMemo(() => ({
+    page, setPage, zone, setZone, pageHistory, setPageHistory,
+    navTo, navBack: () => { setPageHistory(h => h.slice(0, -1)); setPage(pageHistory[pageHistory.length - 1] || "dashboard"); },
+    detail, setDetail, modal, setModal, toast, showToast,
+    search, setSearch, notifOpen, setNotifOpen,
+    mobileMenuOpen, setMobileMenuOpen, sideCollapsed, setSideCollapsed,
+    viewingDoc, setViewingDoc, withdrawId, setWithdrawId,
+    withdrawReason, setWithdrawReason,
+    showWidgetPanel, setShowWidgetPanel,
+  }), [page, zone, pageHistory, detail, modal, toast, search, notifOpen,
+       mobileMenuOpen, sideCollapsed, viewingDoc, withdrawId, withdrawReason,
+       showWidgetPanel, navTo, showToast]);
+
+  const authContextValue = useMemo(() => ({
+    authSession, currentUser, role, canDo, signOut: handleSignOut,
+  }), [authSession, currentUser, role, canDo, handleSignOut]);
 
 
   return (
-    <DataProvider value={dataContextValue}>
+    <AuthProvider value={authContextValue}><DataProvider value={dataContextValue}><ActionsProvider value={actionsContextValue}><UIProvider value={uiContextValue}>
     <div style={{ fontFamily:"'Outfit','Segoe UI',system-ui,sans-serif", background:C.bg, minHeight:"100vh", display:"flex", color:C.text }}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
       <style>{GLOBAL_CSS}</style>
@@ -6885,6 +6932,6 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
 
       <NewAppModalExtracted modal={modal} setModal={setModal} customers={customers} products={products} cust={cust} prod={prod} submitApp={submitApp} Modal={Modal} Field={Field} Select={Select} Input={Input} Textarea={Textarea} Btn={Btn} fmt={fmt} C={C} />
     </div>
-    </DataProvider>
+    </UIProvider></ActionsProvider></DataProvider></AuthProvider>
   );
 }
