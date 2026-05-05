@@ -8,16 +8,12 @@
 // @ts-nocheck — transitional during monolith extraction.
 
 import React, { useState } from 'react';
+import { useData } from '../../../contexts/DataContext';
+import { useUI } from '../../../contexts/UIContext';
+import { useAuth } from '../../../contexts/AuthContext';
 
 interface OriginationPageProps {
-  applications: any[];
-  search: string;
   SYSTEM_USERS: any[];
-  cust: (id: string) => any;
-  prod: (id: string) => any;
-  canDo: (mod: string, action: string) => boolean;
-  setModal: (modal: string | null) => void;
-  setDetail: (d: any) => void;
   assignApplication: (appId: string, userId: string) => void;
   qaSignOffApplication: (appId: string) => void;
   withdrawApplication: (appId: string, reason: string) => void;
@@ -37,31 +33,13 @@ interface OriginationPageProps {
 }
 
 export function OriginationPage({
-  applications,
-  search,
-  SYSTEM_USERS,
-  cust,
-  prod,
-  canDo,
-  setModal,
-  setDetail,
-  assignApplication,
-  qaSignOffApplication,
-  withdrawApplication,
-  Btn,
-  KPI,
-  Tab,
-  Table,
-  Badge,
-  Modal,
-  Field,
-  Textarea,
-  cell,
-  statusBadge,
-  fmt,
-  I,
-  C,
+  SYSTEM_USERS, assignApplication, qaSignOffApplication, withdrawApplication, Btn, KPI, Tab, Table, Badge, Modal, Field, Textarea, cell, statusBadge, fmt, I, C,
 }: OriginationPageProps) {
+  // ═══ Context-driven dependencies (Phase 2 migration) ═══
+  const { applications, cust, prod } = useData();
+  const { search, setModal, setDetail } = useUI();
+  const { canDo } = useAuth();
+
   const [tab, setTab] = useState('all');
   const [withdrawId, setWithdrawId] = useState<string | null>(null);
   const [withdrawReason, setWithdrawReason] = useState('');

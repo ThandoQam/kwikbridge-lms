@@ -9,18 +9,12 @@
 // @ts-nocheck — transitional during monolith extraction.
 
 import React, { useState } from 'react';
+import { useData } from '../../../contexts/DataContext';
+import { useActions } from '../../../contexts/ActionsContext';
+import { useUI } from '../../../contexts/UIContext';
+import { useAuth } from '../../../contexts/AuthContext';
 
 interface CollectionsPageProps {
-  loans: any[];
-  collections: any[];
-  cust: (id: string) => any;
-  canDo: (mod: string, action: string) => boolean;
-  setDetail: (d: any) => void;
-  addCollectionAction: (loanId: string, action: string, notes: string, opts?: any) => void;
-  createPTP: (loanId: string, date: string, amount: number | string, notes: string) => void;
-  proposeRestructure: (loanId: string, form: any) => void;
-  proposeWriteOff: (loanId: string, reason: string) => void;
-  approveWriteOff: (loanId: string) => void;
   KPI: any;
   Tab: any;
   Table: any;
@@ -38,31 +32,14 @@ interface CollectionsPageProps {
 }
 
 export function CollectionsPage({
-  loans,
-  collections,
-  cust,
-  canDo,
-  setDetail,
-  addCollectionAction,
-  createPTP,
-  proposeRestructure,
-  proposeWriteOff,
-  approveWriteOff,
-  KPI,
-  Tab,
-  Table,
-  Badge,
-  Btn,
-  Modal,
-  Field,
-  Input,
-  Textarea,
-  Select,
-  cell,
-  statusBadge,
-  fmt,
-  C,
+  KPI, Tab, Table, Badge, Btn, Modal, Field, Input, Textarea, Select, cell, statusBadge, fmt, C,
 }: CollectionsPageProps) {
+  // ═══ Context-driven dependencies (Phase 2 migration) ═══
+  const { loans, collections, cust } = useData();
+  const { addCollectionAction, createPTP, proposeRestructure, proposeWriteOff, approveWriteOff } = useActions();
+  const { setDetail } = useUI();
+  const { canDo } = useAuth();
+
   const [tab, setTab] = useState('accounts');
   const [actionModal, setActionModal] = useState<any>(null);
   const [ptpForm, setPtpForm] = useState({ date: '', amount: '', notes: '' });

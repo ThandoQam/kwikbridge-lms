@@ -9,13 +9,12 @@
 // @ts-nocheck — transitional during monolith extraction.
 
 import React, { useState } from 'react';
+import { useData } from '../../../contexts/DataContext';
+import { useUI } from '../../../contexts/UIContext';
 
 interface DocumentsPageProps {
-  documents: any[];
-  search: string;
   now: number;
   day: number;
-  cust: (id: string) => any;
   KPI: any;
   Tab: any;
   Table: any;
@@ -27,20 +26,12 @@ interface DocumentsPageProps {
 }
 
 export function DocumentsPage({
-  documents,
-  search,
-  now,
-  day,
-  cust,
-  KPI,
-  Tab,
-  Table,
-  SectionCard,
-  cell,
-  statusBadge,
-  fmt,
-  C,
+  now, day, KPI, Tab, Table, SectionCard, cell, statusBadge, fmt, C,
 }: DocumentsPageProps) {
+  // ═══ Context-driven dependencies (Phase 2 migration) ═══
+  const { documents, cust } = useData();
+  const { search } = useUI();
+
   const docs = documents || [];
   const [tab, setTab] = useState('all');
   const [catFilter, setCatFilter] = useState('All');

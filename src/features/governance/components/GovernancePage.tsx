@@ -9,25 +9,17 @@
 // @ts-nocheck — transitional during monolith extraction.
 
 import React, { useState } from 'react';
+import { useData } from '../../../contexts/DataContext';
+import { useActions } from '../../../contexts/ActionsContext';
+import { useAuth } from '../../../contexts/AuthContext';
 
 interface GovernancePageProps {
-  audit: any[];
-  alerts: any[];
-  customers: any[];
-  applications: any[];
-  provisions: any[];
-  statutoryReports: any[];
-  data: any;
-  settings: any;
   now: number;
   day: number;
   PERMS: any;
   ROLES: any;
   APPROVAL_LIMITS: any;
   SYSTEM_USERS: any[];
-  canDo: (mod: string, action: string) => boolean;
-  save: (data: any) => void;
-  markRead: (id: string) => void;
   KPI: any;
   Tab: any;
   Table: any;
@@ -41,34 +33,13 @@ interface GovernancePageProps {
 }
 
 export function GovernancePage({
-  audit,
-  alerts,
-  customers,
-  applications,
-  provisions,
-  statutoryReports,
-  data,
-  settings,
-  now,
-  day,
-  PERMS,
-  ROLES,
-  APPROVAL_LIMITS,
-  SYSTEM_USERS,
-  canDo,
-  save,
-  markRead,
-  KPI,
-  Tab,
-  Table,
-  Badge,
-  SectionCard,
-  InfoGrid,
-  Btn,
-  cell,
-  fmt,
-  C,
+  now, day, PERMS, ROLES, APPROVAL_LIMITS, SYSTEM_USERS, KPI, Tab, Table, Badge, SectionCard, InfoGrid, Btn, cell, fmt, C,
 }: GovernancePageProps) {
+  // ═══ Context-driven dependencies (Phase 2 migration) ═══
+  const { audit, alerts, customers, applications, provisions, statutoryReports, data, settings, save } = useData();
+  const { markRead } = useActions();
+  const { canDo } = useAuth();
+
   const [tab, setTab] = useState('audit');
   const [auditFilter, setAuditFilter] = useState({ category: '', user: '', entity: '' });
 

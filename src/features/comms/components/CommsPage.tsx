@@ -7,10 +7,9 @@
 // @ts-nocheck — transitional during monolith extraction.
 
 import React from 'react';
+import { useData } from '../../../contexts/DataContext';
 
 interface CommsPageProps {
-  comms: any[];
-  cust: (id: string) => any;
   Table: any;
   Badge: any;
   cell: any;
@@ -18,7 +17,12 @@ interface CommsPageProps {
   C: any;
 }
 
-export function CommsPage({ comms, cust, Table, Badge, cell, fmt, C }: CommsPageProps) {
+export function CommsPage({
+  Table, Badge, cell, fmt, C,
+}: CommsPageProps) {
+  // ═══ Context-driven dependencies (Phase 2 migration) ═══
+  const { comms, cust } = useData();
+
   return (
     <div>
       <h2 style={{ margin: '0 0 4px', fontSize: 24, fontWeight: 700, color: C.text }}>

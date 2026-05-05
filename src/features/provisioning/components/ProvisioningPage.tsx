@@ -8,11 +8,9 @@
 // @ts-nocheck — transitional during monolith extraction.
 
 import React from 'react';
+import { useData } from '../../../contexts/DataContext';
 
 interface ProvisioningPageProps {
-  loans: any[];
-  provisions: any[];
-  cust: (id: string) => any;
   KPI: any;
   SectionCard: any;
   Table: any;
@@ -23,17 +21,11 @@ interface ProvisioningPageProps {
 }
 
 export function ProvisioningPage({
-  loans,
-  provisions,
-  cust,
-  KPI,
-  SectionCard,
-  Table,
-  Badge,
-  cell,
-  fmt,
-  C,
+  KPI, SectionCard, Table, Badge, cell, fmt, C,
 }: ProvisioningPageProps) {
+  // ═══ Context-driven dependencies (Phase 2 migration) ═══
+  const { loans, provisions, cust } = useData();
+
   const totalECL = provisions.reduce((s, p) => s + p.ecl, 0);
   const totalEAD = provisions.reduce((s, p) => s + p.ead, 0);
 

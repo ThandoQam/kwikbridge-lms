@@ -11,15 +11,11 @@
 // @ts-nocheck — transitional during monolith extraction.
 
 import React, { useState } from 'react';
+import { useData } from '../../../contexts/DataContext';
+import { useActions } from '../../../contexts/ActionsContext';
+import { useUI } from '../../../contexts/UIContext';
 
 interface NewAppModalProps {
-  modal: string | null;
-  setModal: (m: string | null) => void;
-  customers: any[];
-  products: any[];
-  cust: (id: string) => any;
-  prod: (id: string) => any;
-  submitApp: (form: any) => void;
   Modal: any;
   Field: any;
   Select: any;
@@ -31,22 +27,13 @@ interface NewAppModalProps {
 }
 
 export function NewAppModal({
-  modal,
-  setModal,
-  customers,
-  products,
-  cust,
-  prod,
-  submitApp,
-  Modal,
-  Field,
-  Select,
-  Input,
-  Textarea,
-  Btn,
-  fmt,
-  C,
+  Modal, Field, Select, Input, Textarea, Btn, fmt, C,
 }: NewAppModalProps) {
+  // ═══ Context-driven dependencies (Phase 2 migration) ═══
+  const { customers, products, cust, prod } = useData();
+  const { submitApp } = useActions();
+  const { modal, setModal } = useUI();
+
   const [form, setForm] = useState({
     custId: customers[0]?.id || '',
     product: products.find((p) => p.status === 'Active')?.id || products[0]?.id || '',

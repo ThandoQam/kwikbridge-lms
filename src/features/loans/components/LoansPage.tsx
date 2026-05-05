@@ -8,17 +8,13 @@
 // @ts-nocheck — transitional during monolith extraction.
 
 import React, { useState } from 'react';
+import { useData } from '../../../contexts/DataContext';
+import { useActions } from '../../../contexts/ActionsContext';
+import { useUI } from '../../../contexts/UIContext';
 
 interface LoansPageProps {
-  loans: any[];
-  products: any[];
-  settings: any;
   day: number;
-  cust: (id: string) => any;
-  prod: (id: string) => any;
   canDoAny: (mod: string, actions: string[]) => boolean;
-  setDetail: (d: any) => void;
-  disburseLoan: (id: string) => void;
   KPI: any;
   Tab: any;
   Table: any;
@@ -31,25 +27,13 @@ interface LoansPageProps {
 }
 
 export function LoansPage({
-  loans,
-  products,
-  settings,
-  day,
-  cust,
-  prod,
-  canDoAny,
-  setDetail,
-  disburseLoan,
-  KPI,
-  Tab,
-  Table,
-  Badge,
-  Btn,
-  cell,
-  statusBadge,
-  fmt,
-  C,
+  day, canDoAny, KPI, Tab, Table, Badge, Btn, cell, statusBadge, fmt, C,
 }: LoansPageProps) {
+  // ═══ Context-driven dependencies (Phase 2 migration) ═══
+  const { loans, products, settings, cust, prod } = useData();
+  const { disburseLoan } = useActions();
+  const { setDetail } = useUI();
+
   const [tab, setTab] = useState('all');
   const [view, setView] = useState('book'); // book | analytics
 

@@ -8,14 +8,13 @@
 // @ts-nocheck — transitional during monolith extraction.
 
 import React, { useState } from 'react';
+import { useData } from '../../../contexts/DataContext';
+import { useActions } from '../../../contexts/ActionsContext';
+import { useUI } from '../../../contexts/UIContext';
+import { useAuth } from '../../../contexts/AuthContext';
 
 interface ServicingPageProps {
-  loans: any[];
   day: number;
-  cust: (id: string) => any;
-  canDo: (mod: string, action: string) => boolean;
-  setDetail: (d: any) => void;
-  recordPayment: (loanId: string, amount: number) => void;
   KPI: any;
   Tab: any;
   Table: any;
@@ -29,23 +28,14 @@ interface ServicingPageProps {
 }
 
 export function ServicingPage({
-  loans,
-  day,
-  cust,
-  canDo,
-  setDetail,
-  recordPayment,
-  KPI,
-  Tab,
-  Table,
-  Field,
-  Select,
-  Btn,
-  cell,
-  statusBadge,
-  fmt,
-  C,
+  day, KPI, Tab, Table, Field, Select, Btn, cell, statusBadge, fmt, C,
 }: ServicingPageProps) {
+  // ═══ Context-driven dependencies (Phase 2 migration) ═══
+  const { loans, cust } = useData();
+  const { recordPayment } = useActions();
+  const { setDetail } = useUI();
+  const { canDo } = useAuth();
+
   const [tab, setTab] = useState('upcoming');
   const [schedLoan, setSchedLoan] = useState<string | null>(null);
 

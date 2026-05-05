@@ -12,13 +12,11 @@
 // @ts-nocheck — transitional during monolith extraction.
 
 import React, { useState } from 'react';
+import { useData } from '../../../contexts/DataContext';
+import { useActions } from '../../../contexts/ActionsContext';
+import { useAuth } from '../../../contexts/AuthContext';
 
 interface StatutoryReportingPageProps {
-  statutoryReports: any[];
-  loans: any[];
-  settings: any;
-  canDo: (mod: string, action: string) => boolean;
-  updateStatutoryStatus: (id: string, status: string) => void;
   KPI: any;
   Tab: any;
   Table: any;
@@ -33,23 +31,13 @@ interface StatutoryReportingPageProps {
 }
 
 export function StatutoryReportingPage({
-  statutoryReports,
-  loans,
-  settings,
-  canDo,
-  updateStatutoryStatus,
-  KPI,
-  Tab,
-  Table,
-  Badge,
-  SectionCard,
-  Btn,
-  ProgressBar,
-  statusBadge,
-  fmt,
-  I,
-  C,
+  KPI, Tab, Table, Badge, SectionCard, Btn, ProgressBar, statusBadge, fmt, I, C,
 }: StatutoryReportingPageProps) {
+  // ═══ Context-driven dependencies (Phase 2 migration) ═══
+  const { statutoryReports, loans, settings } = useData();
+  const { updateStatutoryStatus } = useActions();
+  const { canDo } = useAuth();
+
     const reports = statutoryReports || [];
     const [tab, setTab] = useState("upcoming");
     const today = new Date();
