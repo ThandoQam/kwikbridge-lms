@@ -122,7 +122,7 @@ test('Collections', 'Stage-based action visibility', src.includes('l.dpd>30') &&
 test('Collections', 'Activity log tab', src.includes('"activity"') && src.includes('Activity Log'));
 
 // ═══ 12. IFRS 9 PROVISIONING ═══
-test('IFRS 9', 'ECL calculation', src.includes('ecl') && src.includes('Expected Credit Loss'));
+test('IFRS 9', 'ECL calculation', src.includes('ecl') && (src.includes('Expected Credit Loss') || require('fs').readFileSync('./src/features/provisioning/components/ProvisioningPage.tsx', 'utf8').includes('Expected Credit Loss')));
 test('IFRS 9', '3-stage model', src.includes('Performing') && src.includes('Underperforming') && src.includes('Non-performing'));
 test('IFRS 9', 'PD/LGD/EAD', src.includes('pd:') && src.includes('lgd:') && src.includes('ead:'));
 test('IFRS 9', 'Provisioning table', src.includes('label:"ECL"') || src.includes('Provision'));
@@ -221,8 +221,16 @@ test('XCut', 'Back navigation', src.includes('goBack') && src.includes('BackBtn'
 // ═══ 25. RENDER INTEGRITY ═══
 // Check that every page component is defined
 const pageComponents = ['Dashboard', 'Customers', 'Origination', 'Underwriting', 'Loans', 'Servicing', 'Collections', 'Provisioning', 'Governance', 'StatutoryReporting', 'Documents', 'Reports', 'Comms', 'Administration'];
+// Pages can be inline functions OR extracted to src/features/
+const extractedFeatures = {
+  'Reports': 'features/reports',
+  'Provisioning': 'features/provisioning',
+  'InvestorDashboard': 'features/investor',
+};
 pageComponents.forEach(comp => {
-  test('Render', `${comp} component defined`, src.includes(`function ${comp}(`));
+  const inline = src.includes(`function ${comp}(`);
+  const extracted = extractedFeatures[comp] && src.includes(extractedFeatures[comp]);
+  test('Render', `${comp} component defined`, inline || extracted);
 });
 
 // Check detail views render

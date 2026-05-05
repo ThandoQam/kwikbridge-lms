@@ -39,6 +39,8 @@ const store = {
 import { config } from "./lib/config";
 import { log, track, identify, clearIdentity, timing } from "./lib/observability";
 import { InvestorDashboard as InvestorDashboardExtracted } from "./features/investor";
+import { ReportsPage as ReportsPageExtracted } from "./features/reports";
+import { ProvisioningPage as ProvisioningPageExtracted } from "./features/provisioning";
 const SUPABASE_URL = config.supabase.url;
 const SUPABASE_KEY = config.supabase.anonKey;
 const sb = (table) => `${SUPABASE_URL}/rest/v1/${table}`;
@@ -4962,11 +4964,11 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
       case "loans": return wrap("Loans", <Loans />);
       case "servicing": return wrap("Servicing", <Servicing />);
       case "collections": return wrap("Collections", <Collections />);
-      case "provisioning": return wrap("Provisioning", <Provisioning />);
+      case "provisioning": return wrap("IFRS 9 Provisioning", <ProvisioningPageExtracted loans={loans} provisions={provisions} cust={cust} KPI={KPI} SectionCard={SectionCard} Table={Table} Badge={Badge} cell={cell} fmt={fmt} C={C} />);
       case "governance": return wrap("Governance", <Governance />);
       case "statutory": return wrap("Statutory Reporting", <StatutoryReporting />);
       case "documents": return wrap("Documents", <Documents />);
-      case "reports": return wrap("Reports", <Reports />);
+      case "reports": return wrap("Reports", <ReportsPageExtracted loans={loans} applications={applications} customers={customers} collections={collections} provisions={provisions} audit={audit} cust={cust} canDo={canDo} Btn={Btn} SectionCard={SectionCard} ProgressBar={ProgressBar} statusBadge={statusBadge} fmt={fmt} C={C} />);
       case "investor": return wrap("Investor Dashboard", <InvestorDashboardExtracted loans={loans} applications={applications} provisions={provisions} customers={customers} prod={prod} Btn={Btn} fmt={fmt} C={C} />);
       case "comms": return wrap("Communications", <Comms />);
       case "admin": return wrap("Administration", Administration());
@@ -5829,46 +5831,6 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
     </div>);
   }
 
-  function Provisioning() {
-    const totalECL = provisions.reduce((s,p)=>s+p.ecl,0);
-    const totalEAD = provisions.reduce((s,p)=>s+p.ead,0);
-    return (<div>
-      <h2 style={{ margin:"0 0 4px", fontSize:24, fontWeight:700, color:C.text }}>IFRS 9 Impairment & Provisioning</h2>
-      <p style={{ margin:"0 0 20px", fontSize:13, color:C.textMuted }}>Expected Credit Loss calculation, staging & forward-looking ECL models</p>
-      <div style={{ display:"flex", gap:0, marginBottom:16, background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, overflow:"hidden" }}>
-        <KPI label="Total ECL Provision" value={fmt.cur(totalECL)} accent={C.purple} />
-        <KPI label="Total EAD" value={fmt.cur(totalEAD)} accent={C.blue} />
-        <KPI label="Coverage Ratio" value={fmt.pct(totalECL / totalEAD)} accent={C.amber} />
-        <KPI label="Stage 2+3 Exposure" value={fmt.cur(provisions.filter(p=>p.stage>=2).reduce((s,p)=>s+p.ead,0))} accent={C.red} />
-      </div>
-      <SectionCard title="ECL by Loan">
-        <Table columns={[
-          { label:"Loan ID", render:r=>cell.id(r.loanId) },
-          { label:"Borrower", render:r=>cust(loans.find(l=>l.id===r.loanId)?.custId)?.name },
-          { label:"Stage", render:r=><Badge color={r.stage===1?"green":r.stage===2?"amber":"red"}>Stage {r.stage}</Badge> },
-          { label:"EAD", render:r=>fmt.cur(r.ead) },
-          { label:"PD", render:r=>fmt.pct(r.pd) },
-          { label:"LGD", render:r=>fmt.pct(r.lgd,0) },
-          { label:"ECL", render:r=>cell.money(r.ecl) },
-          { label:"Method", render:r=>cell.dim(r.method) },
-        ]} rows={provisions} />
-        <div style={{ textAlign:"right", marginTop:14, fontSize:14, fontWeight:700, color:C.text }}>Total ECL: <span style={{ color:C.purple }}>{fmt.cur(totalECL)}</span></div>
-      </SectionCard>
-      <SectionCard title="IFRS 9 Stage Distribution">
-        {[1,2,3].map(s => {
-          const sp = provisions.filter(p=>p.stage===s);
-          const ead = sp.reduce((sum,p)=>sum+p.ead,0);
-          const ecl = sp.reduce((sum,p)=>sum+p.ecl,0);
-          const colors = {1:C.green,2:C.amber,3:C.red};
-          const labels = {1:"Performing (12-month ECL)",2:"Underperforming (Lifetime ECL)",3:"Credit-impaired (Lifetime ECL)"};
-          return (<div key={s} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"12px 0", borderBottom:`1px solid ${C.border}` }}>
-            <div><Badge color={s===1?"green":s===2?"amber":"red"}>Stage {s}</Badge><span style={{ fontSize:12, color:C.textDim, marginLeft:10 }}>{labels[s]}</span></div>
-            <div style={{ textAlign:"right" }}><div style={{ fontSize:14, fontWeight:700, color:C.text }}>EAD: {fmt.cur(ead)}</div><div style={{ fontSize:12, color:colors[s] }}>ECL: {fmt.cur(ecl)}</div></div>
-          </div>);
-        })}
-      </SectionCard>
-    </div>);
-  }
 
   function Governance() {
     const [tab, setTab] = useState("audit");
@@ -6332,78 +6294,6 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
   // DFI covenant compliance, and development impact metrics.
   // No PII at customer-detail level — aggregated views only.
 
-  function Reports() {
-    const activeLoans = loans.filter(l=>l.status==="Active");
-    const totalBook = activeLoans.reduce((s,l)=>s+l.balance,0);
-    const totalECL = provisions.reduce((s,p)=>s+p.ecl,0);
-    const allPmts = loans.flatMap(l=>l.payments.map(p=>({...p,loanId:l.id})));
-    const delinquent = activeLoans.filter(l=>l.dpd>0);
-
-    const exportCSV = (title, headers, rows) => {
-      const csv = [headers.join(","), ...rows.map(r=>r.map(c=>`"${String(c||"").replace(/"/g,'""')}"`).join(","))].join("\n");
-      const blob = new Blob([csv], {type:"text/csv"});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a"); a.href=url; a.download=`${title.replace(/\s+/g,"_")}_${new Date().toISOString().split("T")[0]}.csv`; a.click();
-      URL.revokeObjectURL(url);
-    };
-
-    return (<div>
-      <div style={{ display:"flex", justifyContent:"space-between", marginBottom:16 }}>
-        <div><h2 style={{ margin:0, fontSize:24, fontWeight:700, color:C.text }}>Reports & Analytics</h2><p style={{ margin:"4px 0 0", fontSize:13, color:C.textMuted }}>Portfolio performance, risk analysis, collections, servicing & impact reporting</p></div>
-        {canDo("reports","export") && <div style={{ display:"flex", gap:8 }}>
-          <Btn size="sm" variant="secondary" onClick={()=>exportCSV("Portfolio_Report",["Loan ID","Borrower","Amount","Balance","Rate","DPD","Stage","Status"],loans.map(l=>[l.id,cust(l.custId)?.name,l.amount,l.balance,l.rate,l.dpd,l.stage,l.status]))}>Export Portfolio</Btn>
-          <Btn size="sm" variant="secondary" onClick={()=>exportCSV("Audit_Trail",["Timestamp","Category","Action","Entity","User","Detail"],audit.map(a=>[fmt.dateTime(a.ts),a.category,a.action,a.entity,a.user,a.detail]))}>Export Audit</Btn>
-        </div>}
-      </div>
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
-        <SectionCard title="Portfolio Summary">
-          {[["Total Loan Book",fmt.cur(totalBook)],["Active Loans",activeLoans.length],["Booked (Awaiting Disbursement)",loans.filter(l=>l.status==="Booked").length],["Settled",loans.filter(l=>l.status==="Settled").length],["Written Off",loans.filter(l=>l.status==="Written Off").length],["Total Disbursed",fmt.cur(loans.reduce((s,l)=>s+l.amount,0))],["Weighted Avg Rate",`${activeLoans.length?(activeLoans.reduce((s,l)=>s+l.rate,0)/activeLoans.length).toFixed(1):0}%`],["Total ECL",fmt.cur(totalECL)],["ECL Coverage",totalBook>0?fmt.pct(totalECL/totalBook):"0%"]].map(([l,v],i) => (
-            <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"8px 0", borderBottom:`1px solid ${C.border}` }}>
-              <span style={{ fontSize:12, color:C.textDim }}>{l}</span><span style={{ fontSize:13, fontWeight:700, color:C.text }}>{v}</span>
-            </div>
-          ))}
-        </SectionCard>
-        <SectionCard title="Concentration by Industry">
-          {Object.entries(activeLoans.reduce((acc, l) => { const ind = cust(l.custId)?.industry || "Unknown"; acc[ind] = (acc[ind]||0) + l.balance; return acc; }, {})).sort((a,b)=>b[1]-a[1]).map(([ind, bal], i) => (
-            <div key={i} style={{ marginBottom:8 }}>
-              <div style={{ display:"flex", justifyContent:"space-between", fontSize:12, color:C.textDim, marginBottom:3 }}><span>{ind}</span><span>{fmt.cur(bal)} ({totalBook>0?fmt.pct(bal/totalBook,0):"0%"})</span></div>
-              <ProgressBar value={bal} max={totalBook||1} color={C.accent} />
-            </div>
-          ))}
-        </SectionCard>
-        <SectionCard title="Collections Summary">
-          {[["Delinquent Accounts",delinquent.length],["Total Arrears",fmt.cur(delinquent.reduce((s,l)=>s+l.balance,0))],["Early (1-30 DPD)",delinquent.filter(l=>l.dpd<=30).length],["Mid (31-90 DPD)",delinquent.filter(l=>l.dpd>30&&l.dpd<=90).length],["Late (91+ DPD)",delinquent.filter(l=>l.dpd>90).length],["Collection Actions (Total)",collections.length],["Active PTPs",collections.filter(c=>c.ptpDate&&c.ptpDate>Date.now()).length],["Write-Off Proposals",collections.filter(c=>c.writeOff).length]].map(([l,v],i) => (
-            <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"8px 0", borderBottom:`1px solid ${C.border}` }}>
-              <span style={{ fontSize:12, color:C.textDim }}>{l}</span><span style={{ fontSize:13, fontWeight:700, color:typeof v==="number"&&v>0?C.red:C.text }}>{v}</span>
-            </div>
-          ))}
-        </SectionCard>
-        <SectionCard title="Servicing Summary">
-          {[["Payments Processed",allPmts.length],["Total Collected",fmt.cur(allPmts.reduce((s,p)=>s+p.amount,0))],["Interest Collected",fmt.cur(allPmts.reduce((s,p)=>s+(p.interest||0),0))],["Principal Collected",fmt.cur(allPmts.reduce((s,p)=>s+(p.principal||0),0))],["Monthly Receivable",fmt.cur(activeLoans.reduce((s,l)=>s+l.monthlyPmt,0))],["Overdue Accounts",delinquent.length]].map(([l,v],i) => (
-            <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"8px 0", borderBottom:`1px solid ${C.border}` }}>
-              <span style={{ fontSize:12, color:C.textDim }}>{l}</span><span style={{ fontSize:13, fontWeight:700, color:C.text }}>{v}</span>
-            </div>
-          ))}
-        </SectionCard>
-        <SectionCard title="Application Outcomes">
-          {["Approved","Declined","Submitted","Underwriting","Booked","Withdrawn"].map(s => {
-            const count = applications.filter(a => a.status === s).length;
-            if (count === 0) return null;
-            return (<div key={s} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 0", borderBottom:`1px solid ${C.border}` }}>
-              {statusBadge(s)}<div><span style={{ fontSize:16, fontWeight:700, color:C.text }}>{count}</span><span style={{ fontSize:11, color:C.textMuted, marginLeft:8 }}>({applications.length>0?fmt.pct(count/applications.length,0):"0%"})</span></div>
-            </div>);
-          })}
-        </SectionCard>
-        <SectionCard title="Development Impact">
-          {[["Total Jobs Supported",fmt.num(customers.reduce((s,c)=>s+c.employees,0))],["BEE Level 1 Clients",customers.filter(c=>c.beeLevel===1).length],["BEE Level 1-2 Exposure",fmt.cur(activeLoans.filter(l=>cust(l.custId)?.beeLevel<=2).reduce((s,l)=>s+l.balance,0))],["Women-Owned (>50%)",customers.filter(c=>(c.womenOwned||0)>50).length],["Youth-Owned (>50%)",customers.filter(c=>(c.youthOwned||0)>50).length],["Disability-Owned (>50%)",customers.filter(c=>(c.disabilityOwned||0)>50).length],["Avg Social Impact Score",applications.filter(a=>a.socialScore).length>0?Math.round(applications.filter(a=>a.socialScore).reduce((s,a)=>s+a.socialScore,0)/applications.filter(a=>a.socialScore).length):"—"],["Provinces Covered",new Set(customers.map(c=>c.province)).size],["Industries Covered",new Set(customers.map(c=>c.industry)).size]].map(([l,v],i) => (
-            <div key={i} style={{ display:"flex", justifyContent:"space-between", padding:"8px 0", borderBottom:`1px solid ${C.border}` }}>
-              <span style={{ fontSize:12, color:C.textDim }}>{l}</span><span style={{ fontSize:13, fontWeight:700, color:C.accent }}>{v}</span>
-            </div>
-          ))}
-        </SectionCard>
-      </div>
-    </div>);
-  }
 
   function Comms() {
     return (<div>

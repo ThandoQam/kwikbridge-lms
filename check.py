@@ -132,8 +132,18 @@ REQUIRED_PAGES = [
     'StatutoryReporting', 'Documents', 'Reports', 'Comms', 'Administration',
     'renderPage', 'renderDetail',
 ]
+# Pages can either live as inline functions or be imported from src/features/
+# (during the monolith extraction, the inline function is removed and the
+# imported component is wired in via renderPage).
+EXTRACTED_PAGES = {
+    'InvestorDashboard': 'features/investor',
+    'Reports': 'features/reports',
+    'Provisioning': 'features/provisioning',
+}
 for p in REQUIRED_PAGES:
-    if f'function {p}' not in t:
+    inline = f'function {p}' in t
+    extracted = p in EXTRACTED_PAGES and EXTRACTED_PAGES[p] in t
+    if not inline and not extracted:
         errors.append(f"MISSING: {p}")
 
 lines = t.count('\n') + 1

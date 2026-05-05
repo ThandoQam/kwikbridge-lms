@@ -1,62 +1,76 @@
 # CI Workflow Patch — Apply Manually
 
-The Personal Access Token used for automated commits cannot modify
-`.github/workflows/*.yml` files (requires `workflow` scope). Apply this
-patch manually via the GitHub web UI:
+The automation PAT cannot modify `.github/workflows/*.yml` files.
+GitHub's server-side check rejects any push (commit OR branch) that
+modifies a workflow file unless the PAT has `workflow` scope.
 
-## Where
-`.github/workflows/ci.yml`
+This patch wires our 97 Vitest unit tests + 168 journey tests into CI.
+Currently CI only runs the Python test suites — meaning a regression
+in `decisioning.ts`, `validation.ts`, `payments.ts`, `bureau.ts`, or
+`amortisation.ts` will not be caught until manual testing.
 
-## What to Change
+## How to Apply (1-2 minutes via GitHub UI)
 
-In the `test` job, after the Python test suite block ending in:
+1. Go to: <https://github.com/ThandoQam/kwikbridge-lms/edit/main/.github/workflows/ci.yml>
 
-```yaml
-          if [ -n "$FAILED_SUITES" ]; then
-            echo ""
-            echo "FAILED SUITES:$FAILED_SUITES"
-            exit 1
-          fi
-```
+2. Find this block in the `test:` job:
 
-Add the following steps:
+   ```yaml
+             if [ -n "$FAILED_SUITES" ]; then
+               echo ""
+               echo "FAILED SUITES:$FAILED_SUITES"
+               exit 1
+             fi
+   ```
 
-```yaml
-      - name: Setup Node.js for unit tests
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+3. Immediately after that block (still inside the `test:` job's
+   `steps:` array), add these new steps:
 
-      - name: Install dependencies
-        run: npm ci
+   ```yaml
+         - name: Setup Node.js for unit tests
+           uses: actions/setup-node@v4
+           with:
+             node-version: ${{ env.NODE_VERSION }}
+             cache: 'npm'
 
-      - name: Run Vitest unit tests
-        run: npm run test:unit
+         - name: Install dependencies
+           run: npm ci
 
-      - name: Run journey tests
-        run: node test-journeys.cjs
-```
+         - name: Run Vitest unit tests
+           run: npm run test:unit
 
-## Why
+         - name: Run journey tests
+           run: node test-journeys.cjs
+   ```
 
-The repository now has 67 Vitest unit tests covering:
-- `src/lib/amortisation.ts` — schedule generation, edge cases
-- `src/lib/validation.ts` — SA ID Luhn, CIPC, phone, email
-- `src/lib/payments.ts` — disbursement validation, reconciliation
-- `src/lib/bureau.ts` — onboarding decision tree, POPIA consent
-
-These tests catch real bugs that the static-analysis Python suites
-cannot. Running them in CI prevents regressions before merge.
-
-## How to Apply
-
-1. Open https://github.com/ThandoQam/kwikbridge-lms/edit/main/.github/workflows/ci.yml
-2. Locate the `test:` job
-3. Add the Node.js setup + npm test steps after the Python suite
-4. Commit directly to main with message: "ci: run Vitest unit tests in CI"
+4. Commit directly to main with message: `ci: run Vitest in CI`
 
 ## Verification
 
-After pushing, the next CI run should show "Run Vitest unit tests"
-as a passing step under the "Test Suite" job.
+After committing, the next CI run will show four new steps under the
+"Test Suite" job:
+- "Setup Node.js for unit tests"
+- "Install dependencies"
+- "Run Vitest unit tests"
+- "Run journey tests"
+
+The first run might take 2-3 minutes longer than before (npm install).
+Subsequent runs use the npm cache and add ~30 seconds.
+
+## Alternative: Update the PAT scope
+
+If you'd prefer to enable automated workflow changes:
+
+1. <https://github.com/settings/tokens> → Find the existing PAT
+2. Click "Edit"
+3. Check the `workflow` scope checkbox (under "repo" section)
+4. Update token
+
+The next session will be able to push workflow changes directly.
+
+## Why This Matters
+
+Without this patch, the CI green tick is misleading. A bug in the
+credit decisioning engine (the IP) could merge to main without
+detection, then ship to production. With this patch, the 30 dedicated
+decisioning tests run on every push and block bad code at the door.
