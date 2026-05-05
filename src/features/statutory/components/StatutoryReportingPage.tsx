@@ -1,11 +1,55 @@
-// @ts-nocheck
-// KwikBridge LMS — StatutoryReporting Page
-// NCR reporting calendar — deadlines, submission tracking
-// Extracted from monolith Phase 3. Consumes shared state via props.
+/**
+ * StatutoryReportingPage — NCR regulatory reporting calendar.
+ *
+ * Tracks Form 39 (quarterly/annual) and other NCR submissions
+ * (NCRCP22396). Provides deadline countdown, urgency banners,
+ * status workflow (Not Started → In Progress → Under Review →
+ * Submitted), and submission guide.
+ *
+ * EXTRACTED FROM MONOLITH (Phase 1, May 2026).
+ */
 
-import React from "react";
+// @ts-nocheck — transitional during monolith extraction.
 
-export function StatutoryReporting() {
+import React, { useState } from 'react';
+
+interface StatutoryReportingPageProps {
+  statutoryReports: any[];
+  loans: any[];
+  settings: any;
+  canDo: (mod: string, action: string) => boolean;
+  updateStatutoryStatus: (id: string, status: string) => void;
+  KPI: any;
+  Tab: any;
+  Table: any;
+  Badge: any;
+  SectionCard: any;
+  Btn: any;
+  ProgressBar: any;
+  statusBadge: (s: string) => any;
+  fmt: any;
+  I: any;
+  C: any;
+}
+
+export function StatutoryReportingPage({
+  statutoryReports,
+  loans,
+  settings,
+  canDo,
+  updateStatutoryStatus,
+  KPI,
+  Tab,
+  Table,
+  Badge,
+  SectionCard,
+  Btn,
+  ProgressBar,
+  statusBadge,
+  fmt,
+  I,
+  C,
+}: StatutoryReportingPageProps) {
     const reports = statutoryReports || [];
     const [tab, setTab] = useState("upcoming");
     const today = new Date();
@@ -20,7 +64,7 @@ export function StatutoryReporting() {
     const form39Frequency = totalDisbursedAmt > 15000000 ? "Quarterly" : "Annual";
 
     return (<div>
-      <h2 style={{ margin:"0 0 4px", fontSize:22, fontWeight:700, color:C.text }}>NCR Statutory Reporting</h2>
+      <h2 style={{ margin:"0 0 4px", fontSize:24, fontWeight:700, color:C.text }}>NCR Statutory Reporting</h2>
       <p style={{ margin:"0 0 20px", fontSize:13, color:C.textMuted }}>Regulatory reporting calendar, deadlines & submission tracking — NCRCP22396</p>
 
       {/* Critical deadline banner */}
@@ -28,7 +72,7 @@ export function StatutoryReporting() {
         const next = upcoming[0];
         const days = daysUntil(next.dueDate);
         return (
-          <div style={{ background: C.surface, border: `1px solid ${C.border}`, padding: "12px 16px", marginBottom: 20, display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, padding: "12px 16px", marginBottom: 20, display: "flex", alignItems: "center", gap:16 }}>
             <div style={{ flexShrink: 0 }}>{I.warning}</div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>Next Deadline: {next.name}</div>
@@ -62,7 +106,7 @@ export function StatutoryReporting() {
           const days = daysUntil(r.dueDate);
           return (
             <div key={r.id} style={{ background: C.surface, border: `1px solid ${C.border}`, padding: "12px 16px", marginBottom: 8 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom:12 }}>
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
                     <span style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{r.name}</span>
@@ -76,7 +120,7 @@ export function StatutoryReporting() {
                   <div style={{ fontSize: 11, color: C.textMuted, marginTop: 4 }}>Due: {fmt.date(new Date(r.dueDate))}</div>
                 </div>
               </div>
-              <div style={{ fontSize: 12, color: C.textDim, marginBottom: 10, lineHeight: 1.5 }}>{r.notes}</div>
+              <div style={{ fontSize: 12, color: C.textDim, marginBottom:12, lineHeight: 1.5 }}>{r.notes}</div>
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                 {r.status === "Not Started" && canDo("statutory","update") && <Btn size="sm" variant="secondary" onClick={() => updateStatutoryStatus(r.id, "In Progress")}>Start Preparation</Btn>}
                 {r.status === "In Progress" && canDo("statutory","update") && <Btn size="sm" variant="secondary" onClick={() => updateStatutoryStatus(r.id, "Under Review")}>Submit for Review</Btn>}
@@ -96,7 +140,7 @@ export function StatutoryReporting() {
 
       {tab === "calendar" && (<div>
         <SectionCard title="Annual Statutory Reports (Due within 6 months of year-end)">
-          <div style={{ fontSize: 12, color: C.textDim, marginBottom: 14, lineHeight: 1.6, padding: "10px 14px", background: C.surface2 }}>
+          <div style={{ fontSize: 12, color: C.textDim, marginBottom:16, lineHeight: 1.6, padding: "10px 14px", background: C.surface2 }}>
             Credit providers registered under the NCA must submit the following reports to the NCR within <span style={{ fontWeight: 600, color: C.text }}>6 months</span> of their financial year-end. Year-end: <span style={{ fontWeight: 600, color: C.text }}>{settings?.yearEnd}</span> → Deadline: <span style={{ fontWeight: 600, color: C.red }}>{settings?.annualDueDate}</span>
           </div>
           <Table columns={[
@@ -110,7 +154,7 @@ export function StatutoryReporting() {
         </SectionCard>
 
         <SectionCard title="Form 39 – Statistical Returns (Quarterly)">
-          <div style={{ fontSize: 12, color: C.textDim, marginBottom: 14, lineHeight: 1.6, padding: "10px 14px", background: C.surface2 }}>
+          <div style={{ fontSize: 12, color: C.textDim, marginBottom:16, lineHeight: 1.6, padding: "10px 14px", background: C.surface2 }}>
             Annual disbursements: <span style={{ fontWeight: 700, color: C.text }}>{fmt.cur(totalDisbursedAmt)}</span> — {totalDisbursedAmt > 15000000
               ? <span style={{ color: C.red, fontWeight: 700 }}>Exceeds R15 million → Form 39 must be submitted QUARTERLY</span>
               : <span style={{ color: C.green, fontWeight: 700 }}>Below R15 million → Form 39 submitted annually (1 Jan – 31 Dec)</span>
@@ -162,7 +206,7 @@ export function StatutoryReporting() {
         <SectionCard title="NCR Submission Requirements">
           <div style={{ fontSize: 13, color: C.textDim, lineHeight: 1.8 }}>
             <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 6 }}>Annual Statutory Reports</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom:8 }}>Annual Statutory Reports</div>
               <div>Registered credit providers must submit the following within <span style={{ fontWeight: 700, color: C.amber }}>6 months of their financial year-end</span>:</div>
               <div style={{ padding: "10px 0 10px 16px" }}>
                 {["Annual Compliance Report", "Annual Financial Statements (must include auditor's report)", "Annual Financial & Operational Return", "Assurance Engagement Report"].map((item, i) => (
@@ -175,8 +219,8 @@ export function StatutoryReporting() {
             </div>
 
             <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 6 }}>Form 39 – Statistical Returns</div>
-              <div style={{ padding: "8px 12px", background: C.surface2, border: `1px solid ${C.border}`, marginBottom: 10 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom:8 }}>Form 39 – Statistical Returns</div>
+              <div style={{ padding: "8px 12px", background: C.surface2, border: `1px solid ${C.border}`, marginBottom:12 }}>
                 <span style={{ fontWeight: 700 }}>Current annual disbursements: {fmt.cur(totalDisbursedAmt)}</span> — {totalDisbursedAmt > 15000000
                   ? <span style={{ color: C.red, fontWeight: 700 }}>Exceeds R15 million → Quarterly submission required</span>
                   : <span style={{ color: C.green, fontWeight: 700 }}>Below R15 million → Annual submission (1 Jan – 31 Dec)</span>
@@ -185,8 +229,8 @@ export function StatutoryReporting() {
             </div>
 
             <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 6 }}>Submission Channels</div>
-              <div className="kb-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom:8 }}>Submission Channels</div>
+              <div className="kb-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap:12 }}>
                 {[
                   ["Annual Statutory Reports", "submissions@ncr.org.za", C.purple],
                   ["Form 39 Statistical Returns", "returns@ncr.org.za", C.blue],
@@ -202,7 +246,7 @@ export function StatutoryReporting() {
             </div>
 
             <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 6 }}>Company Details</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom:8 }}>Company Details</div>
               <InfoGrid items={[
                 ["Registered Name", settings?.companyName],
                 ["NCR Registration", settings?.ncrReg],
@@ -216,4 +260,4 @@ export function StatutoryReporting() {
         </SectionCard>
       </div>)}
     </div>);
-  }
+}

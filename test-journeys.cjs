@@ -239,6 +239,7 @@ const extractedFeatures = {
   'Collections': 'features/collections',
   'Documents': 'features/documents',
   'Governance': 'features/governance',
+  'StatutoryReporting': 'features/statutory',
 };
 pageComponents.forEach(comp => {
   const inline = src.includes(`function ${comp}(`);
