@@ -40,7 +40,8 @@ test('Portal', 'My applications view', src.includes('portal_applications'));
 test('Portal', 'Document upload', src.includes('portal_documents'));
 
 // ═══ 4. CUSTOMER MANAGEMENT ═══
-test('Customers', 'Customer list table', src.includes('Business Name') && src.includes('label:"Contact"'));
+const customersExtracted = require('fs').readFileSync('./src/features/customers/components/CustomersPage.tsx', 'utf8');
+test('Customers', 'Customer list table', customersExtracted.includes('Business Name') && customersExtracted.includes("label: 'Contact'"));
 test('Customers', 'Create customer', src.includes('createCustomer'));
 test('Customers', 'Customer detail view', src.includes('detail.type === "customer"'));
 test('Customers', 'FICA status management', src.includes('updateFicaStatus'));
@@ -226,6 +227,9 @@ const extractedFeatures = {
   'Reports': 'features/reports',
   'Provisioning': 'features/provisioning',
   'InvestorDashboard': 'features/investor',
+  'Underwriting': 'features/underwriting',
+  'Comms': 'features/comms',
+  'Customers': 'features/customers',
 };
 pageComponents.forEach(comp => {
   const inline = src.includes(`function ${comp}(`);

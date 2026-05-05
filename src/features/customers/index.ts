@@ -1,2 +1,1 @@
-// KwikBridge LMS — Customers Feature
-export { Customers as CustomersPage } from "./components/CustomersPage";
+export { CustomersPage } from './components/CustomersPage';

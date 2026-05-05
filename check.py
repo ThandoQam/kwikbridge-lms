@@ -139,6 +139,9 @@ EXTRACTED_PAGES = {
     'InvestorDashboard': 'features/investor',
     'Reports': 'features/reports',
     'Provisioning': 'features/provisioning',
+    'Underwriting': 'features/underwriting',
+    'Comms': 'features/comms',
+    'Customers': 'features/customers',
 }
 for p in REQUIRED_PAGES:
     inline = f'function {p}' in t
