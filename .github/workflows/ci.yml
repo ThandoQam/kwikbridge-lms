@@ -133,6 +133,21 @@ jobs:
             exit 1
           fi
 
+      - name: Setup Node.js for unit tests
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Vitest unit tests
+        run: npm run test:unit
+
+      - name: Run journey tests
+        run: node test-journeys.cjs
+
           echo ""
           echo "✓ All test suites passed"
 
