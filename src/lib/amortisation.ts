@@ -276,7 +276,54 @@ function generateBalloon(input: AmortisationInput): AmortisationResult {
 
 // ═══ Main Generator ═══
 
+/**
+ * Validate amortisation inputs before generating schedule.
+ * Returns a detailed error if input is invalid — prevents silent
+ * generation of nonsense schedules that could appear in loan documents.
+ */
+function validateAmortisationInput(input: AmortisationInput): void {
+  if (!input || typeof input !== "object") {
+    throw new Error("Amortisation input is required");
+  }
+  if (typeof input.principal !== "number" || isNaN(input.principal)) {
+    throw new Error("Principal must be a number");
+  }
+  if (input.principal <= 0) {
+    throw new Error(`Principal must be positive, got ${input.principal}`);
+  }
+  if (input.principal > 1_000_000_000) {
+    throw new Error("Principal exceeds reasonable bounds (R1bn)");
+  }
+  if (typeof input.annualRate !== "number" || isNaN(input.annualRate)) {
+    throw new Error("Annual rate must be a number");
+  }
+  if (input.annualRate < 0) {
+    throw new Error(`Annual rate cannot be negative, got ${input.annualRate}`);
+  }
+  if (input.annualRate > 200) {
+    throw new Error(`Annual rate ${input.annualRate}% exceeds NCA cap`);
+  }
+  if (typeof input.termMonths !== "number" || isNaN(input.termMonths)) {
+    throw new Error("Term months must be a number");
+  }
+  if (input.termMonths <= 0) {
+    throw new Error(`Term must be at least 1 month, got ${input.termMonths}`);
+  }
+  if (!Number.isInteger(input.termMonths)) {
+    throw new Error("Term must be a whole number of months");
+  }
+  if (input.termMonths > 600) {
+    throw new Error("Term exceeds 50 years");
+  }
+  if (input.gracePeriodMonths !== undefined) {
+    if (input.gracePeriodMonths < 0 || input.gracePeriodMonths >= input.termMonths) {
+      throw new Error("Grace period must be 0..termMonths-1");
+    }
+  }
+}
+
 export function generateSchedule(input: AmortisationInput): AmortisationResult {
+  validateAmortisationInput(input);
   switch (input.repaymentType) {
     case "Bullet":
       return generateBullet(input);

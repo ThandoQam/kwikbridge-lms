@@ -50,13 +50,60 @@ const sbDelete = async (table, id) => { await fetch(sb(table) + `?id=eq.${encode
 // ═══ SUPABASE AUTH ═══
 const sbAuth = (endpoint, body) => fetch(`${SUPABASE_URL}/auth/v1/${endpoint}`, { method:"POST", headers:{ "apikey":SUPABASE_KEY, "Content-Type":"application/json" }, body:JSON.stringify(body) });
 const sbAuthGet = (endpoint, token) => fetch(`${SUPABASE_URL}/auth/v1/${endpoint}`, { headers:{ "apikey":SUPABASE_KEY, "Authorization":`Bearer ${token}` } });
+
+// Proper error-aware auth wrappers — return { ok, data, error, code }
+// rather than dumping raw response and relying on caller to detect errors.
+// Supabase Auth returns errors as { error, error_description, msg, code }
+// in various shapes — this normalises them.
 const authSignUp = async (email, password, name) => {
-  const r = await sbAuth("signup", { email, password, data:{ full_name:name } });
-  return r.json();
+  try {
+    const r = await sbAuth("signup", { email, password, data: { full_name: name } });
+    const data = await r.json();
+    if (!r.ok) {
+      // HTTP error — Supabase returns error details in body
+      return {
+        ok: false,
+        error: data.msg || data.error_description || data.error || `Signup failed (HTTP ${r.status})`,
+        code: data.code || `http_${r.status}`,
+        data: null,
+      };
+    }
+    // Supabase signup with email confirmation enabled returns user but no access_token
+    // Without confirmation: returns access_token immediately
+    if (data.error || data.msg) {
+      return { ok: false, error: data.error_description || data.msg || data.error, code: data.code, data: null };
+    }
+    return { ok: true, data, error: null, code: null };
+  } catch (e) {
+    return { ok: false, error: e?.message || "Network error during signup", code: "network_error", data: null };
+  }
 };
+
 const authSignIn = async (email, password) => {
-  const r = await sbAuth("token?grant_type=password", { email, password });
-  return r.json();
+  try {
+    const r = await sbAuth("token?grant_type=password", { email, password });
+    const data = await r.json();
+    if (!r.ok) {
+      // Common Supabase signin errors:
+      // 400: invalid_grant (wrong password), invalid_credentials, email_not_confirmed
+      let userMessage = data.error_description || data.msg || data.error || `Sign-in failed (HTTP ${r.status})`;
+      // Surface the most common errors with friendlier text
+      if (data.error === "invalid_grant" || data.error_description?.includes("Invalid login")) {
+        userMessage = "Incorrect email or password.";
+      } else if (data.error_description?.includes("Email not confirmed") || data.msg?.includes("not confirmed")) {
+        userMessage = "Please verify your email address. Check your inbox for the confirmation link.";
+      } else if (data.error === "user_not_found") {
+        userMessage = "No account found with this email. Please sign up first.";
+      }
+      return { ok: false, error: userMessage, code: data.error || `http_${r.status}`, data: null };
+    }
+    if (!data.access_token) {
+      return { ok: false, error: "Authentication succeeded but no token returned. Please try again.", code: "no_token", data: null };
+    }
+    return { ok: true, data, error: null, code: null };
+  } catch (e) {
+    return { ok: false, error: e?.message || "Network error during sign-in", code: "network_error", data: null };
+  }
 };
 const authSignOut = async (token) => {
   await fetch(`${SUPABASE_URL}/auth/v1/logout`, { method:"POST", headers:{ "apikey":SUPABASE_KEY, "Authorization":`Bearer ${token}` } });
@@ -482,7 +529,7 @@ export default function App() {
   const [authSession, setAuthSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [authMode, setAuthMode] = useState("login"); // login | signup
-  const [authForm, setAuthForm] = useState({ email:"", password:"", name:"", error:"" });
+  const [authForm, setAuthForm] = useState({ email: "", password: "", name: "", error: "", loading: false });
   const [publicAppForm, setPublicAppForm] = useState({ step:1, name:"", contact:"", email:"", phone:"", password:"", idNum:"", regNum:"", businessName:"", industry:"Retail", sector:"", revenue:"", employees:"", years:"", address:"", province:"Eastern Cape", beeLevel:3, womenOwned:0, youthOwned:0, disabilityOwned:0, product:"", amount:"", term:"", purpose:"", monthlyDebt:"", monthlyRent:"", businessBank:"", offTaker:"", offTakerRef:"", securityInHand:[], error:"", submitted:false, preApprovalResult:null, trackingRef:null });
   const [portalPtp, setPortalPtp] = useState({ loanId:null, date:"", amount:"", notes:"" });
   const [portalPayment, setPortalPayment] = useState({ loanId:null, amount:"", method:"EFT", ref:"" });
@@ -569,48 +616,84 @@ export default function App() {
   }, []);
 
   const handleSignIn = async () => {
-    setAuthForm({ ...authForm, error:"" });
+    setAuthForm({ ...authForm, error: "", loading: true });
     try {
-      const res = await authSignIn(authForm.email, authForm.password);
-      if (res.error) { setAuthForm({ ...authForm, error:res.error_description || res.error || "Sign in failed" }); return; }
-      if (res.access_token) {
-        const user = await authGetUser(res.access_token);
-        const session = { token:res.access_token, user:user || { email:authForm.email } };
-        setAuthSession(session);
-        localStorage.setItem("kb-auth", JSON.stringify(session));
-        const matched = sysUsers.find(u => u.email.toLowerCase() === authForm.email.toLowerCase());
-        if (matched) {
-          setCurrentUser(matched);
-          const z = ROLES[matched.role]?.zone || "staff";
-          setZone(z);
-          setPage(z === "portal" ? "portal_dashboard" : "dashboard");
-        } else {
-          // Unmatched email — default to borrower portal
-          setCurrentUser({ id:"B-"+Date.now(), name:authForm.email.split("@")[0], initials:authForm.email[0].toUpperCase(), email:authForm.email, role:"BORROWER" });
-          setZone("portal");
-          setPage("portal_dashboard");
-        }
+      const res = await timing("auth.signin", () => authSignIn(authForm.email, authForm.password), {
+        email_domain: (authForm.email || "").split("@")[1],
+      });
+      if (!res.ok) {
+        log.warn("Sign-in failed", { code: res.code, email_domain: (authForm.email || "").split("@")[1] });
+        setAuthForm({ ...authForm, error: res.error, loading: false });
+        return;
       }
-    } catch (e) { setAuthForm({ ...authForm, error:"Network error. Try again." }); }
+      const { access_token } = res.data;
+      const user = await authGetUser(access_token);
+      const session = { token: access_token, user: user || { email: authForm.email } };
+      setAuthSession(session);
+      localStorage.setItem("kb-auth", JSON.stringify(session));
+      identify(user?.id || authForm.email, { email: authForm.email });
+
+      const matched = sysUsers.find(u => u.email.toLowerCase() === authForm.email.toLowerCase());
+      if (matched) {
+        log.info("Staff signed in", { role: matched.role });
+        setCurrentUser(matched);
+        const z = ROLES[matched.role]?.zone || "staff";
+        setZone(z);
+        setPage(z === "portal" ? "portal_dashboard" : "dashboard");
+      } else {
+        // Unmatched staff email — treat as borrower portal user
+        log.info("Borrower signed in", { email_domain: (authForm.email || "").split("@")[1] });
+        setCurrentUser({
+          id: "B-" + Date.now(),
+          name: authForm.email.split("@")[0],
+          initials: authForm.email[0].toUpperCase(),
+          email: authForm.email,
+          role: "BORROWER",
+        });
+        setZone("portal");
+        setPage("portal_dashboard");
+      }
+      setAuthForm({ ...authForm, loading: false });
+    } catch (e) {
+      log.error("Sign-in unexpected error", e);
+      setAuthForm({ ...authForm, error: "Unexpected error. Please contact support@tqacapital.co.za", loading: false });
+    }
   };
 
   const handleSignUp = async () => {
-    setAuthForm({ ...authForm, error:"" });
-    if (!authForm.name || !authForm.email || !authForm.password) { setAuthForm({ ...authForm, error:"All fields required." }); return; }
-    if (authForm.password.length < 6) { setAuthForm({ ...authForm, error:"Password must be at least 6 characters." }); return; }
+    setAuthForm({ ...authForm, error: "", loading: true });
+    // Client-side validation — fast feedback before network call
+    if (!authForm.name?.trim()) { setAuthForm({ ...authForm, error: "Please enter your full name.", loading: false }); return; }
+    if (!authForm.email?.trim()) { setAuthForm({ ...authForm, error: "Please enter your email address.", loading: false }); return; }
+    if (!authForm.password) { setAuthForm({ ...authForm, error: "Please choose a password.", loading: false }); return; }
+    if (authForm.password.length < 8) { setAuthForm({ ...authForm, error: "Password must be at least 8 characters.", loading: false }); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(authForm.email)) { setAuthForm({ ...authForm, error: "Please enter a valid email address.", loading: false }); return; }
     try {
-      const res = await authSignUp(authForm.email, authForm.password, authForm.name);
-      if (res.error) { setAuthForm({ ...authForm, error:res.error_description || res.msg || "Sign up failed" }); return; }
-      if (res.access_token) {
-        const session = { token:res.access_token, user:res.user || { email:authForm.email, user_metadata:{ full_name:authForm.name } } };
+      const res = await timing("auth.signup", () => authSignUp(authForm.email, authForm.password, authForm.name));
+      if (!res.ok) {
+        log.warn("Sign-up failed", { code: res.code });
+        setAuthForm({ ...authForm, error: res.error, loading: false });
+        return;
+      }
+      // If access_token returned: email confirmation disabled in Supabase, log in immediately
+      if (res.data.access_token) {
+        const session = { token: res.data.access_token, user: res.data.user || { email: authForm.email, user_metadata: { full_name: authForm.name } } };
         setAuthSession(session);
         localStorage.setItem("kb-auth", JSON.stringify(session));
-        // New signups default to borrower portal
-        setCurrentUser({ id:"B-"+Date.now(), name:authForm.name, initials:authForm.name.split(" ").map(w=>w[0]).join("").toUpperCase().slice(0,2), email:authForm.email, role:"BORROWER" });
+        identify(res.data.user?.id || authForm.email, { email: authForm.email });
+        setCurrentUser({
+          id: "B-" + Date.now(),
+          name: authForm.name,
+          initials: authForm.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2),
+          email: authForm.email,
+          role: "BORROWER",
+        });
         setZone("portal");
         setPage("portal_dashboard");
+        log.info("New borrower account created and logged in");
       } else {
-        setAuthForm({ ...authForm, error:"" });
+        // Email confirmation required — show success message
+        setAuthForm({ ...authForm, error: "", loading: false });
         setAuthMode("login");
         showToast("Account created. Check your email for confirmation, then sign in.");
       }
@@ -2183,7 +2266,34 @@ const generateLoanOffer = (application, customer, product) => {
           .kb-pub-cta button{width:100% !important}
           .kb-toast{left:12px !important;right:12px !important;max-width:none !important}
           .kb-section-grid{gap:8px !important}
-                  }
+          h1{font-size:22px !important}
+          h2{font-size:18px !important}
+          h3{font-size:14px !important}
+        }
+        /* Tablet — sidebar collapsed by default, 2-column where 4 was */
+        @media(min-width:481px) and (max-width:1024px){
+          .kb-grid-4{grid-template-columns:repeat(2,1fr) !important}
+          .kb-kpi-row>div{min-width:calc(50% - 8px) !important;flex:0 0 calc(50% - 8px) !important}
+          .kb-detail-grid{grid-template-columns:1fr 1fr !important}
+        }
+        /* All tables get horizontal scroll on small viewports */
+        @media(max-width:1024px){
+          .kb-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -8px;padding:0 8px}
+          table{min-width:600px}
+        }
+        /* Touch targets meet WCAG AA — 44px minimum */
+        @media(pointer:coarse){
+          button,select,input[type="checkbox"],input[type="radio"]{min-height:44px}
+          a[role="button"],.kb-clickable{min-height:44px;display:inline-flex;align-items:center}
+        }
+        /* High contrast mode support */
+        @media(prefers-contrast:high){
+          *{border-color:#000 !important}
+        }
+        /* Reduce motion */
+        @media(prefers-reduced-motion:reduce){
+          *,*::before,*::after{animation-duration:0.01ms !important;animation-iteration-count:1 !important;transition-duration:0.01ms !important;scroll-behavior:auto !important}
+        }
         `;
 
   // ═══ PUBLIC ZONE — No Login Required ═══
@@ -2266,25 +2376,33 @@ const generateLoanOffer = (application, customer, product) => {
             const newAudit = { id:uid(), action:"Public Application Submitted", entity:appId, user:"Public Applicant", detail:`${f.businessName} (${f.email}) applied for ${selProd?.name} ${fmt.cur(f.amount)} over ${f.term}m. Off-taker: ${f.offTaker||"None"}. Security: ${(f.securityInHand||[]).join(", ")||"None"}. Rough DSCR: ${roughDSCR||"N/A"}. Bank: ${f.businessBank||"Not specified"}. ${isThinFile?"THIN-FILE CLIENT.":""} Status: Pre-Approval.`, ts:Date.now(), category:"Origination" };
             save({ ...data, customers:[...(data.customers||[]), newCust], applications:[...(data.applications||[]), newApp], comms:[...(data.comms||[]), newComm], alerts:[...(data.alerts||[]), newAlert], audit:[...(data.audit||[]), newAudit] });
             
-            // Create Supabase Auth account for the applicant
+            // Create Supabase Auth account for the applicant.
+            // The application is already saved — auth failure does NOT
+            // block submission. If auth fails, we surface the error so
+            // the applicant can contact support to set up portal access.
             (async () => {
-              try {
-                const authResult = await authSignUp(f.email, f.password, f.contact);
-                if (authResult?.id || authResult?.user?.id) {
-                  log.info("Auth account created for", f.email);
-                  setPublicAppForm({...f, submitted:true, preApprovalResult:"pending", trackingRef:appId, authCreated:true, authError:null });
-                } else if (authResult?.error?.message || authResult?.msg) {
-                  const errMsg = authResult?.error?.message || authResult?.msg || "Account creation failed";
-                  log.warn("] Auth signup issue:", errMsg);
-                  // Still show success — the application was submitted, auth can be retried
-                  setPublicAppForm({...f, submitted:true, preApprovalResult:"pending", trackingRef:appId, authCreated:false, authError:errMsg });
-                } else {
-                  log.info("Auth signup response:", JSON.stringify(authResult).slice(0,200));
-                  setPublicAppForm({...f, submitted:true, preApprovalResult:"pending", trackingRef:appId, authCreated:true, authError:null });
-                }
-              } catch(authErr) {
-                log.error("] Auth signup error:", authErr);
-                setPublicAppForm({...f, submitted:true, preApprovalResult:"pending", trackingRef:appId, authCreated:false, authError:"Network error during account creation." });
+              const authResult = await authSignUp(f.email, f.password, f.contact);
+              if (authResult.ok) {
+                log.info("Borrower auth account created", { email_domain: (f.email || "").split("@")[1], appId });
+                setPublicAppForm({
+                  ...f,
+                  submitted: true,
+                  preApprovalResult: "pending",
+                  trackingRef: appId,
+                  authCreated: true,
+                  authError: null,
+                });
+              } else {
+                log.warn("Auth signup failed for borrower", { code: authResult.code, appId });
+                // Application still submitted successfully — auth is non-blocking
+                setPublicAppForm({
+                  ...f,
+                  submitted: true,
+                  preApprovalResult: "pending",
+                  trackingRef: appId,
+                  authCreated: false,
+                  authError: authResult.error,
+                });
               }
             })();
           };
