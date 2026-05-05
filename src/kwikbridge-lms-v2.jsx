@@ -37,6 +37,7 @@ const store = {
 // The anon key is public-safe by design (RLS enforces access control),
 // but we still load via env vars for proper key rotation discipline.
 import { config } from "./lib/config";
+import { ariaButton, ariaDialog, ariaTab, ariaTablist, ariaTable, fieldAria, trapFocus, announce, matchShortcut } from "./lib/accessibility";
 import { log, track, identify, clearIdentity, timing } from "./lib/observability";
 import { InvestorDashboard as InvestorDashboardExtracted } from "./features/investor";
 import { ReportsPage as ReportsPageExtracted } from "./features/reports";
@@ -361,7 +362,14 @@ function KPI({ label, value, sub, trend, color, accent, sparkData, alert }) {
   );
 }
 
-function Btn({ children, onClick, variant = "primary", size = "md", icon, disabled }) {
+
+function SkipLinks() {
+  return (
+    <a href="#kb-main-content" className="kb-skip-link">Skip to main content</a>
+  );
+}
+
+function Btn({ children, onClick, variant = "primary", size = "md", icon, disabled, ariaLabel, ariaPressed, ariaExpanded, ariaControls, type = "button" }) {
   const styles = {
     primary: { bg: C.accent, color: "#ffffff", border: "none" },
     secondary: { bg: "transparent", color: C.text, border: `1px solid ${C.border}` },
@@ -371,19 +379,23 @@ function Btn({ children, onClick, variant = "primary", size = "md", icon, disabl
   const s = styles[variant];
   const pad = size === "sm" ? "5px 10px" : size === "lg" ? "10px 20px" : "7px 14px";
   const fs = size === "sm" ? 12 : 13;
-  return <button disabled={disabled} onClick={onClick} style={{ display:"inline-flex", alignItems:"center", gap:8, padding:pad, background:s.bg, color:s.color, border:s.border, borderRadius:3, fontSize:fs, fontWeight:500, cursor:disabled?"not-allowed":"pointer", opacity:disabled?0.4:1, transition:"all .15s", fontFamily:"inherit", letterSpacing:0.1 }}>{icon}{children}</button>;
+  const aria = ariaButton({ label: ariaLabel, pressed: ariaPressed, expanded: ariaExpanded, controls: ariaControls, disabled });
+  return <button type={type} disabled={disabled} onClick={onClick} {...aria} style={{ display:"inline-flex", alignItems:"center", gap:8, padding:pad, background:s.bg, color:s.color, border:s.border, borderRadius:3, fontSize:fs, fontWeight:500, cursor:disabled?"not-allowed":"pointer", opacity:disabled?0.4:1, transition:"all .15s", fontFamily:"inherit", letterSpacing:0.1 }}>{icon}{children}</button>;
 }
 
-function Table({ columns, rows, onRowClick, emptyMsg = "No records found" }) {
+function Table({ columns, rows, onRowClick, emptyMsg = "No records found", caption }) {
   return (
     <div style={{ overflowX: "auto", border: `1px solid ${C.border}`, borderRadius: 6 }}>
-      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }} aria-label={caption} aria-rowcount={rows.length}>
+        {caption && <caption style={{ position: "absolute", width: 1, height: 1, padding: 0, margin: -1, overflow: "hidden", clip: "rect(0,0,0,0)", whiteSpace: "nowrap", border: 0 }}>{caption}</caption>}
         <thead><tr style={{ background: C.surface2 }}>
-          {columns.map((c, i) => <th key={i} style={{ padding: "8px 14px", textAlign: "left", fontWeight: 500, color: C.textMuted, borderBottom: `1px solid ${C.border}`, whiteSpace: "nowrap", fontSize: T.fontSize.sm, textTransform: "uppercase", letterSpacing: 0.6 }}>{c.label}</th>)}
+          {columns.map((c, i) => <th key={i} scope="col" style={{ padding: "8px 14px", textAlign: "left", fontWeight: 500, color: C.textMuted, borderBottom: `1px solid ${C.border}`, whiteSpace: "nowrap", fontSize: T.fontSize.sm, textTransform: "uppercase", letterSpacing: 0.6 }}>{c.label}</th>)}
         </tr></thead>
         <tbody>
           {rows.map((row, ri) => (
             <tr key={ri} onClick={() => onRowClick?.(row)} style={{ cursor: onRowClick ? "pointer" : "default", borderBottom: `1px solid ${C.border}` }}
+              tabIndex={onRowClick ? 0 : -1}
+              onKeyDown={e => { if (onRowClick && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); onRowClick(row); } }}
               onMouseEnter={e => { if (onRowClick) e.currentTarget.style.background = C.surface2; e.currentTarget.style.transition = 'background .12s ease-out'; }}
               onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
               {columns.map((c, ci) => <td key={ci} style={{ padding: "8px 14px", color: C.text, whiteSpace: "nowrap", fontSize: T.fontSize.base }}>{c.render ? c.render(row) : row[c.key]}</td>)}
@@ -397,13 +409,48 @@ function Table({ columns, rows, onRowClick, emptyMsg = "No records found" }) {
 }
 
 function Modal({ open, onClose, title, width = 520, children }) {
+  const titleId = useMemo(() => `kb-modal-title-${Math.random().toString(36).slice(2, 9)}`, []);
+  const dialogRef = useRef(null);
+  const previousFocus = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    // Save focus origin and set focus inside the dialog
+    previousFocus.current = document.activeElement;
+    const dialog = dialogRef.current;
+    if (dialog) {
+      // Focus first focusable element or the dialog itself
+      const focusable = dialog.querySelector("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])");
+      (focusable || dialog).focus();
+    }
+
+    const handleKey = (e) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose?.();
+      } else if (e.key === "Tab" && dialog) {
+        trapFocus(dialog, e);
+      }
+    };
+
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("keydown", handleKey);
+      // Restore focus to the trigger element
+      if (previousFocus.current && previousFocus.current.focus) {
+        previousFocus.current.focus();
+      }
+    };
+  }, [open, onClose]);
+
   if (!open) return null;
+  const dialogProps = ariaDialog(titleId);
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.25)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={onClose}>
-      <div style={{ background: C.surface, borderRadius: 2, padding: 0, width, maxWidth: "95vw", maxHeight: "90vh", overflow: "hidden", border: `1px solid ${C.borderLight}`, boxShadow: "0 8px 30px rgba(0,0,0,0.08)" }} onClick={e => e.stopPropagation()}>
+      <div ref={dialogRef} {...dialogProps} tabIndex={-1} style={{ background: C.surface, borderRadius: 2, padding: 0, width, maxWidth: "95vw", maxHeight: "90vh", overflow: "hidden", border: `1px solid ${C.borderLight}`, boxShadow: "0 8px 30px rgba(0,0,0,0.08)", outline: "none" }} onClick={e => e.stopPropagation()}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderBottom: `1px solid ${C.border}` }}>
-          <h3 style={{ margin: 0, fontSize:14, fontWeight: 600, color: C.text }}>{title}</h3>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: C.textMuted, cursor: "pointer", padding: 4 }}>{I.x}</button>
+          <h3 id={titleId} style={{ margin: 0, fontSize:14, fontWeight: 600, color: C.text }}>{title}</h3>
+          <button onClick={onClose} aria-label="Close dialog" style={{ background: "none", border: "none", color: C.textMuted, cursor: "pointer", padding: 4 }}>{I.x}</button>
         </div>
         <div style={{ padding: 20, overflowY: "auto", maxHeight: "calc(90vh - 60px)" }}>{children}</div>
       </div>
@@ -411,8 +458,20 @@ function Modal({ open, onClose, title, width = 520, children }) {
   );
 }
 
-function Field({ label, children }) {
-  return <div style={{ marginBottom: 16 }}><label style={{ display: "block", fontSize: 11, fontWeight: 600, color: C.textMuted, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>{label}</label>{children}</div>;
+function Field({ label, children, htmlFor, hint, error }) {
+  const fieldId = htmlFor || (label ? `kb-field-${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}` : undefined);
+  return (
+    <div style={{ marginBottom: 16 }}>
+      {label && (
+        <label htmlFor={fieldId} style={{ display: "block", fontSize: 11, fontWeight: 600, color: C.textMuted, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>
+          {label}
+        </label>
+      )}
+      {children}
+      {hint && !error && <div id={fieldId ? `${fieldId}-hint` : undefined} style={{ fontSize: 11, color: C.textMuted, marginTop: 4 }}>{hint}</div>}
+      {error && <div id={fieldId ? `${fieldId}-err` : undefined} role="alert" style={{ fontSize: 11, color: C.red, marginTop: 4 }}>{error}</div>}
+    </div>
+  );
 }
 function Input(props) {
   return <input {...props} style={{ width: "100%", padding: "8px 10px", borderRadius: 2, border: `1px solid ${C.border}`, background: C.surface, color: C.text, fontSize: 13, fontFamily: "inherit", outline: "none", boxSizing: "border-box", ...props.style }} />;
@@ -424,12 +483,26 @@ function Textarea(props) {
   return <textarea {...props} style={{ width: "100%", padding: "8px 10px", borderRadius: 2, border: `1px solid ${C.border}`, background: C.surface, color: C.text, fontSize: 13, fontFamily: "inherit", outline: "none", resize: "vertical", boxSizing: "border-box", ...props.style }} />;
 }
 
-function Tab({ tabs, active, onChange }) {
+function Tab({ tabs, active, onChange, label = "Sections" }) {
+  const tablistProps = ariaTablist(label);
   return (
-    <div style={{ display: "flex", gap: 0, borderBottom: `1px solid ${C.border}`, marginBottom: 20 }}>
-      {tabs.map(t => (
-        <button key={t.key} onClick={() => onChange(t.key)} style={{ padding: "8px 16px", border: "none", borderBottom: active === t.key ? `2px solid ${C.text}` : "2px solid transparent", background: "transparent", color: active === t.key ? C.text : C.textMuted, fontSize: 12, fontWeight: active === t.key ? 600 : 400, cursor: "pointer", fontFamily: "inherit", marginBottom: -1 }}>{t.label}{t.count != null && <span style={{ marginLeft: 6, color: C.textMuted, fontWeight: 400 }}>({t.count})</span>}</button>
-      ))}
+    <div {...tablistProps} style={{ display: "flex", gap: 0, borderBottom: `1px solid ${C.border}`, marginBottom: 20 }}>
+      {tabs.map((t, i) => {
+        const tabProps = ariaTab({ selected: active === t.key, controls: `panel-${t.key}`, id: `tab-${t.key}` });
+        return (
+          <button key={t.key} {...tabProps}
+            onClick={() => onChange(t.key)}
+            onKeyDown={e => {
+              if (e.key === "ArrowRight") { e.preventDefault(); const next = tabs[(i + 1) % tabs.length]; onChange(next.key); }
+              else if (e.key === "ArrowLeft") { e.preventDefault(); const prev = tabs[(i - 1 + tabs.length) % tabs.length]; onChange(prev.key); }
+              else if (e.key === "Home") { e.preventDefault(); onChange(tabs[0].key); }
+              else if (e.key === "End") { e.preventDefault(); onChange(tabs[tabs.length - 1].key); }
+            }}
+            style={{ padding: "8px 16px", border: "none", borderBottom: active === t.key ? `2px solid ${C.text}` : "2px solid transparent", background: "transparent", color: active === t.key ? C.text : C.textMuted, fontSize: 12, fontWeight: active === t.key ? 600 : 400, cursor: "pointer", fontFamily: "inherit", marginBottom: -1 }}>
+            {t.label}{t.count != null && <span style={{ marginLeft: 6, color: C.textMuted, fontWeight: 400 }}>({t.count})</span>}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -2287,6 +2360,14 @@ const generateLoanOffer = (application, customer, product) => {
           .kb-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -8px;padding:0 8px}
           table{min-width:600px}
         }
+        
+        /* Skip link — WCAG 2.4.1 Bypass Blocks */
+        .kb-skip-link{
+          position:absolute;top:-40px;left:8px;background:#000;color:#fff;padding:8px 16px;
+          text-decoration:none;font-weight:600;font-size:13px;border-radius:0 0 4px 4px;
+          z-index:9999;transition:top .15s;
+        }
+        .kb-skip-link:focus{top:0;outline:2px solid #fff;outline-offset:2px}
         /* Touch targets meet WCAG AA — 44px minimum */
         @media(pointer:coarse){
           button,select,input[type="checkbox"],input[type="radio"]{min-height:44px}
@@ -2313,7 +2394,7 @@ const generateLoanOffer = (application, customer, product) => {
           <div style={{ fontSize:18, fontWeight:700, color:C.text, letterSpacing:-0.5 }}>KwikBridge</div>
           <div style={{ fontSize:10, color:C.textMuted, letterSpacing:1, textTransform:"uppercase" }}>Loan Management</div>
         </div>
-        <nav className="kb-pub-nav" style={{ display:"flex", gap:16, alignItems:"center" }}>
+        <nav id="kb-public-nav" className="kb-pub-nav" aria-label="Public navigation" style={{ display:"flex", gap:16, alignItems:"center" }}>
           {[["public_home","Home"],["public_apply","Apply for Financing"],["public_track","Track Application"]].map(([k,label])=>(
             <button key={k} onClick={()=>setPage(k)} style={{ background:"none", border:"none", fontSize:13, fontWeight:page===k?600:400, color:page===k?C.text:C.textDim, cursor:"pointer", fontFamily:"inherit", padding:"4px 0", borderBottom:page===k?`2px solid ${C.text}`:"2px solid transparent" }}>{label}</button>
           ))}
@@ -2322,7 +2403,8 @@ const generateLoanOffer = (application, customer, product) => {
         </nav>
       </header>
       {/* Public Content */}
-      <main style={{ maxWidth:960, margin:"0 auto", padding:"32px 24px" }}>
+      <SkipLinks />
+      <main id="kb-main-content" style={{ maxWidth:960, margin:"0 auto", padding:"32px 24px" }}>
         {page === "public_home" && <div>
           <div className="kb-pub-hero" style={{ textAlign:"center", background:`linear-gradient(135deg, ${C.bg} 0%, #f0f4ff 100%)`, borderRadius:8, margin:"-20px -20px 20px", padding:"56px 20px 36px" }}>
             <div style={{ fontSize:10, fontWeight:600, color:C.accent, textTransform:"uppercase", letterSpacing:2, marginBottom:12 }}>NCR-Registered Credit Provider</div>
@@ -3831,7 +3913,7 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
             <div style={{ fontSize:14, fontWeight:700, color:C.text }}>KwikBridge</div>
             <div style={{ fontSize:10, color:C.textMuted, letterSpacing:0.8, textTransform:"uppercase" }}>Borrower Portal</div>
           </div>
-          <nav style={{ flex:1, padding:"8px 4px" }}>
+          <nav id="kb-portal-nav" aria-label="Portal navigation" style={{ flex:1, padding:"8px 4px" }}>
             {portalNav.map(n=>(
               <button key={n.key} onClick={()=>navTo(n.key)} style={{ width:"100%", display:"flex", alignItems:"center", gap:8, padding:"8px 12px", marginBottom:1, background:page===n.key?C.surface2:"transparent", border:"none", cursor:"pointer", fontFamily:"inherit", fontSize:12, fontWeight:page===n.key?600:400, color:page===n.key?C.text:C.textDim, textAlign:"left" }}>
                 {n.icon}<span style={{ flex:1 }}>{n.label}</span>
@@ -3854,7 +3936,8 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
             </div>
             <div style={{ fontSize:11, color:C.textMuted }}>{myCustomer?.name || authSession?.user?.email}</div>
           </header>
-          <main style={{ flex:1, overflow:"auto", padding:"20px 24px" }}>{renderPortalPage()}</main>
+          <SkipLinks />
+          <main id="kb-main-content" style={{ flex:1, overflow:"auto", padding:"20px 24px" }}>{renderPortalPage()}</main>
         </div>
       </div>
     );
@@ -6967,7 +7050,7 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
           <div><div style={{ fontSize:14, fontWeight:600, color:C.text }}>KwikBridge</div><div style={{ fontSize:10, color:C.textMuted, letterSpacing:0.5 }}>LOAN MANAGEMENT</div></div>
           <button onClick={()=>setMobileMenuOpen(false)} style={{ background:"none", border:"none", cursor:"pointer", color:C.textDim, padding:4 }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
         </div>
-        <nav style={{ flex:1, padding:"8px", overflowY:"auto" }}>
+        <nav id="kb-staff-nav" aria-label="Staff navigation" style={{ flex:1, padding:"8px", overflowY:"auto" }}>
           {staffNavItems.map(n => {
             const active = page === n.key && !detail;
             return (<button key={n.key} onClick={()=>{navTo(n.key);setMobileMenuOpen(false)}} style={{ display:"flex", alignItems:"center", gap:12, width:"100%", padding:"10px 12px", border:"none", background:active?C.accent+"11":"transparent", color:active?C.accent:C.textDim, fontSize:13, fontWeight:active?600:400, cursor:"pointer", textAlign:"left", fontFamily:"inherit", borderRadius:4, marginBottom:2 }}>{n.icon}<span>{n.label}</span>{n.badge > 0 && <span style={{ marginLeft:"auto", fontSize:10, background:C.red, color:"#fff", padding:"1px 6px", borderRadius:8 }}>{n.badge}</span>}</button>);
@@ -7039,7 +7122,8 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
           </div>
         </header>
 
-        <main style={{ flex:1, overflow:"auto", padding:"20px 24px" }} onClick={()=>notifOpen&&setNotifOpen(false)}>
+        <SkipLinks />
+        <main id="kb-main-content" style={{ flex:1, overflow:"auto", padding:"20px 24px" }} onClick={()=>notifOpen&&setNotifOpen(false)}>
           {renderPage()}
         </main>
       </div>

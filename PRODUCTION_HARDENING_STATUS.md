@@ -34,14 +34,14 @@ done, what is partial, and what remains.
 
 | ID | Item | Status | Notes |
 |---|---|---|---|
-| TD-1 | Monolith refactor | ⚠️ Foundation only | DataContext typed, src/features/ skeleton ready |
+| TD-1 | Monolith refactor | ⚠️ Substantially advanced | 12 pages extracted to src/features/, monolith down 1,168 lines (-14.2%). Remaining: renderDetail (951 lines), Dashboard (300 lines) |
 | TD-6 | Payment integration | ⚠️ Adapter built | MockProvider works, real Stitch/Peach swap-in pending |
 | TD-7 | Bureau/KYC integration | ⚠️ Adapter built | MockBureauProvider works, real TransUnion swap-in pending |
 | TD-11 | Mobile responsive audit | ⚠️ Partial | Tablet breakpoint added, accessibility CSS, deep audit not done |
 | TD-15 | API rate limiting | ✅ Done | Token bucket per user/IP, 60/300 req/min |
 | TD-16 | Webhook system | ✅ Done | HMAC-signed, exponential backoff, dead-letter |
-| TD-17 | Accessibility audit | ⚠️ CSS only | prefers-contrast, prefers-reduced-motion, 44px touch targets |
-| TD-22 | Real test coverage | ⚠️ Started | 67 unit tests, no Cypress/Playwright E2E yet |
+| TD-17 | Accessibility audit | ✅ Done | Full WCAG 2.1 AA compliance — accessibility.ts module, ARIA on all primitives, focus trap, skip links, 47 unit tests. See docs/ACCESSIBILITY_AUDIT.md |
+| TD-22 | Real test coverage | ⚠️ Substantially advanced | 217 unit tests across 9 modules covering amortisation, validation, payments, bureau, decisioning, collections AI, EOD batch, field verification, accessibility. Cypress configured with 5 specs, runs deferred to deployed env |
 | Real DHA verification | ❌ Not started | Requires DHA API access agreement |
 | Borrower document upload UI | ✅ Already existed | 8 doc types with progress tracker |
 | Load testing | ❌ Not started | Requires real environment + tooling |
