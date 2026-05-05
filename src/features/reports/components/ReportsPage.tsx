@@ -105,7 +105,7 @@ export function ReportsPage({
           </div>
         )}
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+      <div className="kb-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
         <SectionCard title="Portfolio Summary">
           {[
             ['Total Loan Book', fmt.cur(totalBook)],

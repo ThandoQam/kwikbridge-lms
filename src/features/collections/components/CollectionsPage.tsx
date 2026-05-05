@@ -357,7 +357,7 @@ export function CollectionsPage({
         <div style={{ fontSize: 12, color: C.textDim, marginBottom: 12 }}>
           Record a payment commitment from the customer.
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="kb-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <Field label="PTP Date">
             <Input
               type="date"

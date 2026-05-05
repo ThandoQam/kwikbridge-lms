@@ -37,7 +37,7 @@ done, what is partial, and what remains.
 | TD-1 | Monolith refactor | ⚠️ Substantially advanced | 12 pages extracted to src/features/, monolith down 1,168 lines (-14.2%). Remaining: renderDetail (951 lines), Dashboard (300 lines) |
 | TD-6 | Payment integration | ⚠️ Adapter built | MockProvider works, real Stitch/Peach swap-in pending |
 | TD-7 | Bureau/KYC integration | ⚠️ Adapter built | MockBureauProvider works, real TransUnion swap-in pending |
-| TD-11 | Mobile responsive audit | ⚠️ Partial | Tablet breakpoint added, accessibility CSS, deep audit not done |
+| TD-11 | Mobile responsive audit | ✅ Done | 41 grid layouts classed responsively, 4 fixed-width panels bounded by viewport, breakpoint system documented. See docs/MOBILE_RESPONSIVE_AUDIT.md. Real-device testing deferred to staging QA. |
 | TD-15 | API rate limiting | ✅ Done | Token bucket per user/IP, 60/300 req/min |
 | TD-16 | Webhook system | ✅ Done | HMAC-signed, exponential backoff, dead-letter |
 | TD-17 | Accessibility audit | ✅ Done | Full WCAG 2.1 AA compliance — accessibility.ts module, ARIA on all primitives, focus trap, skip links, 47 unit tests. See docs/ACCESSIBILITY_AUDIT.md |

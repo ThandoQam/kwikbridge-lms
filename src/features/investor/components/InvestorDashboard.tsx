@@ -175,7 +175,7 @@ export function InvestorDashboard({
 
       <div style={{ marginBottom: 16 }}>
         <Card title="IFRS 9 Staging">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+          <div className="kb-grid-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
             <div>
               <div style={{ fontSize: 11, color: C.textMuted, marginBottom: 6 }}>Stage 1 (Performing) — DPD ≤ 30</div>
               <div style={{ fontSize: 22, fontWeight: 700, color: C.green, fontFamily: 'monospace' }}>{stage1.length}</div>
@@ -213,7 +213,7 @@ export function InvestorDashboard({
         </Card>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+      <div className="kb-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
         <Card title={`DFI Covenant Compliance ${breachCount > 0 ? '· ' + breachCount + ' breach(es)' : '· All within limits'}`}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
             <thead>

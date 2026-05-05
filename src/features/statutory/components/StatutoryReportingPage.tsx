@@ -186,7 +186,7 @@ export function StatutoryReporting() {
 
             <div style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 6 }}>Submission Channels</div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <div className="kb-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                 {[
                   ["Annual Statutory Reports", "submissions@ncr.org.za", C.purple],
                   ["Form 39 Statistical Returns", "returns@ncr.org.za", C.blue],

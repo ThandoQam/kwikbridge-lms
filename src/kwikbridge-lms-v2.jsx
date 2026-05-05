@@ -2329,10 +2329,11 @@ const generateLoanOffer = (application, customer, product) => {
           .kb-pub-hero h1{font-size:26px !important}
           .kb-pub-hero{padding:32px 16px 24px !important}
           .kb-trust-badges{flex-wrap:wrap !important;gap:12px !important}
-          .kb-form-row{flex-direction:column !important}
-          .kb-form-row>div{width:100% !important}
         }
         @media(max-width:480px){
+          .kb-login-card{padding:24px !important;width:auto !important}
+          .kb-widget-panel{width:100vw !important}
+          .kb-notif-dropdown{width:calc(100vw - 24px) !important;right:12px !important}
           .kb-grid-2{grid-template-columns:1fr !important}
           .kb-grid-3{grid-template-columns:1fr !important}
           .kb-grid-4{grid-template-columns:1fr !important}
@@ -2524,7 +2525,7 @@ const generateLoanOffer = (application, customer, product) => {
                 <div style={{ fontSize:12, color:C.textDim, lineHeight:1.6 }}>
                   Once verified, you can log in to the <strong>Borrower Portal</strong> to:
                 </div>
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:6, marginTop:8 }}>
+                <div className="kb-grid-2" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:6, marginTop:8 }}>
                   {["Track application status","Receive pre-approval decision","Upload KYB/FICA documents","View & accept loan offer"].map(item => (
                     <div key={item} style={{ display:"flex", alignItems:"center", gap:6, fontSize:11, color:C.textDim }}>
                       <span style={{ color:C.accent, fontSize:14 }}>✓</span> {item}
@@ -2584,7 +2585,7 @@ const generateLoanOffer = (application, customer, product) => {
             {/* Step 1: Your Details */}
             {f.step===1 && <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"24px" }}>
               <div style={{ fontSize:14, fontWeight:700, marginBottom:16 }}>Your Details</div>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+              <div className="kb-grid-2" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                 <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Full Name *</label><input value={f.contact} onChange={e=>sf("contact",e.target.value)} placeholder="e.g. Thando Qamarana" style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
                 <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Email Address *</label><input type="email" value={f.email} onChange={e=>sf("email",e.target.value)} placeholder="you@company.co.za" style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
                 <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Phone Number *</label><input value={f.phone} onChange={e=>sf("phone",e.target.value)} placeholder="0XX XXX XXXX" style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
@@ -2599,7 +2600,7 @@ const generateLoanOffer = (application, customer, product) => {
             {/* Step 2: Business Information */}
             {f.step===2 && <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"24px" }}>
               <div style={{ fontSize:14, fontWeight:700, marginBottom:16 }}>Business Information</div>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+              <div className="kb-grid-2" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                 <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Business Name *</label><input value={f.businessName} onChange={e=>sf("businessName",e.target.value)} placeholder="e.g. Nomsa Trading (Pty) Ltd" style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
                 <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>ID Number *</label><input value={f.idNum} onChange={e=>sf("idNum",e.target.value)} placeholder="13-digit SA ID" style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
                 <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Company Registration *</label><input value={f.regNum} onChange={e=>sf("regNum",e.target.value)} placeholder="YYYY/XXXXXX/07" style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
@@ -2613,7 +2614,7 @@ const generateLoanOffer = (application, customer, product) => {
               {/* Affordability & Banking — dipstick pre-approval fields */}
               <div style={{ marginTop:16, padding:"14px 16px", background:C.surface, border:`1px solid ${C.border}`, borderRadius:6 }}>
                 <div style={{ fontSize:12, fontWeight:600, color:C.text, marginBottom:12 }}>Financial Position</div>
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12 }}>
+                <div className="kb-grid-3" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12 }}>
                   <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Monthly Debt Repayments (R)</label><input type="number" value={f.monthlyDebt} onChange={e=>sf("monthlyDebt",e.target.value)} placeholder="All existing loans" style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
                   <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Monthly Rent / Lease (R)</label><input type="number" value={f.monthlyRent} onChange={e=>sf("monthlyRent",e.target.value)} placeholder="Business premises" style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
                   <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Business Bank Account</label><select value={f.businessBank} onChange={e=>sf("businessBank",e.target.value)} style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit", background:"#fff" }}><option value="">— Select —</option>{["FNB","Standard Bank","ABSA","Nedbank","Capitec","TymeBank","Other bank","No business account — personal","No account — cash only"].map(v=><option key={v} value={v}>{v}</option>)}</select></div>
@@ -2628,7 +2629,7 @@ const generateLoanOffer = (application, customer, product) => {
             {/* Step 3: Financing Request */}
             {f.step===3 && <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"24px" }}>
               <div style={{ fontSize:14, fontWeight:700, marginBottom:16 }}>Financing Request</div>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+              <div className="kb-grid-2" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                 <div style={{ gridColumn:"1/-1" }}><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Select Product *</label><select value={f.product} onChange={e=>sf("product",e.target.value)} style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit", background:"#fff" }}><option value="">— Select a product —</option>{activeProds.map(p=><option key={p.id} value={p.id}>{p.name} ({p.monthlyRate||p.baseRate}%/mo · {p.repaymentType})</option>)}</select></div>
                 {selProd && <div style={{ gridColumn:"1/-1", background:C.surface2, padding:"12px 16px", fontSize:12, color:C.textDim, lineHeight:1.5, border:`1px solid ${C.border}` }}>{selProd.description}{selProd.idealFor && <div style={{ marginTop:4 }}><strong>Ideal for:</strong> {selProd.idealFor}</div>}</div>}
                 <div><label style={{ display:"block", fontSize:11, fontWeight:500, color:C.textDim, marginBottom:3 }}>Loan Amount (R) *</label><input type="number" value={f.amount} onChange={e=>sf("amount",e.target.value)} placeholder={selProd?`${fmt.cur(selProd.minAmount)} – ${fmt.cur(selProd.maxAmount)}`:""} style={{ width:"100%", padding:"8px 12px", border:`1px solid ${C.border}`, fontSize:13, fontFamily:"inherit" }} /></div>
@@ -2644,7 +2645,7 @@ const generateLoanOffer = (application, customer, product) => {
             {/* Step 4: Review & Submit */}
             {f.step===4 && <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"24px" }}>
               <div style={{ fontSize:14, fontWeight:700, marginBottom:16 }}>Review Your Application</div>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:16 }}>
+              <div className="kb-grid-2" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:16 }}>
                 <div style={{ borderRight:`1px solid ${C.border}`, paddingRight:16 }}>
                   <div style={{ fontSize:12, fontWeight:600, color:C.text, marginBottom:8 }}>Applicant</div>
                   {[[f.contact],[f.email],[f.phone]].map(([v],i)=><div key={i} style={{ fontSize:12, color:C.textDim, padding:"2px 0" }}>{v}</div>)}
@@ -2689,7 +2690,7 @@ const generateLoanOffer = (application, customer, product) => {
     <div style={{ fontFamily:"'Outfit','Segoe UI',system-ui,sans-serif", background:C.bg, minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", color:C.text }}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
       <style>{GLOBAL_CSS}</style>
-      <div style={{ width:400, background:C.surface, border:`1px solid ${C.border}`, padding:40 }}>
+      <div className="kb-login-card" style={{ width:400, maxWidth:"calc(100vw - 32px)", background:C.surface, border:`1px solid ${C.border}`, padding:40 }}>
         <div style={{ textAlign:"center", marginBottom:28 }}>
           <div style={{ fontSize:24, fontWeight:700, color:C.text, letterSpacing:-0.5 }}>KwikBridge</div>
           <div style={{ fontSize:10, color:C.textMuted, letterSpacing:1.5, textTransform:"uppercase", marginTop:2 }}>Loan Management System</div>
@@ -3754,7 +3755,7 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
                   </div>
                   <Badge color={l.dpd>0?"red":"green"}>{l.dpd>0?`${l.dpd} DPD`:"Current"}</Badge>
                 </div>
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:12, marginBottom:16 }}>
+                <div className="kb-grid-4" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:12, marginBottom:16 }}>
                   <div><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase" }}>Original</div><div style={{ fontSize:14, fontWeight:700 }}>{fmt.cur(l.amount)}</div></div>
                   <div><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase" }}>Balance</div><div style={{ fontSize:14, fontWeight:700, color:l.dpd>0?C.red:C.text }}>{fmt.cur(l.balance)}</div></div>
                   <div><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase" }}>Next Due</div><div style={{ fontSize:14, fontWeight:600 }}>{fmt.date(l.nextDue)}</div></div>
@@ -3867,7 +3868,7 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
             {/* API Verifications */}
             <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"16px 18px" }}>
               <div style={{ fontSize:14, fontWeight:700, marginBottom:12 }}>Verification Checks</div>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+              <div className="kb-grid-2" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                 <div style={{ border:`1px solid ${C.border}`, padding:"14px" }}>
                   <div style={{ fontSize:12, fontWeight:600, marginBottom:4 }}>Bank Account Verification</div>
                   <div style={{ fontSize:11, color:C.textDim, marginBottom:8 }}>Verify your bank account details via API integration.</div>
@@ -5159,7 +5160,7 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
 
       
       {/* Widget Customisation Panel */}
-      {showWidgetPanel && <div style={{ position:"fixed", top:0, right:0, bottom:0, width:300, background:C.surface, borderLeft:`1px solid ${C.border}`, boxShadow:"-4px 0 16px rgba(0,0,0,0.08)", zIndex:100, display:"flex", flexDirection:"column", fontFamily:"inherit" }}>
+      {showWidgetPanel && <div className="kb-widget-panel" style={{ position:"fixed", top:0, right:0, bottom:0, width:300, maxWidth:"100vw", background:C.surface, borderLeft:`1px solid ${C.border}`, boxShadow:"-4px 0 16px rgba(0,0,0,0.08)", zIndex:100, display:"flex", flexDirection:"column", fontFamily:"inherit" }}>
         <div style={{ padding:"16px 20px", borderBottom:`1px solid ${C.border}`, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
           <div><div style={{ fontSize:14, fontWeight:600, color:C.text }}>Customise Dashboard</div><div style={{ fontSize:11, color:C.textMuted, marginTop:2 }}>Drag to reorder · Toggle visibility</div></div>
           <button onClick={() => setShowWidgetPanel(false)} style={{ background:"none", border:"none", cursor:"pointer", color:C.textDim, padding:4 }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
@@ -5557,7 +5558,7 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
 
             <div style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom:8 }}>Submission Channels</div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap:12 }}>
+              <div className="kb-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap:12 }}>
                 {[
                   ["Annual Statutory Reports", "submissions@ncr.org.za", C.purple],
                   ["Form 39 Statistical Returns", "returns@ncr.org.za", C.blue],
@@ -5632,23 +5633,23 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
             <InfoGrid items={[["Contact",c.contact],["Email",c.email],["Phone",c.phone],["ID Number",c.idNum],["Reg Number",c.regNum],["Address",c.address],["Annual Revenue",fmt.cur(c.revenue)],["Employees",c.employees],["Years in Business",c.years],["Sector",c.sector],["BEE Expiry",fmt.date(c.beeExpiry)],["Women Ownership",(c.womenOwned||0)+"%"],["Youth Ownership",(c.youthOwned||0)+"%"],["Disability Ownership",(c.disabilityOwned||0)+"%"],["FICA Date",fmt.date(c.ficaDate)],["Created",fmt.date(c.created)]]} />
           ) : (
             <div>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:12 }}>
+              <div className="kb-grid-3" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:12 }}>
                 <Field label="Business Name"><Input value={detailForm.name} onChange={e=>setDetailForm({...detailForm,name:e.target.value})} /></Field>
                 <Field label="Contact"><Input value={detailForm.contact} onChange={e=>setDetailForm({...detailForm,contact:e.target.value})} /></Field>
                 <Field label="Email"><Input value={detailForm.email} onChange={e=>setDetailForm({...detailForm,email:e.target.value})} /></Field>
               </div>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:12, marginBottom:12 }}>
+              <div className="kb-grid-4" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:12, marginBottom:12 }}>
                 <Field label="Phone"><Input value={detailForm.phone} onChange={e=>setDetailForm({...detailForm,phone:e.target.value})} /></Field>
                 <Field label="Industry"><Select value={detailForm.industry} onChange={e=>setDetailForm({...detailForm,industry:e.target.value})} options={["Retail","Agriculture","Technology","Construction","Food Processing","Transport","Manufacturing","Professional Services","Other"].map(v=>({value:v,label:v}))} /></Field>
                 <Field label="Revenue"><Input type="number" value={detailForm.revenue} onChange={e=>setDetailForm({...detailForm,revenue:+e.target.value})} /></Field>
                 <Field label="Employees"><Input type="number" value={detailForm.employees} onChange={e=>setDetailForm({...detailForm,employees:+e.target.value})} /></Field>
               </div>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:12 }}>
+              <div className="kb-grid-3" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:12 }}>
                 <Field label="Address"><Input value={detailForm.address} onChange={e=>setDetailForm({...detailForm,address:e.target.value})} /></Field>
                 <Field label="Province"><Select value={detailForm.province} onChange={e=>setDetailForm({...detailForm,province:e.target.value})} options={["Eastern Cape","Western Cape","Gauteng","KwaZulu-Natal","Free State","North West","Limpopo","Mpumalanga","Northern Cape"].map(v=>({value:v,label:v}))} /></Field>
                 <Field label="Risk Category"><Select value={detailForm.riskCategory} onChange={e=>setDetailForm({...detailForm,riskCategory:e.target.value})} options={["Low","Medium","High"].map(v=>({value:v,label:v}))} /></Field>
               </div>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:12 }}>
+              <div className="kb-grid-3" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:12 }}>
                 <Field label="Women Ownership %"><Input type="number" min="0" max="100" value={detailForm.womenOwned||0} onChange={e=>setDetailForm({...detailForm,womenOwned:+e.target.value})} /></Field>
                 <Field label="Youth Ownership %"><Input type="number" min="0" max="100" value={detailForm.youthOwned||0} onChange={e=>setDetailForm({...detailForm,youthOwned:+e.target.value})} /></Field>
                 <Field label="Disability Ownership %"><Input type="number" min="0" max="100" value={detailForm.disabilityOwned||0} onChange={e=>setDetailForm({...detailForm,disabilityOwned:+e.target.value})} /></Field>
@@ -5802,7 +5803,7 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
                 {/* Expanded document detail panel */}
                 {isExpanded && doc && (
                   <div style={{ padding:"8px 8px 8px 46px", background:C.surface2, borderTop:`1px solid ${C.border}` }}>
-                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8, fontSize:10 }}>
+                    <div className="kb-grid-3" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8, fontSize:10 }}>
                       <div><span style={{ color:C.textMuted }}>Document ID:</span> <span style={{ fontFamily:"monospace", fontWeight:500 }}>{doc.id}</span></div>
                       <div><span style={{ color:C.textMuted }}>Name:</span> <span style={{ fontWeight:500 }}>{doc.name}</span></div>
                       <div><span style={{ color:C.textMuted }}>Category:</span> {doc.category}</div>
@@ -6363,7 +6364,7 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
             <span>Disbursed: {fmt.date(l.disbursed)}</span><span>Next Due: {fmt.date(l.nextDue)}</span><span>Last Payment: {l.lastPmt ? `${fmt.cur(l.lastPmtAmt)} on ${fmt.date(l.lastPmt)}` : "—"}</span>
           </div>
         </SectionCard>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
+        <div className="kb-grid-2" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
           <SectionCard title="Covenant Monitoring">
             {l.covenants.map((cov,i) => (
               <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 0", borderBottom:`1px solid ${C.border}` }}>
@@ -6405,7 +6406,7 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
         {l.status==="Active" && (() => {
           const bankData = trustIdIngestBankData(l.custId, "demo");
           return <SectionCard title={`Bank Statement Analysis · ${bankData.bankName}`}>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:12, marginBottom:12 }}>
+            <div className="kb-grid-4" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:12, marginBottom:12 }}>
               <div><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase" }}>Avg Revenue</div><div style={{ fontSize:18, fontWeight:700, fontFamily:"monospace" }}>{fmt.cur(bankData.summary.avgMonthlyRevenue)}</div></div>
               <div><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase" }}>Avg Expenses</div><div style={{ fontSize:18, fontWeight:700, fontFamily:"monospace" }}>{fmt.cur(bankData.summary.avgMonthlyExpenses)}</div></div>
               <div><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase" }}>Avg Net Cash</div><div style={{ fontSize:18, fontWeight:700, fontFamily:"monospace", color: bankData.summary.avgMonthlyNetCashFlow > 0 ? C.green : C.red }}>{fmt.cur(bankData.summary.avgMonthlyNetCashFlow)}</div></div>
@@ -6436,7 +6437,7 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
             const ews = predictDelinquency(l, cust(l.custId), collections, l.payments);
             const willingness = calcWillingnessScore(cust(l.custId), null, collections, comms);
             const altData = calcAlternativeDataScore(cust(l.custId));
-            return <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:16 }}>
+            return <div className="kb-grid-3" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:16 }}>
               <div>
                 <div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase", letterSpacing:1 }}>EWS Score</div>
                 <div style={{ fontSize:28, fontWeight:700, fontFamily:"monospace", color: ews.ewsScore >= 70 ? C.green : ews.ewsScore >= 40 ? C.amber : C.red }}>{ews.ewsScore}</div>
@@ -6463,7 +6464,7 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
               if (!psycho) return null;
               return <div style={{ marginTop:12, padding:"12px 0", borderTop:`1px solid ${C.surface3}` }}>
                 <div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase", letterSpacing:1, marginBottom:8 }}>Psychometric Profile</div>
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr 1fr 1fr", gap:8 }}>
+                <div className="kb-grid-4" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr 1fr 1fr", gap:8 }}>
                   {Object.entries(psycho.traits).map(([trait, score]) => (
                     <div key={trait} style={{ textAlign:"center" }}>
                       <div style={{ fontSize:18, fontWeight:700, fontFamily:"monospace", color: score >= 70 ? C.green : score >= 40 ? C.amber : C.red }}>{score}</div>
@@ -6641,34 +6642,34 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
         </div>
         {prodForm && (
           <SectionCard title={prodEditing === "new" ? "Create New Product" : `Edit: ${prodForm.name}`}>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:12 }}>
+            <div className="kb-grid-3" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:12 }}>
               <Field label="Product Name"><Input value={prodForm.name} onChange={e=>setProdForm({...prodForm,name:e.target.value})} /></Field>
               <Field label="Repayment Type"><Select value={prodForm.repaymentType} onChange={e=>setProdForm({...prodForm,repaymentType:e.target.value})} options={["Amortising","Bullet","Balloon","Seasonal"].map(v=>({value:v,label:v}))} /></Field>
               <Field label="Status"><Select value={prodForm.status} onChange={e=>setProdForm({...prodForm,status:e.target.value})} options={["Active","Suspended","Retired"].map(v=>({value:v,label:v}))} /></Field>
             </div>
             <Field label="Description"><Textarea value={prodForm.description} onChange={e=>setProdForm({...prodForm,description:e.target.value})} rows={2} /></Field>
             <Field label="Ideal For"><Input value={prodForm.idealFor||""} onChange={e=>setProdForm({...prodForm,idealFor:e.target.value})} placeholder="Target market description" /></Field>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:12, marginBottom:12 }}>
+            <div className="kb-grid-4" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:12, marginBottom:12 }}>
               <Field label="Min Amount (R)"><Input type="number" value={prodForm.minAmount} onChange={e=>setProdForm({...prodForm,minAmount:+e.target.value})} /></Field>
               <Field label="Max Amount (R)"><Input type="number" value={prodForm.maxAmount} onChange={e=>setProdForm({...prodForm,maxAmount:+e.target.value})} /></Field>
               <Field label="Min Term (m)"><Input type="number" value={prodForm.minTerm} onChange={e=>setProdForm({...prodForm,minTerm:+e.target.value})} /></Field>
               <Field label="Max Term (m)"><Input type="number" value={prodForm.maxTerm} onChange={e=>setProdForm({...prodForm,maxTerm:+e.target.value})} /></Field>
             </div>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr 1fr", gap:12, marginBottom:12 }}>
+            <div className="kb-grid-4" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr 1fr", gap:12, marginBottom:12 }}>
               <Field label="Base Rate % (ann.)"><Input type="number" value={prodForm.baseRate} onChange={e=>setProdForm({...prodForm,baseRate:+e.target.value})} /></Field>
               <Field label="Monthly Rate %"><Input type="number" value={prodForm.monthlyRate||""} onChange={e=>setProdForm({...prodForm,monthlyRate:+e.target.value})} /></Field>
               <Field label="Arrangement Fee %"><Input type="number" value={prodForm.arrangementFee} onChange={e=>setProdForm({...prodForm,arrangementFee:+e.target.value})} /></Field>
               <Field label="Commitment Fee %"><Input type="number" value={prodForm.commitmentFee} onChange={e=>setProdForm({...prodForm,commitmentFee:+e.target.value})} /></Field>
               <Field label="Grace Period (m)"><Input type="number" value={prodForm.gracePeriod} onChange={e=>setProdForm({...prodForm,gracePeriod:+e.target.value})} /></Field>
             </div>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr 1fr", gap:12, marginBottom:12 }}>
+            <div className="kb-grid-4" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr 1fr", gap:12, marginBottom:12 }}>
               <Field label="Max LTV %"><Input type="number" value={prodForm.maxLTV} onChange={e=>setProdForm({...prodForm,maxLTV:+e.target.value})} /></Field>
               <Field label="Min DSCR"><Input type="number" value={prodForm.minDSCR} onChange={e=>setProdForm({...prodForm,minDSCR:+e.target.value})} step="0.05" /></Field>
               <Field label="Risk Class"><Select value={prodForm.riskClass||"A"} onChange={e=>setProdForm({...prodForm,riskClass:e.target.value})} options={["A","B","C","D"].map(v=>({value:v,label:`Class ${v}`}))} /></Field>
               <Field label="ECL Rate %"><Input type="number" value={prodForm.ecl||""} onChange={e=>setProdForm({...prodForm,ecl:+e.target.value})} step="0.01" /></Field>
               <Field label="S1 PD"><Input type="number" value={prodForm.s1PD||""} onChange={e=>setProdForm({...prodForm,s1PD:+e.target.value})} step="0.001" /></Field>
             </div>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:12 }}>
+            <div className="kb-grid-2" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:12 }}>
               <Field label="LGD"><Input type="number" value={prodForm.lgd||""} onChange={e=>setProdForm({...prodForm,lgd:+e.target.value})} step="0.01" /></Field>
               <Field label="Eligible BEE Levels (comma-sep)"><Input value={(prodForm.eligibleBEE||[]).join(",")} onChange={e=>setProdForm({...prodForm,eligibleBEE:e.target.value.split(",").map(Number).filter(Boolean)})} /></Field>
             </div>
@@ -6676,7 +6677,7 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
             {/* Security Instruments */}
             <div style={{ marginTop:12, marginBottom:12 }}>
               <div style={{ fontSize:11, fontWeight:600, color:C.textDim, textTransform:"uppercase", letterSpacing:0.5, marginBottom:8 }}>Security Instruments</div>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
+              <div className="kb-grid-2" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
                 <div>
                   <div style={{ fontSize:11, fontWeight:600, color:C.text, marginBottom:8 }}>Required (mandatory for this product)</div>
                   {Object.values(SECURITY_INSTRUMENTS).map(inst => {
@@ -6754,12 +6755,12 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
         </div>
         {userForm && (
           <SectionCard title={userEditing==="new"?"Create New User":`Edit: ${userForm.name}`}>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:12 }}>
+            <div className="kb-grid-3" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:12 }}>
               <Field label="Full Name *"><Input value={userForm.name} onChange={e=>setUserForm({...userForm,name:e.target.value})} placeholder="e.g. Jane Doe" /></Field>
               <Field label="Email *"><Input value={userForm.email} onChange={e=>setUserForm({...userForm,email:e.target.value})} placeholder="jane@tqacapital.co.za" /></Field>
               <Field label="Role"><Select value={userForm.role} onChange={e=>setUserForm({...userForm,role:e.target.value})} options={Object.entries(ROLES).map(([k,v])=>({value:k,label:v.label}))} /></Field>
             </div>
-            {userEditing==="new" && <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:12 }}>
+            {userEditing==="new" && <div className="kb-grid-2" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:12 }}>
               <Field label="Temporary Password"><Input type="password" value={userForm.password||""} onChange={e=>setUserForm({...userForm,password:e.target.value})} placeholder="Min 8 characters" /></Field>
               <Field label="Status"><Select value={userForm.status||"Active"} onChange={e=>setUserForm({...userForm,status:e.target.value})} options={["Active","Suspended"].map(v=>({value:v,label:v}))} /></Field>
             </div>}
@@ -6796,7 +6797,7 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
             <InfoGrid items={[["Company Name", settings?.companyName],["NCR Registration", settings?.ncrReg],["NCR Expiry", settings?.ncrExpiry],["Branch", settings?.branch],["Financial Year-End", settings?.yearEnd],["Address", settings?.address || "East London, Nahoon Valley"]]} />
           ) : (
             <div>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:12 }}>
+              <div className="kb-grid-2" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:12 }}>
                 <Field label="Company Name"><Input value={settingsForm.companyName||""} onChange={e=>setSettingsForm({...settingsForm,companyName:e.target.value})} /></Field>
                 <Field label="NCR Registration"><Input value={settingsForm.ncrReg||""} onChange={e=>setSettingsForm({...settingsForm,ncrReg:e.target.value})} /></Field>
                 <Field label="NCR Expiry"><Input value={settingsForm.ncrExpiry||""} onChange={e=>setSettingsForm({...settingsForm,ncrExpiry:e.target.value})} /></Field>
@@ -6809,7 +6810,7 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
           )}
         </SectionCard>
         <SectionCard title="System Health">
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:12, marginBottom:12 }}>
+          <div className="kb-grid-4" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:12, marginBottom:12 }}>
             {[["Status","Operational",C.green],["Uptime",`${uptime}h`,C.accent],["DB Size",`~${dbSize} KB`,C.blue],["Active Sessions",sysUsers.filter(u=>(u.status||"Active")==="Active").length,C.purple]].map(([l,v,c],i)=>(
               <div key={i} style={{ background:C.surface2, padding:"12px 12px", border:`1px solid ${C.border}` }}>
                 <div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase", letterSpacing:0.5 }}>{l}</div>
@@ -6826,7 +6827,7 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
             ["Auto-Backup", backupSchedule.autoEnabled ? "Enabled" : "Disabled"],
             ["Storage", "Supabase PostgreSQL + localStorage fallback"],
           ]} />
-          {canDo("settings","update") && <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginTop:10 }}>
+          {canDo("settings","update") && <div className="kb-grid-3" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginTop:10 }}>
             <Field label="Frequency"><Select value={backupSchedule.frequency} onChange={e=>setBackupSchedule({...backupSchedule,frequency:e.target.value})} options={["Hourly","Daily","Weekly"].map(v=>({value:v,label:v}))} /></Field>
             <Field label="Time"><Input type="time" value={backupSchedule.time} onChange={e=>setBackupSchedule({...backupSchedule,time:e.target.value})} /></Field>
             <Field label="Retention (days)"><Input type="number" value={backupSchedule.retention} onChange={e=>setBackupSchedule({...backupSchedule,retention:+e.target.value})} /></Field>
@@ -6854,7 +6855,7 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
         </div>
         {policyForm && (
           <SectionCard title={policyEditing==="new"?"Create Business Rule":`Edit: ${policyForm.name}`}>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:12 }}>
+            <div className="kb-grid-3" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:12 }}>
               <Field label="Rule Name *"><Input value={policyForm.name} onChange={e=>setPolicyForm({...policyForm,name:e.target.value})} /></Field>
               <Field label="Category"><Select value={policyForm.category} onChange={e=>setPolicyForm({...policyForm,category:e.target.value})} options={["Credit","Collections","Finance","Compliance","Operations","Governance"].map(v=>({value:v,label:v}))} /></Field>
               <Field label="Value *"><Input value={policyForm.value} onChange={e=>setPolicyForm({...policyForm,value:e.target.value})} placeholder="e.g. 1.25x, 30 days, R500,000" /></Field>
@@ -6938,7 +6939,7 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
           Fees: Arrangement {p.arrangementFee||0}% · Commitment {p.commitmentFee||0}% · Max LTV: {p.maxLTV||80}% · Min DSCR: {p.minDSCR||1.2}x<br/>
           BEE Eligibility: Level {(p.eligibleBEE||[]).join(", ")}
         </div>}
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+        <div className="kb-grid-2" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
           <Field label="Amount (R)"><Input type="number" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} placeholder={p?`${fmt.cur(p.minAmount)} – ${fmt.cur(p.maxAmount)}`:"e.g. 500000"} /></Field>
           <Field label="Term (months)"><Input type="number" value={form.term} onChange={e=>setForm({...form,term:e.target.value})} placeholder={p?`${p.minTerm} – ${p.maxTerm}`:"e.g. 36"} /></Field>
         </div>
@@ -7088,7 +7089,7 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
             <button className="kb-hamburger" onClick={()=>setMobileMenuOpen(!mobileMenuOpen)} style={{ background:"none", border:"none", cursor:"pointer", color:C.text, padding:"4px", display:"none", alignItems:"center" }}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
             {(pageHistory.length > 0 || detail) && <button onClick={()=>{if(detail){setDetail(null)}else{goBack()}}} style={{ background:"none", border:"none", cursor:"pointer", color:C.textDim, padding:"4px 2px", display:"flex", alignItems:"center" }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>}
-            <div className="kb-header-search" style={{ display:"flex", alignItems:"center", gap:8, background:C.surface2, padding:"4px 10px", width:250, border:`1px solid ${C.border}` }}>
+            <div className="kb-header-search" style={{ display:"flex", alignItems:"center", gap:8, background:C.surface2, padding:"4px 10px", width:250, maxWidth:"calc(100vw - 320px)", border:`1px solid ${C.border}` }}>
               {I.search}
               <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search…" style={{ border:"none", background:"transparent", outline:"none", fontSize:12, color:C.text, width:"100%", fontFamily:"inherit" }} />
             </div>
@@ -7099,7 +7100,7 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
                 {I.bell}
                 {unread>0 && <span style={{ position:"absolute", top:-2, right:-2, width:14, height:14, borderRadius:7, background:C.red, color:C.white, fontSize:10, fontWeight:600, display:"flex", alignItems:"center", justifyContent:"center" }}>{unread}</span>}
               </button>
-              {notifOpen && <div style={{ position:"absolute", right:0, top:34, width:340, background:C.surface, border:`1px solid ${C.border}`, boxShadow:"0 4px 16px rgba(0,0,0,0.06)", zIndex:100, maxHeight:380, overflow:"auto" }}>
+              {notifOpen && <div className="kb-notif-dropdown" style={{ position:"absolute", right:0, top:34, width:340, maxWidth:"calc(100vw - 24px)", background:C.surface, border:`1px solid ${C.border}`, boxShadow:"0 4px 16px rgba(0,0,0,0.06)", zIndex:100, maxHeight:380, overflow:"auto" }}>
                 <div style={{ padding:"12px 16px", borderBottom:`1px solid ${C.border}`, fontSize:12, fontWeight:600, color:C.text }}>Notifications ({unread})</div>
                 {alerts.slice(0,8).map(a => (
                   <div key={a.id} style={{ padding:"8px 14px", borderBottom:`1px solid ${C.border}`, opacity:a.read?0.35:1, cursor:"pointer" }} onClick={()=>{markRead(a.id)}}>

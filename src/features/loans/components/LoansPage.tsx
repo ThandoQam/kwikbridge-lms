@@ -259,7 +259,7 @@ export function LoansPage({
       )}
 
       {view === 'analytics' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <div className="kb-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
           <div style={{ background: C.surface, border: `1px solid ${C.border}`, padding: '20px' }}>
             <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 12, color: C.text }}>Loan Book Movement</div>
             {row('Opening loan book', fmt.cur(openingBook), false, true, true)}

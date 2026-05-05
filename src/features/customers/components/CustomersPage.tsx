@@ -152,7 +152,7 @@ export function CustomersPage({
 
       {showCreate && (
         <SectionCard title="Register New Customer">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
+          <div className="kb-grid-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
             <Field label="Business Name *">
               <Input value={cForm.name} onChange={(e: any) => setCForm({ ...cForm, name: e.target.value })} placeholder="e.g. Nomsa Trading (Pty) Ltd" />
             </Field>
@@ -163,7 +163,7 @@ export function CustomersPage({
               <Input value={cForm.email} onChange={(e: any) => setCForm({ ...cForm, email: e.target.value })} placeholder="email@company.co.za" />
             </Field>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
+          <div className="kb-grid-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
             <Field label="Phone">
               <Input value={cForm.phone} onChange={(e: any) => setCForm({ ...cForm, phone: e.target.value })} placeholder="0XX XXX XXXX" />
             </Field>
@@ -174,7 +174,7 @@ export function CustomersPage({
               <Input value={cForm.regNum} onChange={(e: any) => setCForm({ ...cForm, regNum: e.target.value })} placeholder="YYYY/XXXXXX/07" />
             </Field>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
+          <div className="kb-grid-4" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
             <Field label="Industry">
               <Select
                 value={cForm.industry}
@@ -192,7 +192,7 @@ export function CustomersPage({
               <Input type="number" value={cForm.employees} onChange={(e: any) => setCForm({ ...cForm, employees: e.target.value })} />
             </Field>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
+          <div className="kb-grid-4" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
             <Field label="Years in Business">
               <Input type="number" value={cForm.years} onChange={(e: any) => setCForm({ ...cForm, years: e.target.value })} />
             </Field>
