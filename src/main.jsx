@@ -26,10 +26,20 @@ window.addEventListener('error', (event) => {
   })
 })
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <ErrorBoundary fallback="page-level" pageName="KwikBridge LMS">
-      <App />
-    </ErrorBoundary>
-  </React.StrictMode>
-)
+// Component catalogue route — accessible via ?catalogue query param.
+// Renders independently of the main App so designers can preview UI primitives
+// without auth, data, or context overhead. Never linked from production nav.
+const showCatalogue = new URLSearchParams(window.location.search).has('catalogue')
+
+if (showCatalogue) {
+  // Lazy-load the catalogue to keep main bundle clean
+  import('./catalogue-bootstrap.jsx').then(({ renderCatalogue }) => renderCatalogue())
+} else {
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    <React.StrictMode>
+      <ErrorBoundary fallback="page-level" pageName="KwikBridge LMS">
+        <App />
+      </ErrorBoundary>
+    </React.StrictMode>
+  )
+}
