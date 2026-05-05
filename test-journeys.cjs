@@ -256,6 +256,7 @@ const extractedFeatures = {
   'StatutoryReporting': 'features/statutory',
   'Dashboard': 'features/dashboard',
   'Administration': 'features/admin',
+  'DetailView': 'features/shared',
 };
 pageComponents.forEach(comp => {
   const inline = src.includes(`function ${comp}(`);
@@ -264,7 +265,7 @@ pageComponents.forEach(comp => {
 });
 
 // Check detail views render
-test('Render', 'renderDetail function', src.includes('function renderDetail'));
+test('Render', 'renderDetail function', src.includes('function renderDetail') || src.includes('DetailView'));
 test('Render', 'renderPage function', src.includes('renderPage()'));
 test('Render', 'Detail → renderDetail routing', src.includes('if (detail) return') && src.includes('renderDetail()'));
 

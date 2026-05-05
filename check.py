@@ -151,6 +151,8 @@ EXTRACTED_PAGES = {
     'StatutoryReporting': 'features/statutory',
     'Dashboard': 'features/dashboard',
     'Administration': 'features/admin',
+    'DetailView': 'features/shared',
+    'renderDetail': 'features/shared',  # extracted as DetailView component
 }
 for p in REQUIRED_PAGES:
     inline = f'function {p}' in t

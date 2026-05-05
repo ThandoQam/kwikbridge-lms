@@ -64,6 +64,11 @@ export interface UIContextValue {
   // Widget panel
   showWidgetPanel: boolean;
   setShowWidgetPanel: (s: boolean) => void;
+
+  // Security instrument selections (for application detail → loan security)
+  // Shared between application detail view and generateSecurityDoc handler.
+  securitySelections: Record<string, Record<string, boolean>>;
+  setSecuritySelections: (s: Record<string, Record<string, boolean>>) => void;
 }
 
 const UIContext = createContext<UIContextValue | null>(null);
