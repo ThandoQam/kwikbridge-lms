@@ -260,6 +260,78 @@ function scoreBand(score: number): BureauReport['band'] {
 
 // ═══ Provider Registry ═══
 
+// ═══ Real Provider Stubs — to be implemented when contracts are signed ═══
+// These exist as placeholders so the integration path is explicit. Calling
+// any method throws a NotImplementedError with the required action items.
+
+class NotImplementedError extends Error {
+  constructor(provider: string, method: string) {
+    super(
+      `${provider} provider not yet implemented. ` +
+      `To enable: (1) sign credit bureau agreement, (2) complete data-sharing ` +
+      `compliance review (POPIA + bureau code of conduct), (3) obtain API ` +
+      `credentials, (4) implement ${method}() against vendor docs, ` +
+      `(5) add credentials via VITE_${provider.toUpperCase()}_API_KEY, ` +
+      `(6) call setBureauProvider(new ${provider}BureauProvider()) in bootstrap.`
+    );
+    this.name = 'NotImplementedError';
+  }
+}
+
+/**
+ * TransUnion South Africa (https://www.transunion.co.za) — Primary credit
+ * bureau for SA consumer + commercial credit reports.
+ * Capabilities: full credit report, credit score, ID verification (DHA),
+ * sanctions screening (DPL).
+ * Status: NOT YET CONTRACTED. This stub fails fast to surface the gap.
+ */
+export class TransUnionBureauProvider implements BureauProvider {
+  name = 'TransUnion';
+
+  async pullCreditReport(_req: BureauRequest): Promise<BureauReport> {
+    throw new NotImplementedError('TransUnion', 'pullCreditReport');
+  }
+
+  async pullCreditScore(_req: BureauRequest): Promise<{ score: number; band: string }> {
+    throw new NotImplementedError('TransUnion', 'pullCreditScore');
+  }
+
+  async verifyIdentity(_req: { idNumber: string; firstName?: string; lastName?: string }): Promise<{ verified: boolean; confidence: number; details?: Record<string, unknown> }> {
+    throw new NotImplementedError('TransUnion', 'verifyIdentity');
+  }
+
+  async screenSanctions(_req: { idNumber?: string; name: string }): Promise<{ matches: Array<{ list: string; match: string; confidence: number }> }> {
+    throw new NotImplementedError('TransUnion', 'screenSanctions');
+  }
+}
+
+/**
+ * Experian South Africa (https://www.experian.co.za) — Secondary bureau.
+ * Used for cross-bureau verification on high-value applications and as
+ * primary fallback if TransUnion is unavailable.
+ * Status: NOT YET CONTRACTED. This stub fails fast to surface the gap.
+ */
+export class ExperianBureauProvider implements BureauProvider {
+  name = 'Experian';
+
+  async pullCreditReport(_req: BureauRequest): Promise<BureauReport> {
+    throw new NotImplementedError('Experian', 'pullCreditReport');
+  }
+
+  async pullCreditScore(_req: BureauRequest): Promise<{ score: number; band: string }> {
+    throw new NotImplementedError('Experian', 'pullCreditScore');
+  }
+
+  async verifyIdentity(_req: { idNumber: string; firstName?: string; lastName?: string }): Promise<{ verified: boolean; confidence: number; details?: Record<string, unknown> }> {
+    throw new NotImplementedError('Experian', 'verifyIdentity');
+  }
+
+  async screenSanctions(_req: { idNumber?: string; name: string }): Promise<{ matches: Array<{ list: string; match: string; confidence: number }> }> {
+    throw new NotImplementedError('Experian', 'screenSanctions');
+  }
+}
+
+
 let activeProvider: BureauProvider = new MockBureauProvider();
 
 export const setBureauProvider = (provider: BureauProvider): void => {

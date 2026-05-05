@@ -188,6 +188,75 @@ class MockPaymentProvider implements PaymentProvider {
   }
 }
 
+// ═══ Real Provider Stubs — to be implemented when contracts are signed ═══
+// These exist as placeholders so the integration path is explicit. Calling
+// any method throws a NotImplementedError with the action items required to
+// complete the integration.
+
+class NotImplementedError extends Error {
+  constructor(provider: string, method: string) {
+    super(
+      `${provider} provider not yet implemented. ` +
+      `To enable: (1) sign commercial agreement, (2) obtain API credentials, ` +
+      `(3) implement ${method}() against vendor docs, (4) add credentials to ` +
+      `environment via VITE_${provider.toUpperCase()}_API_KEY etc., ` +
+      `(5) call setPaymentProvider(new ${provider}Provider()) in app bootstrap.`
+    );
+    this.name = 'NotImplementedError';
+  }
+}
+
+/**
+ * Stitch Money (https://stitch.money) — South African payments aggregator.
+ * Capabilities: EFT disbursements, DebiCheck mandates, debit order collections.
+ * Status: NOT YET CONTRACTED. This stub fails fast to surface the gap.
+ */
+export class StitchPaymentProvider implements PaymentProvider {
+  name = 'StitchProvider';
+
+  async disburse(_req: DisburseRequest): Promise<PaymentResult> {
+    throw new NotImplementedError('Stitch', 'disburse');
+  }
+
+  async createDebitOrderMandate(_req: DebitOrderRequest): Promise<MandateResult> {
+    throw new NotImplementedError('Stitch', 'createDebitOrderMandate');
+  }
+
+  async collectPayment(_req: CollectRequest): Promise<PaymentResult> {
+    throw new NotImplementedError('Stitch', 'collectPayment');
+  }
+
+  async getPaymentStatus(_paymentId: string): Promise<PaymentStatus> {
+    throw new NotImplementedError('Stitch', 'getPaymentStatus');
+  }
+}
+
+/**
+ * Peach Payments (https://www.peachpayments.com) — Card + EFT processor.
+ * Capabilities: card disbursements (rare), debit order rails, Authenticated
+ * Collections (DebiCheck). Used as fallback if Stitch coverage is insufficient.
+ * Status: NOT YET CONTRACTED. This stub fails fast to surface the gap.
+ */
+export class PeachPaymentProvider implements PaymentProvider {
+  name = 'PeachProvider';
+
+  async disburse(_req: DisburseRequest): Promise<PaymentResult> {
+    throw new NotImplementedError('Peach', 'disburse');
+  }
+
+  async createDebitOrderMandate(_req: DebitOrderRequest): Promise<MandateResult> {
+    throw new NotImplementedError('Peach', 'createDebitOrderMandate');
+  }
+
+  async collectPayment(_req: CollectRequest): Promise<PaymentResult> {
+    throw new NotImplementedError('Peach', 'collectPayment');
+  }
+
+  async getPaymentStatus(_paymentId: string): Promise<PaymentStatus> {
+    throw new NotImplementedError('Peach', 'getPaymentStatus');
+  }
+}
+
 // ═══ Provider Registry ═══
 
 let activeProvider: PaymentProvider = new MockPaymentProvider();
