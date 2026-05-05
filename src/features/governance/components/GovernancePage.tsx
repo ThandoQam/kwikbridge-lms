@@ -9,31 +9,28 @@
 // @ts-nocheck — transitional during monolith extraction.
 
 import React, { useState } from 'react';
+import { Badge, Btn, C, InfoGrid, KPI, SectionCard, Tab, Table } from '../../../components/ui';
+import { cell, fmt } from '../../../lib/format';
 import { useData } from '../../../contexts/DataContext';
 import { useActions } from '../../../contexts/ActionsContext';
 import { useAuth } from '../../../contexts/AuthContext';
 
 interface GovernancePageProps {
-  now: number;
+now: number;
   day: number;
   PERMS: any;
   ROLES: any;
   APPROVAL_LIMITS: any;
   SYSTEM_USERS: any[];
-  KPI: any;
-  Tab: any;
-  Table: any;
-  Badge: any;
-  SectionCard: any;
-  InfoGrid: any;
-  Btn: any;
-  cell: any;
-  fmt: any;
-  C: any;
 }
 
 export function GovernancePage({
-  now, day, PERMS, ROLES, APPROVAL_LIMITS, SYSTEM_USERS, KPI, Tab, Table, Badge, SectionCard, InfoGrid, Btn, cell, fmt, C,
+  now,
+  day,
+  PERMS,
+  ROLES,
+  APPROVAL_LIMITS,
+  SYSTEM_USERS,
 }: GovernancePageProps) {
   // ═══ Context-driven dependencies (Phase 2 migration) ═══
   const { audit, alerts, customers, applications, provisions, statutoryReports, data, settings, save } = useData();

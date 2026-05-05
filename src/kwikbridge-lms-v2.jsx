@@ -5,6 +5,7 @@ import { UIProvider } from "./contexts/UIContext";
 import { ActionsProvider } from "./contexts/ActionsContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { Badge, statusBadge, Btn, EmptyState, Field, InfoGrid, Input, KPI, Modal, ProgressBar, SectionCard, Select, SkipLinks, StepTracker, Tab, Table, Textarea, C, T, I } from './components/ui';
+import { fmt, cell } from './lib/format';
 
 /* ═══════════════════════════════════════════════════════════════════
    KWIKBRIDGE LOAN MANAGEMENT SYSTEM v2.0
@@ -152,13 +153,6 @@ const TABLES = {
   comms: "comms", statutoryReports: "statutory_reports", settings: "settings"
 };
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-const fmt = {
-  date: d => d ? new Date(d).toLocaleDateString("en-ZA", { day: "2-digit", month: "short", year: "numeric" }) : "—",
-  dateTime: d => d ? new Date(d).toLocaleString("en-ZA", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—",
-  cur: n => "R " + Number(n || 0).toLocaleString("en-ZA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-  pct: (n, d = 1) => (n * 100).toFixed(d) + "%",
-  num: n => Number(n || 0).toLocaleString("en-ZA"),
-};
 const dpd = due => due ? Math.max(0, Math.floor((Date.now() - new Date(due).getTime()) / 864e5)) : 0;
 const stage = d => d <= 30 ? 1 : d <= 90 ? 2 : 3;
 const now = Date.now();
@@ -168,18 +162,6 @@ const day = 864e5;
 // ═══ DESIGN TOKENS — Single Source of Truth ═══
 
 // ═══ CELL RENDERERS — Universal table cell formatters ═══
-const cell = {
-  id: v => <span style={{ fontFamily:"monospace", fontWeight:T.fontWeight.semi, fontSize:T.fontSize.base }}>{v}</span>,
-  name: v => <span style={{ fontWeight:T.fontWeight.medium, fontSize:T.fontSize.md }}>{v}</span>,
-  text: v => <span style={{ fontSize:T.fontSize.base, color:C.textDim }}>{v}</span>,
-  money: v => <span style={{ fontFamily:"monospace", fontSize:T.fontSize.base }}>{typeof v==="number"?fmt.cur(v):v}</span>,
-  date: v => <span style={{ fontSize:T.fontSize.base, color:C.textDim }}>{v ? fmt.date(v) : "—"}</span>,
-  pct: v => <span style={{ fontFamily:"monospace", fontSize:T.fontSize.base }}>{typeof v==="number"?v.toFixed(1)+"%":v}</span>,
-  count: v => <span style={{ fontWeight:T.fontWeight.semi, fontSize:T.fontSize.md }}>{v}</span>,
-  badge: (v, colorMap) => { if (!v) return <span style={{ fontSize:T.fontSize.xs, color:C.textMuted }}>—</span>; return null; },
-  dim: v => <span style={{ fontSize:T.fontSize.sm, color:C.textMuted }}>{v || "—"}</span>,
-  mono: v => <span style={{ fontFamily:"monospace", fontSize:T.fontSize.base }}>{v}</span>,
-};
 
 
 
@@ -5016,34 +4998,11 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
 
         <SkipLinks />
         <main id="kb-main-content" style={{ flex:1, overflow:"auto", padding:"20px 24px" }} onClick={()=>notifOpen&&setNotifOpen(false)}>
-          <StaffRouterExtracted
-            Btn={Btn} Badge={Badge} Field={Field} Input={Input} Textarea={Textarea}
-            Select={Select} KPI={KPI} SectionCard={SectionCard} ProgressBar={ProgressBar}
-            Tab={Tab} Table={Table} InfoGrid={InfoGrid} Modal={Modal}
-            ErrorBoundary={ErrorBoundary}
-            I={I} C={C} fmt={fmt} statusBadge={statusBadge} cell={cell}
-            predictDelinquency={predictDelinquency}
-            getProductSecurity={getProductSecurity}
-            navTo={navTo} canDoAny={canDoAny}
-            ROLES={ROLES} PERMS={PERMS} APPROVAL_LIMITS={APPROVAL_LIMITS}
-            SECURITY_INSTRUMENTS={SECURITY_INSTRUMENTS}
-            KYB_FICA_DOCS={KYB_FICA_DOCS} ddSteps={ddSteps}
-            SYSTEM_USERS={SYSTEM_USERS}
-            now={now} day={day}
-            assignApplication={assignApplication}
-            qaSignOffApplication={qaSignOffApplication}
-            withdrawApplication={withdrawApplication}
-            moveToUnderwriting={moveToUnderwriting}
-            applications={applications} customers={customers}
-            loans={loans} collections={collections}
-            provisions={provisions} audit={audit}
-            cust={cust} prod={prod}
-            canDo={canDo} setDetail={setDetail} save={save}
-          />
+          <StaffRouterExtracted ErrorBoundary={ErrorBoundary} predictDelinquency={predictDelinquency} getProductSecurity={getProductSecurity} navTo={navTo} canDoAny={canDoAny} ROLES={ROLES} PERMS={PERMS} APPROVAL_LIMITS={APPROVAL_LIMITS} SECURITY_INSTRUMENTS={SECURITY_INSTRUMENTS} KYB_FICA_DOCS={KYB_FICA_DOCS} ddSteps={ddSteps} SYSTEM_USERS={SYSTEM_USERS} now={now} day={day} assignApplication={assignApplication} qaSignOffApplication={qaSignOffApplication} withdrawApplication={withdrawApplication} moveToUnderwriting={moveToUnderwriting} applications={applications} customers={customers} loans={loans} collections={collections} provisions={provisions} audit={audit} cust={cust} prod={prod} canDo={canDo} setDetail={setDetail} save={save} />
         </main>
       </div>
 
-      <NewAppModalExtracted Modal={Modal} Field={Field} Select={Select} Input={Input} Textarea={Textarea} Btn={Btn} fmt={fmt} C={C} />
+      <NewAppModalExtracted />
     </div>
     </UIProvider></ActionsProvider></DataProvider></AuthProvider>
   );

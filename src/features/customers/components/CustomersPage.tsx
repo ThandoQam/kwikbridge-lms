@@ -10,45 +10,23 @@
 // @ts-nocheck — transitional during monolith extraction.
 
 import React, { useState } from 'react';
+import { Badge, Btn, C, Field, I, Input, SectionCard, Select, Tab, Table, statusBadge } from '../../../components/ui';
+import { cell } from '../../../lib/format';
 import { useData } from '../../../contexts/DataContext';
 import { useActions } from '../../../contexts/ActionsContext';
 import { useUI } from '../../../contexts/UIContext';
 import { useAuth } from '../../../contexts/AuthContext';
 
 interface CustomersPageProps {
-  // Time helpers (constants, not in any context — small enough to pass as props)
+// Time helpers (constants, not in any context — small enough to pass as props)
   now: number;
   day: number;
   // UI primitives
-  Btn: any;
-  SectionCard: any;
-  Field: any;
-  Input: any;
-  Select: any;
-  Tab: any;
-  Table: any;
-  Badge: any;
-  cell: any;
-  statusBadge: (s: string) => any;
-  I: any;
-  C: any;
 }
 
 export function CustomersPage({
   now,
   day,
-  Btn,
-  SectionCard,
-  Field,
-  Input,
-  Select,
-  Tab,
-  Table,
-  Badge,
-  cell,
-  statusBadge,
-  I,
-  C,
 }: CustomersPageProps) {
   // ═══ Context-driven dependencies ═══
   const { customers } = useData();

@@ -12,16 +12,15 @@
 // @ts-nocheck — transitional during monolith extraction.
 
 import React from 'react';
+import { Btn, C } from '../../../components/ui';
+import { fmt } from '../../../lib/format';
 
 interface InvestorDashboardProps {
-  loans: any[];
+loans: any[];
   applications: any[];
   provisions: any[];
   customers: any[];
   prod: (id: string) => any;
-  Btn: any;
-  fmt: any;
-  C: any;
 }
 
 export function InvestorDashboard({
@@ -30,9 +29,6 @@ export function InvestorDashboard({
   provisions,
   customers,
   prod,
-  Btn,
-  fmt,
-  C,
 }: InvestorDashboardProps) {
   const activeLoans = loans.filter((l) => l.status === 'Active' || l.status === 'Booked');
   const totalBook = activeLoans.reduce((s, l) => s + (l.balance || l.amount || 0), 0);

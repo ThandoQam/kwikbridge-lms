@@ -12,26 +12,17 @@
 // @ts-nocheck — transitional during monolith extraction.
 
 import React, { useState } from 'react';
+import { Badge, Btn, C, I, KPI, ProgressBar, SectionCard, Tab, Table, statusBadge } from '../../../components/ui';
+import { fmt } from '../../../lib/format';
 import { useData } from '../../../contexts/DataContext';
 import { useActions } from '../../../contexts/ActionsContext';
 import { useAuth } from '../../../contexts/AuthContext';
 
 interface StatutoryReportingPageProps {
-  KPI: any;
-  Tab: any;
-  Table: any;
-  Badge: any;
-  SectionCard: any;
-  Btn: any;
-  ProgressBar: any;
-  statusBadge: (s: string) => any;
-  fmt: any;
-  I: any;
-  C: any;
+
 }
 
 export function StatutoryReportingPage({
-  KPI, Tab, Table, Badge, SectionCard, Btn, ProgressBar, statusBadge, fmt, I, C,
 }: StatutoryReportingPageProps) {
   // ═══ Context-driven dependencies (Phase 2 migration) ═══
   const { statutoryReports, loans, settings } = useData();

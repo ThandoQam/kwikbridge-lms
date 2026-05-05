@@ -208,7 +208,7 @@ test('UI', 'Mobile bottom bar', src.includes('kb-mobile-fab'));
 // ═══ 21. DESIGN SYSTEM ═══
 test('Design', 'Colour palette (C.*)', src.includes('const C = {') || src.includes('C,') || src.includes('components/ui'));
 test('Design', 'Design tokens (T.*)', src.includes('const T = {') || src.includes('T,') || src.includes('components/ui'));
-test('Design', 'Cell renderers (cell.*)', src.includes('const cell = {'));
+test('Design', 'Cell renderers (cell.*)', src.includes('const cell = {') || src.includes('cell,') || src.includes('lib/format'));
 test('Design', 'GLOBAL_CSS shared', (src.match(/<style>\{GLOBAL_CSS\}<\/style>/g) || []).length >= 3);
 test('Design', 'Font smoothing', src.includes('font-smoothing:antialiased'));
 test('Design', 'text-rendering', src.includes('text-rendering:optimizeLegibility'));

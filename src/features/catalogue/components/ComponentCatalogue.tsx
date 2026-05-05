@@ -20,35 +20,10 @@
 // @ts-nocheck — transitional during monolith extraction.
 
 import React, { useState } from 'react';
+import { Badge, Btn, C, Field, I, InfoGrid, Input, KPI, Modal, ProgressBar, SectionCard, Select, Tab, Table, Textarea, statusBadge } from '../../../components/ui';
+import { cell, fmt } from '../../../lib/format';
 
-interface ComponentCatalogueProps {
-  // UI primitives
-  Btn: any;
-  Badge: any;
-  Field: any;
-  Input: any;
-  Textarea: any;
-  Select: any;
-  KPI: any;
-  SectionCard: any;
-  ProgressBar: any;
-  Tab: any;
-  Table: any;
-  InfoGrid: any;
-  Modal: any;
-  // Helpers + constants
-  I: any;
-  C: any;
-  fmt: any;
-  statusBadge: (s: string) => any;
-  cell: any;
-}
-
-export function ComponentCatalogue({
-  Btn, Badge, Field, Input, Textarea, Select, KPI, SectionCard,
-  ProgressBar, Tab, Table, InfoGrid, Modal,
-  I, C, fmt, statusBadge, cell,
-}: ComponentCatalogueProps) {
+export function ComponentCatalogue() {
   const [activeTab, setActiveTab] = useState('buttons');
   const [modalOpen, setModalOpen] = useState(false);
   const [inputDemo, setInputDemo] = useState('');

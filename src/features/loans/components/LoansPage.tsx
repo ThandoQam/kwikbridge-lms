@@ -8,26 +8,20 @@
 // @ts-nocheck — transitional during monolith extraction.
 
 import React, { useState } from 'react';
+import { Badge, Btn, C, KPI, Tab, Table, statusBadge } from '../../../components/ui';
+import { cell, fmt } from '../../../lib/format';
 import { useData } from '../../../contexts/DataContext';
 import { useActions } from '../../../contexts/ActionsContext';
 import { useUI } from '../../../contexts/UIContext';
 
 interface LoansPageProps {
-  day: number;
+day: number;
   canDoAny: (mod: string, actions: string[]) => boolean;
-  KPI: any;
-  Tab: any;
-  Table: any;
-  Badge: any;
-  Btn: any;
-  cell: any;
-  statusBadge: (s: string) => any;
-  fmt: any;
-  C: any;
 }
 
 export function LoansPage({
-  day, canDoAny, KPI, Tab, Table, Badge, Btn, cell, statusBadge, fmt, C,
+  day,
+  canDoAny,
 }: LoansPageProps) {
   // ═══ Context-driven dependencies (Phase 2 migration) ═══
   const { loans, products, settings, cust, prod } = useData();

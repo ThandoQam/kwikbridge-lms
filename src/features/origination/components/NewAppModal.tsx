@@ -11,23 +11,17 @@
 // @ts-nocheck — transitional during monolith extraction.
 
 import React, { useState } from 'react';
+import { Btn, C, Field, Input, Modal, Select, Textarea } from '../../../components/ui';
+import { fmt } from '../../../lib/format';
 import { useData } from '../../../contexts/DataContext';
 import { useActions } from '../../../contexts/ActionsContext';
 import { useUI } from '../../../contexts/UIContext';
 
 interface NewAppModalProps {
-  Modal: any;
-  Field: any;
-  Select: any;
-  Input: any;
-  Textarea: any;
-  Btn: any;
-  fmt: any;
-  C: any;
+
 }
 
 export function NewAppModal({
-  Modal, Field, Select, Input, Textarea, Btn, fmt, C,
 }: NewAppModalProps) {
   // ═══ Context-driven dependencies (Phase 2 migration) ═══
   const { customers, products, cust, prod } = useData();

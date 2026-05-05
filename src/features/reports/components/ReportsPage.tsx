@@ -11,9 +11,11 @@
 // @ts-nocheck — transitional during monolith extraction.
 
 import React from 'react';
+import { Btn, C, ProgressBar, SectionCard, statusBadge } from '../../../components/ui';
+import { fmt } from '../../../lib/format';
 
 interface ReportsPageProps {
-  loans: any[];
+loans: any[];
   applications: any[];
   customers: any[];
   collections: any[];
@@ -21,12 +23,6 @@ interface ReportsPageProps {
   audit: any[];
   cust: (id: string) => any;
   canDo: (mod: string, action: string) => boolean;
-  Btn: any;
-  SectionCard: any;
-  ProgressBar: any;
-  statusBadge: (status: string) => any;
-  fmt: any;
-  C: any;
 }
 
 export function ReportsPage({
@@ -38,12 +34,6 @@ export function ReportsPage({
   audit,
   cust,
   canDo,
-  Btn,
-  SectionCard,
-  ProgressBar,
-  statusBadge,
-  fmt,
-  C,
 }: ReportsPageProps) {
   const activeLoans = loans.filter((l) => l.status === 'Active');
   const totalBook = activeLoans.reduce((s, l) => s + l.balance, 0);

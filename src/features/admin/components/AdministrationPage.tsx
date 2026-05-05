@@ -13,34 +13,21 @@
 // @ts-nocheck — transitional during monolith extraction.
 
 import React, { useState } from 'react';
+import { Badge, Btn, C, Field, I, InfoGrid, Input, SectionCard, Select, Tab, Table, Textarea, statusBadge } from '../../../components/ui';
+import { cell, fmt } from '../../../lib/format';
 import { useData } from '../../../contexts/DataContext';
 import { useActions } from '../../../contexts/ActionsContext';
 import { useUI } from '../../../contexts/UIContext';
 import { useAuth } from '../../../contexts/AuthContext';
 
 interface AdministrationPageProps {
-  // Time constants
+// Time constants
   now: number;
   day: number;
   // Helpers
-  cell: any;
   getProductSecurity: any;
   // UI primitives
-  Btn: any;
-  SectionCard: any;
-  Field: any;
-  Input: any;
-  Select: any;
-  Textarea: any;
-  Tab: any;
-  Table: any;
-  Badge: any;
-  InfoGrid: any;
   // Helpers + constants
-  I: any;
-  C: any;
-  fmt: any;
-  statusBadge: (s: string) => any;
   ROLES: any;
   PERMS: any;
   APPROVAL_LIMITS: any;
@@ -48,9 +35,13 @@ interface AdministrationPageProps {
 }
 
 export function AdministrationPage({
-  now, day, cell, getProductSecurity,
-  Btn, SectionCard, Field, Input, Select, Textarea, Tab, Table, Badge, InfoGrid,
-  I, C, fmt, statusBadge, ROLES, PERMS, APPROVAL_LIMITS, SECURITY_INSTRUMENTS,
+  now,
+  day,
+  getProductSecurity,
+  ROLES,
+  PERMS,
+  APPROVAL_LIMITS,
+  SECURITY_INSTRUMENTS,
 }: AdministrationPageProps) {
   // ═══ Context-driven dependencies ═══
   const {

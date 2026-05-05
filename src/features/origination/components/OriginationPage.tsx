@@ -8,32 +8,24 @@
 // @ts-nocheck — transitional during monolith extraction.
 
 import React, { useState } from 'react';
+import { Badge, Btn, C, Field, I, KPI, Modal, Tab, Table, Textarea, statusBadge } from '../../../components/ui';
+import { cell, fmt } from '../../../lib/format';
 import { useData } from '../../../contexts/DataContext';
 import { useUI } from '../../../contexts/UIContext';
 import { useAuth } from '../../../contexts/AuthContext';
 
 interface OriginationPageProps {
-  SYSTEM_USERS: any[];
+SYSTEM_USERS: any[];
   assignApplication: (appId: string, userId: string) => void;
   qaSignOffApplication: (appId: string) => void;
   withdrawApplication: (appId: string, reason: string) => void;
-  Btn: any;
-  KPI: any;
-  Tab: any;
-  Table: any;
-  Badge: any;
-  Modal: any;
-  Field: any;
-  Textarea: any;
-  cell: any;
-  statusBadge: (s: string) => any;
-  fmt: any;
-  I: any;
-  C: any;
 }
 
 export function OriginationPage({
-  SYSTEM_USERS, assignApplication, qaSignOffApplication, withdrawApplication, Btn, KPI, Tab, Table, Badge, Modal, Field, Textarea, cell, statusBadge, fmt, I, C,
+  SYSTEM_USERS,
+  assignApplication,
+  qaSignOffApplication,
+  withdrawApplication,
 }: OriginationPageProps) {
   // ═══ Context-driven dependencies (Phase 2 migration) ═══
   const { applications, cust, prod } = useData();

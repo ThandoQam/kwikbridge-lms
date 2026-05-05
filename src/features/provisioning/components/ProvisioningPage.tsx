@@ -8,20 +8,15 @@
 // @ts-nocheck — transitional during monolith extraction.
 
 import React from 'react';
+import { Badge, C, KPI, SectionCard, Table } from '../../../components/ui';
+import { cell, fmt } from '../../../lib/format';
 import { useData } from '../../../contexts/DataContext';
 
 interface ProvisioningPageProps {
-  KPI: any;
-  SectionCard: any;
-  Table: any;
-  Badge: any;
-  cell: any;
-  fmt: any;
-  C: any;
+
 }
 
 export function ProvisioningPage({
-  KPI, SectionCard, Table, Badge, cell, fmt, C,
 }: ProvisioningPageProps) {
   // ═══ Context-driven dependencies (Phase 2 migration) ═══
   const { loans, provisions, cust } = useData();

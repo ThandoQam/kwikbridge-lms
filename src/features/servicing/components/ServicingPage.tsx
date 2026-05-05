@@ -8,27 +8,19 @@
 // @ts-nocheck — transitional during monolith extraction.
 
 import React, { useState } from 'react';
+import { Btn, C, Field, KPI, Select, Tab, Table, statusBadge } from '../../../components/ui';
+import { cell, fmt } from '../../../lib/format';
 import { useData } from '../../../contexts/DataContext';
 import { useActions } from '../../../contexts/ActionsContext';
 import { useUI } from '../../../contexts/UIContext';
 import { useAuth } from '../../../contexts/AuthContext';
 
 interface ServicingPageProps {
-  day: number;
-  KPI: any;
-  Tab: any;
-  Table: any;
-  Field: any;
-  Select: any;
-  Btn: any;
-  cell: any;
-  statusBadge: (s: string) => any;
-  fmt: any;
-  C: any;
+day: number;
 }
 
 export function ServicingPage({
-  day, KPI, Tab, Table, Field, Select, Btn, cell, statusBadge, fmt, C,
+  day,
 }: ServicingPageProps) {
   // ═══ Context-driven dependencies (Phase 2 migration) ═══
   const { loans, cust } = useData();

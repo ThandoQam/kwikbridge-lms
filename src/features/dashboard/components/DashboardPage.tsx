@@ -13,30 +13,23 @@
 // @ts-nocheck — transitional during monolith extraction.
 
 import React, { useState } from 'react';
+import { Badge, Btn, C, I, KPI, ProgressBar, SectionCard, statusBadge } from '../../../components/ui';
+import { fmt } from '../../../lib/format';
 import { useData } from '../../../contexts/DataContext';
 import { useActions } from '../../../contexts/ActionsContext';
 import { useUI } from '../../../contexts/UIContext';
 import { useAuth } from '../../../contexts/AuthContext';
 
 interface DashboardPageProps {
-  // UI primitives
-  KPI: any;
-  Btn: any;
-  Badge: any;
-  SectionCard: any;
-  ProgressBar: any;
+// UI primitives
   // Helpers + constants
-  I: any;
-  C: any;
-  fmt: any;
-  statusBadge: (s: string) => any;
   predictDelinquency: (loan: any, customer: any, collections: any[], payments: any[]) => any;
   ROLES: any;
 }
 
 export function DashboardPage({
-  KPI, Btn, Badge, SectionCard, ProgressBar,
-  I, C, fmt, statusBadge, predictDelinquency, ROLES,
+  predictDelinquency,
+  ROLES,
 }: DashboardPageProps) {
   // ═══ Context-driven dependencies ═══
   const {

@@ -27,6 +27,7 @@
 // @ts-nocheck — transitional during monolith extraction.
 
 import React from 'react';
+import { Btn, I, Select, Tab } from '../../../components/ui';
 import { useUI } from '../../../contexts/UIContext';
 
 import { DetailView } from './DetailView';
@@ -47,13 +48,9 @@ import { CommsPage } from '../../comms';
 import { AdministrationPage } from '../../admin';
 
 interface StaffRouterProps {
-  // UI primitives
-  Btn: any; Badge: any; Field: any; Input: any; Textarea: any;
-  Select: any; KPI: any; SectionCard: any; ProgressBar: any;
-  Tab: any; Table: any; InfoGrid: any; Modal: any;
+// UI primitives
   ErrorBoundary: any;
   // Helpers
-  I: any; C: any; fmt: any; statusBadge: any; cell: any;
   predictDelinquency: any; getProductSecurity: any;
   navTo: any; canDoAny: any;
   // Constants
@@ -76,16 +73,35 @@ interface StaffRouterProps {
 }
 
 export function StaffRouter({
-  Btn, Badge, Field, Input, Textarea, Select,
-  KPI, SectionCard, ProgressBar, Tab, Table, InfoGrid, Modal, ErrorBoundary,
-  I, C, fmt, statusBadge, cell,
-  predictDelinquency, getProductSecurity, navTo, canDoAny,
-  ROLES, PERMS, APPROVAL_LIMITS, SECURITY_INSTRUMENTS, KYB_FICA_DOCS,
-  ddSteps, SYSTEM_USERS,
-  now, day,
-  assignApplication, qaSignOffApplication, withdrawApplication, moveToUnderwriting,
-  applications, customers, loans, collections, provisions, audit,
-  cust, prod, canDo, setDetail, save,
+  ErrorBoundary,
+  predictDelinquency,
+  getProductSecurity,
+  navTo,
+  canDoAny,
+  ROLES,
+  PERMS,
+  APPROVAL_LIMITS,
+  SECURITY_INSTRUMENTS,
+  KYB_FICA_DOCS,
+  ddSteps,
+  SYSTEM_USERS,
+  now,
+  day,
+  assignApplication,
+  qaSignOffApplication,
+  withdrawApplication,
+  moveToUnderwriting,
+  applications,
+  customers,
+  loans,
+  collections,
+  provisions,
+  audit,
+  cust,
+  prod,
+  canDo,
+  setDetail,
+  save,
 }: StaffRouterProps) {
   const { page, detail } = useUI();
 
@@ -93,15 +109,7 @@ export function StaffRouter({
   if (detail) {
     return (
       <ErrorBoundary fallback="page-level" pageName="Detail View">
-        <DetailView
-          Btn={Btn} Field={Field} Input={Input} Select={Select}
-          KPI={KPI} Badge={Badge} SectionCard={SectionCard}
-          ProgressBar={ProgressBar} Table={Table} InfoGrid={InfoGrid}
-          I={I} C={C} fmt={fmt} statusBadge={statusBadge} cell={cell}
-          ROLES={ROLES} SECURITY_INSTRUMENTS={SECURITY_INSTRUMENTS}
-          KYB_FICA_DOCS={KYB_FICA_DOCS} ddSteps={ddSteps}
-          getProductSecurity={getProductSecurity} navTo={navTo}
-        />
+        <DetailView ROLES={ROLES} SECURITY_INSTRUMENTS={SECURITY_INSTRUMENTS} KYB_FICA_DOCS={KYB_FICA_DOCS} ddSteps={ddSteps} getProductSecurity={getProductSecurity} navTo={navTo} />
       </ErrorBoundary>
     );
   }
@@ -117,139 +125,72 @@ export function StaffRouter({
   switch (page) {
     case 'dashboard':
       return wrap('Dashboard', (
-        <DashboardPage
-          KPI={KPI} Btn={Btn} Badge={Badge} SectionCard={SectionCard}
-          ProgressBar={ProgressBar}
-          I={I} C={C} fmt={fmt} statusBadge={statusBadge}
-          predictDelinquency={predictDelinquency} ROLES={ROLES}
-        />
+        <DashboardPage predictDelinquency={predictDelinquency} ROLES={ROLES} />
       ));
 
     case 'customers':
       return wrap('Customers', (
-        <CustomersPage
-          now={now} day={day}
-          Btn={Btn} SectionCard={SectionCard} Field={Field} Input={Input}
-          Select={Select} Tab={Tab} Table={Table} Badge={Badge}
-          cell={cell} statusBadge={statusBadge} I={I} C={C}
-        />
+        <CustomersPage now={now} day={day} />
       ));
 
     case 'origination':
       return wrap('Origination', (
-        <OriginationPage
-          SYSTEM_USERS={SYSTEM_USERS}
-          assignApplication={assignApplication}
-          qaSignOffApplication={qaSignOffApplication}
-          withdrawApplication={withdrawApplication}
-          Btn={Btn} KPI={KPI} Tab={Tab} Table={Table} Badge={Badge}
-          Modal={Modal} Field={Field} Textarea={Textarea}
-          cell={cell} statusBadge={statusBadge} fmt={fmt} I={I} C={C}
-        />
+        <OriginationPage SYSTEM_USERS={SYSTEM_USERS} assignApplication={assignApplication} qaSignOffApplication={qaSignOffApplication} withdrawApplication={withdrawApplication} />
       ));
 
     case 'underwriting':
       return wrap('Underwriting', (
-        <UnderwritingPage
-          applications={applications} cust={cust} canDo={canDo}
-          moveToUnderwriting={moveToUnderwriting} setDetail={setDetail}
-          SectionCard={SectionCard} Table={Table} Btn={Btn}
-          statusBadge={statusBadge} cell={cell} C={C}
-        />
+        <UnderwritingPage applications={applications} cust={cust} canDo={canDo} moveToUnderwriting={moveToUnderwriting} setDetail={setDetail} />
       ));
 
     case 'loans':
       return wrap('Loans', (
-        <LoansPage
-          day={day} canDoAny={canDoAny}
-          KPI={KPI} Tab={Tab} Table={Table} Badge={Badge} Btn={Btn}
-          cell={cell} statusBadge={statusBadge} fmt={fmt} C={C}
-        />
+        <LoansPage day={day} canDoAny={canDoAny} />
       ));
 
     case 'servicing':
       return wrap('Servicing', (
-        <ServicingPage
-          day={day}
-          KPI={KPI} Tab={Tab} Table={Table} Field={Field}
-          Select={Select} Btn={Btn}
-          cell={cell} statusBadge={statusBadge} fmt={fmt} C={C}
-        />
+        <ServicingPage day={day} />
       ));
 
     case 'collections':
       return wrap('Collections', (
-        <CollectionsPage
-          KPI={KPI} Tab={Tab} Table={Table} Badge={Badge} Btn={Btn}
-          Modal={Modal} Field={Field} Input={Input} Textarea={Textarea}
-          Select={Select}
-          cell={cell} statusBadge={statusBadge} fmt={fmt} C={C}
-        />
+        <CollectionsPage />
       ));
 
     case 'provisioning':
       return wrap('IFRS 9 Provisioning', (
-        <ProvisioningPage
-          KPI={KPI} SectionCard={SectionCard} Table={Table} Badge={Badge}
-          cell={cell} fmt={fmt} C={C}
-        />
+        <ProvisioningPage />
       ));
 
     case 'governance':
       return wrap('Governance', (
-        <GovernancePage
-          now={now} day={day}
-          PERMS={PERMS} ROLES={ROLES} APPROVAL_LIMITS={APPROVAL_LIMITS}
-          SYSTEM_USERS={SYSTEM_USERS} save={save}
-          KPI={KPI} Tab={Tab} Table={Table} Badge={Badge}
-          SectionCard={SectionCard} InfoGrid={InfoGrid} Btn={Btn}
-          cell={cell} fmt={fmt} C={C}
-        />
+        <GovernancePage now={now} day={day} PERMS={PERMS} ROLES={ROLES} APPROVAL_LIMITS={APPROVAL_LIMITS} SYSTEM_USERS={SYSTEM_USERS} save={save} />
       ));
 
     case 'statutory':
       return wrap('Statutory Reporting', (
-        <StatutoryReportingPage
-          KPI={KPI} Tab={Tab} Table={Table} Badge={Badge}
-          SectionCard={SectionCard} Btn={Btn} ProgressBar={ProgressBar}
-          statusBadge={statusBadge} fmt={fmt} I={I} C={C}
-        />
+        <StatutoryReportingPage />
       ));
 
     case 'documents':
       return wrap('Documents', (
-        <DocumentsPage
-          now={now} day={day}
-          KPI={KPI} Tab={Tab} Table={Table} SectionCard={SectionCard}
-          cell={cell} statusBadge={statusBadge} fmt={fmt} C={C}
-        />
+        <DocumentsPage now={now} day={day} />
       ));
 
     case 'reports':
       return wrap('Reports', (
-        <ReportsPage
-          loans={loans} applications={applications} customers={customers}
-          collections={collections} provisions={provisions} audit={audit}
-          cust={cust} canDo={canDo}
-          Btn={Btn} SectionCard={SectionCard} ProgressBar={ProgressBar}
-          statusBadge={statusBadge} fmt={fmt} C={C}
-        />
+        <ReportsPage loans={loans} applications={applications} customers={customers} collections={collections} provisions={provisions} audit={audit} cust={cust} canDo={canDo} />
       ));
 
     case 'investor':
       return wrap('Investor Dashboard', (
-        <InvestorDashboard
-          loans={loans} applications={applications} provisions={provisions}
-          customers={customers} prod={prod}
-          Btn={Btn} fmt={fmt} C={C}
-        />
+        <InvestorDashboard loans={loans} applications={applications} provisions={provisions} customers={customers} prod={prod} />
       ));
 
     case 'comms':
       return wrap('Communications', (
-        <CommsPage
-          Table={Table} Badge={Badge} cell={cell} fmt={fmt} C={C}
-        />
+        <CommsPage />
       ));
 
     case 'admin':
@@ -264,17 +205,7 @@ export function StaffRouter({
         settings: 'Settings',
       };
       return wrap(titleByPage[page], (
-        <AdministrationPage
-          now={now} day={day} cell={cell}
-          getProductSecurity={getProductSecurity}
-          Btn={Btn} SectionCard={SectionCard} Field={Field}
-          Input={Input} Select={Select} Textarea={Textarea}
-          Tab={Tab} Table={Table} Badge={Badge} InfoGrid={InfoGrid}
-          I={I} C={C} fmt={fmt} statusBadge={statusBadge}
-          ROLES={ROLES} PERMS={PERMS}
-          APPROVAL_LIMITS={APPROVAL_LIMITS}
-          SECURITY_INSTRUMENTS={SECURITY_INSTRUMENTS}
-        />
+        <AdministrationPage now={now} day={day} getProductSecurity={getProductSecurity} ROLES={ROLES} PERMS={PERMS} APPROVAL_LIMITS={APPROVAL_LIMITS} SECURITY_INSTRUMENTS={SECURITY_INSTRUMENTS} />
       ));
     }
 
@@ -283,12 +214,7 @@ export function StaffRouter({
       // to <Dashboard /> referencing the deleted inline function — a
       // latent bug. Now uses the extracted DashboardPage component.
       return wrap('Dashboard', (
-        <DashboardPage
-          KPI={KPI} Btn={Btn} Badge={Badge} SectionCard={SectionCard}
-          ProgressBar={ProgressBar}
-          I={I} C={C} fmt={fmt} statusBadge={statusBadge}
-          predictDelinquency={predictDelinquency} ROLES={ROLES}
-        />
+        <DashboardPage predictDelinquency={predictDelinquency} ROLES={ROLES} />
       ));
   }
 }

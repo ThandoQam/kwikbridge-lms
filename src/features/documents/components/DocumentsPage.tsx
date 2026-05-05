@@ -9,24 +9,19 @@
 // @ts-nocheck — transitional during monolith extraction.
 
 import React, { useState } from 'react';
+import { C, KPI, SectionCard, Tab, Table, statusBadge } from '../../../components/ui';
+import { cell, fmt } from '../../../lib/format';
 import { useData } from '../../../contexts/DataContext';
 import { useUI } from '../../../contexts/UIContext';
 
 interface DocumentsPageProps {
-  now: number;
+now: number;
   day: number;
-  KPI: any;
-  Tab: any;
-  Table: any;
-  SectionCard: any;
-  cell: any;
-  statusBadge: (s: string) => any;
-  fmt: any;
-  C: any;
 }
 
 export function DocumentsPage({
-  now, day, KPI, Tab, Table, SectionCard, cell, statusBadge, fmt, C,
+  now,
+  day,
 }: DocumentsPageProps) {
   // ═══ Context-driven dependencies (Phase 2 migration) ═══
   const { documents, cust } = useData();

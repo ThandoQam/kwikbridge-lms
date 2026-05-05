@@ -8,19 +8,15 @@
 // @ts-nocheck — transitional during monolith extraction.
 
 import React from 'react';
+import { Btn, C, SectionCard, Table, statusBadge } from '../../../components/ui';
+import { cell } from '../../../lib/format';
 
 interface UnderwritingPageProps {
-  applications: any[];
+applications: any[];
   cust: (id: string) => any;
   canDo: (mod: string, action: string) => boolean;
   moveToUnderwriting: (appId: string) => void;
   setDetail: (d: any) => void;
-  SectionCard: any;
-  Table: any;
-  Btn: any;
-  statusBadge: (s: string) => any;
-  cell: any;
-  C: any;
 }
 
 export function UnderwritingPage({
@@ -29,12 +25,6 @@ export function UnderwritingPage({
   canDo,
   moveToUnderwriting,
   setDetail,
-  SectionCard,
-  Table,
-  Btn,
-  statusBadge,
-  cell,
-  C,
 }: UnderwritingPageProps) {
   const pending = applications.filter((a) => ['Submitted', 'Underwriting'].includes(a.status));
   const decided = applications.filter((a) => ['Approved', 'Declined'].includes(a.status)).slice(-5);

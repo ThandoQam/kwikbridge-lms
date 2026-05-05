@@ -9,30 +9,18 @@
 // @ts-nocheck — transitional during monolith extraction.
 
 import React, { useState } from 'react';
+import { Badge, Btn, C, Field, Input, KPI, Modal, Select, Tab, Table, Textarea, statusBadge } from '../../../components/ui';
+import { cell, fmt } from '../../../lib/format';
 import { useData } from '../../../contexts/DataContext';
 import { useActions } from '../../../contexts/ActionsContext';
 import { useUI } from '../../../contexts/UIContext';
 import { useAuth } from '../../../contexts/AuthContext';
 
 interface CollectionsPageProps {
-  KPI: any;
-  Tab: any;
-  Table: any;
-  Badge: any;
-  Btn: any;
-  Modal: any;
-  Field: any;
-  Input: any;
-  Textarea: any;
-  Select: any;
-  cell: any;
-  statusBadge: (s: string) => any;
-  fmt: any;
-  C: any;
+
 }
 
 export function CollectionsPage({
-  KPI, Tab, Table, Badge, Btn, Modal, Field, Input, Textarea, Select, cell, statusBadge, fmt, C,
 }: CollectionsPageProps) {
   // ═══ Context-driven dependencies (Phase 2 migration) ═══
   const { loans, collections, cust } = useData();

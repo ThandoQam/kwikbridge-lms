@@ -19,29 +19,16 @@
 // @ts-nocheck — transitional during monolith extraction.
 
 import React, { useState } from 'react';
+import { Badge, Btn, C, Field, I, InfoGrid, Input, KPI, ProgressBar, SectionCard, Select, Table, statusBadge } from '../../../components/ui';
+import { cell, fmt } from '../../../lib/format';
 import { useData } from '../../../contexts/DataContext';
 import { useActions } from '../../../contexts/ActionsContext';
 import { useUI } from '../../../contexts/UIContext';
 import { useAuth } from '../../../contexts/AuthContext';
 
 interface DetailViewProps {
-  // UI primitives
-  Btn: any;
-  Field: any;
-  Input: any;
-  Select: any;
-  KPI: any;
-  Badge: any;
-  SectionCard: any;
-  ProgressBar: any;
-  Table: any;
-  InfoGrid: any;
+// UI primitives
   // Helpers
-  I: any;
-  C: any;
-  fmt: any;
-  statusBadge: (s: string) => any;
-  cell: any;
   // Constants/data
   ROLES: any;
   SECURITY_INSTRUMENTS: any;
@@ -52,10 +39,11 @@ interface DetailViewProps {
 }
 
 export function DetailView({
-  Btn, Field, Input, Select, KPI, Badge, SectionCard, ProgressBar,
-  Table, InfoGrid,
-  I, C, fmt, statusBadge, cell,
-  ROLES, SECURITY_INSTRUMENTS, KYB_FICA_DOCS, ddSteps, getProductSecurity,
+  ROLES,
+  SECURITY_INSTRUMENTS,
+  KYB_FICA_DOCS,
+  ddSteps,
+  getProductSecurity,
   navTo,
 }: DetailViewProps) {
   // ═══ Context-driven dependencies ═══

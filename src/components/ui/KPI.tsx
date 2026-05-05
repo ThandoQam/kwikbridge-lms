@@ -38,7 +38,7 @@ export function KPI({ label, value, sub, trend, alert }: KPIProps) {
   const valueColor = alert ? C.red : C.text;
 
   return (
-    <div className="kb-kpi" style={{ padding: '14px 0', transition: 'opacity .15s ease-out' }}>
+    <div className="kb-kpi" data-testid="kpi" data-label={label} role="figure" aria-label={label} style={{ padding: '14px 0', transition: 'opacity .15s ease-out' }}>
       <div
         style={{
           fontSize: 10,

@@ -7,18 +7,15 @@
 // @ts-nocheck — transitional during monolith extraction.
 
 import React from 'react';
+import { Badge, C, Table } from '../../../components/ui';
+import { cell, fmt } from '../../../lib/format';
 import { useData } from '../../../contexts/DataContext';
 
 interface CommsPageProps {
-  Table: any;
-  Badge: any;
-  cell: any;
-  fmt: any;
-  C: any;
+
 }
 
 export function CommsPage({
-  Table, Badge, cell, fmt, C,
 }: CommsPageProps) {
   // ═══ Context-driven dependencies (Phase 2 migration) ═══
   const { comms, cust } = useData();
