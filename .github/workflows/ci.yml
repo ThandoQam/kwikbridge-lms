@@ -145,6 +145,9 @@ jobs:
       - name: Run Vitest unit tests
         run: npm run test:unit
 
+      - name: Run Vitest component tests
+        run: npm run test:component
+
       - name: Run journey tests
         run: node test-journeys.cjs
 

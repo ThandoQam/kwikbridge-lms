@@ -31,16 +31,18 @@ interface DashboardPageProps {
   fmt: any;
   statusBadge: (s: string) => any;
   predictDelinquency: (loan: any, customer: any, collections: any[], payments: any[]) => any;
+  ROLES: any;
 }
 
 export function DashboardPage({
   KPI, Btn, Badge, SectionCard, ProgressBar,
-  I, C, fmt, statusBadge, predictDelinquency,
+  I, C, fmt, statusBadge, predictDelinquency, ROLES,
 }: DashboardPageProps) {
   // ═══ Context-driven dependencies ═══
   const {
     customers, applications, loans, products,
-    audit, alerts, provisions, collections, cust, prod,
+    audit, alerts, provisions, collections, statutoryReports,
+    cust, prod,
   } = useData();
   const { markRead } = useActions();
   const { setPage, setDetail, setModal } = useUI();

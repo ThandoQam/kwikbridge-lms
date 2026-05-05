@@ -19,6 +19,12 @@ import { useUI } from '../../../contexts/UIContext';
 import { useAuth } from '../../../contexts/AuthContext';
 
 interface AdministrationPageProps {
+  // Time constants
+  now: number;
+  day: number;
+  // Helpers
+  cell: any;
+  getProductSecurity: any;
   // UI primitives
   Btn: any;
   SectionCard: any;
@@ -42,6 +48,7 @@ interface AdministrationPageProps {
 }
 
 export function AdministrationPage({
+  now, day, cell, getProductSecurity,
   Btn, SectionCard, Field, Input, Select, Textarea, Tab, Table, Badge, InfoGrid,
   I, C, fmt, statusBadge, ROLES, PERMS, APPROVAL_LIMITS, SECURITY_INSTRUMENTS,
 }: AdministrationPageProps) {
