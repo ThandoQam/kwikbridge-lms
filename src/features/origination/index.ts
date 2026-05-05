@@ -1,2 +1,1 @@
-// KwikBridge LMS — Origination Feature
-export { Origination as OriginationPage } from "./components/OriginationPage";
+export { OriginationPage } from './components/OriginationPage';

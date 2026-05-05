@@ -44,6 +44,9 @@ import { ProvisioningPage as ProvisioningPageExtracted } from "./features/provis
 import { UnderwritingPage as UnderwritingPageExtracted } from "./features/underwriting";
 import { CommsPage as CommsPageExtracted } from "./features/comms";
 import { CustomersPage as CustomersPageExtracted } from "./features/customers";
+import { OriginationPage as OriginationPageExtracted } from "./features/origination";
+import { LoansPage as LoansPageExtracted } from "./features/loans";
+import { ServicingPage as ServicingPageExtracted } from "./features/servicing";
 const SUPABASE_URL = config.supabase.url;
 const SUPABASE_KEY = config.supabase.anonKey;
 const sb = (table) => `${SUPABASE_URL}/rest/v1/${table}`;
@@ -530,7 +533,6 @@ export default function App() {
   const [restructForm, setRestructForm] = useState({type:"Term Extension",detail:"",approver:"Credit Committee"});
   const [writeOffReason, setWriteOffReason] = useState("");
   const [auditFilter, setAuditFilter] = useState({category:"",user:"",entity:""});
-  const [schedLoan, setSchedLoan] = useState(null);
   const [viewingDoc, setViewingDoc] = useState(null);
   const [authSession, setAuthSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -4962,10 +4964,10 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
     switch (page) {
       case "dashboard": return wrap("Dashboard", <Dashboard />);
       case "customers": return wrap("Customers", <CustomersPageExtracted customers={customers} search={search} now={now} day={day} canDo={canDo} createCustomer={createCustomer} showToast={showToast} setDetail={setDetail} Btn={Btn} SectionCard={SectionCard} Field={Field} Input={Input} Select={Select} Tab={Tab} Table={Table} Badge={Badge} cell={cell} statusBadge={statusBadge} I={I} C={C} />);
-      case "origination": return wrap("Origination", <Origination />);
+      case "origination": return wrap("Origination", <OriginationPageExtracted applications={applications} search={search} SYSTEM_USERS={SYSTEM_USERS} cust={cust} prod={prod} canDo={canDo} setModal={setModal} setDetail={setDetail} assignApplication={assignApplication} qaSignOffApplication={qaSignOffApplication} withdrawApplication={withdrawApplication} Btn={Btn} KPI={KPI} Tab={Tab} Table={Table} Badge={Badge} Modal={Modal} Field={Field} Textarea={Textarea} cell={cell} statusBadge={statusBadge} fmt={fmt} I={I} C={C} />);
       case "underwriting": return wrap("Underwriting", <UnderwritingPageExtracted applications={applications} cust={cust} canDo={canDo} moveToUnderwriting={moveToUnderwriting} setDetail={setDetail} SectionCard={SectionCard} Table={Table} Btn={Btn} statusBadge={statusBadge} cell={cell} C={C} />);
-      case "loans": return wrap("Loans", <Loans />);
-      case "servicing": return wrap("Servicing", <Servicing />);
+      case "loans": return wrap("Loans", <LoansPageExtracted loans={loans} products={products} settings={settings} day={day} cust={cust} prod={prod} canDoAny={canDoAny} setDetail={setDetail} disburseLoan={disburseLoan} KPI={KPI} Tab={Tab} Table={Table} Badge={Badge} Btn={Btn} cell={cell} statusBadge={statusBadge} fmt={fmt} C={C} />);
+      case "servicing": return wrap("Servicing", <ServicingPageExtracted loans={loans} day={day} cust={cust} canDo={canDo} setDetail={setDetail} recordPayment={recordPayment} KPI={KPI} Tab={Tab} Table={Table} Field={Field} Select={Select} Btn={Btn} cell={cell} statusBadge={statusBadge} fmt={fmt} C={C} />);
       case "collections": return wrap("Collections", <Collections />);
       case "provisioning": return wrap("IFRS 9 Provisioning", <ProvisioningPageExtracted loans={loans} provisions={provisions} cust={cust} KPI={KPI} SectionCard={SectionCard} Table={Table} Badge={Badge} cell={cell} fmt={fmt} C={C} />);
       case "governance": return wrap("Governance", <Governance />);
@@ -5281,328 +5283,9 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
   }
 
 
-  function Origination() {
-    const [tab, setTab] = useState("all");
-    const drafts = applications.filter(a=>a.status==="Draft");
-    const expiredDrafts = drafts.filter(a=>a.expiresAt && a.expiresAt < Date.now());
-    const tabs = [
-      { key:"all", label:"All", count:applications.length },
-      { key:"Draft", label:"Draft (QA Pending)", count:drafts.length },
-      { key:"Submitted", label:"Submitted", count:applications.filter(a=>a.status==="Submitted").length },
-      { key:"Underwriting", label:"Underwriting", count:applications.filter(a=>a.status==="Underwriting").length },
-      { key:"Pending Approval", label:"Pending Approval", count:applications.filter(a=>a.status==="Pending Approval").length },
-      { key:"Approved", label:"Approved", count:applications.filter(a=>a.status==="Approved").length },
-      { key:"Declined", label:"Declined", count:applications.filter(a=>a.status==="Declined").length },
-      { key:"Withdrawn", label:"Withdrawn", count:applications.filter(a=>a.status==="Withdrawn").length },
-    ];
-    const filtered = applications.filter(a => tab === "all" || a.status === tab).filter(a => !search || [a.id, cust(a.custId)?.name, prod(a.product)?.name].some(f => f?.toLowerCase().includes(search.toLowerCase())));
-    const assignableUsers = SYSTEM_USERS.filter(u => ["LOAN_OFFICER","CREDIT","CREDIT_SNR","CREDIT_HEAD"].includes(u.role));
-
-    return (<div>
-      <div style={{ display:"flex", justifyContent:"space-between", marginBottom:16 }}>
-        <div><h2 style={{ margin:0, fontSize:24, fontWeight:700, color:C.text }}>Loan Origination</h2><p style={{ margin:"4px 0 0", fontSize:13, color:C.textMuted }}>Application intake, QA & document validation, assignment & pipeline management</p></div>
-        {canDo("origination","create") && <Btn onClick={() => setModal("newApp")} icon={I.plus}>New Application</Btn>}
-      </div>
-
-      <div style={{ display:"flex", gap:0, marginBottom:16, background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, overflow:"hidden" }}>
-        <KPI label="Drafts (QA Pending)" value={drafts.length} sub={expiredDrafts.length > 0 ? `${expiredDrafts.length} expired` : ""} />
-        <KPI label="Submitted" value={applications.filter(a=>a.status==="Submitted").length} sub="awaiting DD" />
-        <KPI label="Underwriting" value={applications.filter(a=>a.status==="Underwriting").length} />
-        <KPI label="Pipeline Value" value={fmt.cur(applications.filter(a=>["Draft","Submitted","Underwriting"].includes(a.status)).reduce((s,a)=>s+a.amount,0))} />
-        <KPI label="Approved" value={applications.filter(a=>a.status==="Approved").length} />
-        <KPI label="Declined" value={applications.filter(a=>a.status==="Declined").length} />
-      </div>
-
-      <Tab tabs={tabs} active={tab} onChange={setTab} />
-      <Table columns={[
-        { label:"App ID", render:r=>cell.id(r.id) },
-        { label:"Applicant", render:r=>cell.name(cust(r.custId)?.name) },
-        { label:"Product", render:r=>cell.text(prod(r.product)?.name || r.product) },
-            { label:"DSCR", render:r=>r.roughDSCR ? <span style={{fontFamily:"monospace",fontSize:12,color:r.roughDSCR>=1.25?C.green:r.roughDSCR>=1.0?C.amber:C.red}}>{r.roughDSCR}x</span> : <span style={{color:C.textMuted,fontSize:11}}>—</span> },
-        { label:"Amount", render:r=>cell.money(r.amount) },
-        { label:"Term", render:r=>cell.text(r.term+"m") },
-        { label:"Date", render:r=>cell.date(r.submitted || r.createdAt) },
-        { label:"Assigned To", render:r=>{
-          const u = SYSTEM_USERS.find(x=>x.id===r.assignedTo);
-          if (u) return <span style={{ fontSize:11 }}>{u.name}</span>;
-          if (!["Submitted","Underwriting"].includes(r.status)) return <span style={{ fontSize:10, color:C.textMuted }}>—</span>;
-          if (!canDo("origination","assign")) return <span style={{ fontSize:10, color:C.amber }}>Unassigned</span>;
-          return <select onChange={e=>{if(e.target.value)assignApplication(r.id,e.target.value)}} defaultValue="" style={{ fontSize:11, border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontFamily:"inherit", padding:"4px 8px", borderRadius:4 }}>
-            <option value="">Assign...</option>
-            {assignableUsers.map(u=><option key={u.id} value={u.id}>{u.name}</option>)}
-          </select>;
-        }},
-        { label:"QA", render:r=> r.qaSignedOff ? <Badge color="green">Passed</Badge> : r.qaFindings?.result==="Failed" ? <Badge color="red">Failed</Badge> : r.status==="Draft" ? <Badge color="amber">Pending</Badge> : <span style={{ fontSize:10, color:C.textMuted }}>—</span> },
-        { label:"Status", render:r=>{
-          if (r.status==="Draft" && r.expiresAt && r.expiresAt < Date.now()) return <Badge color="red">Expired</Badge>;
-          return statusBadge(r.status);
-        }},
-        { label:"Actions", render:r=><div style={{ display:"flex", gap:4 }}>
-          {r.status==="Draft" && !(r.expiresAt && r.expiresAt < Date.now()) && canDo("origination","update") && <Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();qaSignOffApplication(r.id)}}>QA & Submit</Btn>}
-          {["Draft","Submitted","Underwriting"].includes(r.status) && canDo("origination","update") && <Btn size="sm" variant="ghost" onClick={e=>{e.stopPropagation();setWithdrawId(r.id)}}>Withdraw</Btn>}
-        </div> },
-      ]} rows={filtered} onRowClick={r=>setDetail({type:"application",id:r.id})} />
-
-      <Modal open={!!withdrawId} onClose={()=>setWithdrawId(null)} title={`Withdraw Application ${withdrawId}`} width={420}>
-        <div style={{ fontSize:12, color:C.textDim, marginBottom:12 }}>This will cancel the application. The customer can re-apply later.</div>
-        <Field label="Reason for withdrawal"><Textarea value={withdrawReason} onChange={e=>setWithdrawReason(e.target.value)} rows={3} placeholder="Customer request / Duplicate / Failed validation..." /></Field>
-        <div style={{ display:"flex", gap:8, marginTop:16 }}>
-          <Btn variant="danger" onClick={()=>{withdrawApplication(withdrawId,withdrawReason);setWithdrawId(null);setWithdrawReason("")}}>Confirm Withdrawal</Btn>
-          <Btn variant="ghost" onClick={()=>{setWithdrawId(null);setWithdrawReason("")}}>Cancel</Btn>
-        </div>
-      </Modal>
-    </div>);
-  }
 
 
-  function Loans() {
-    const [tab, setTab] = useState("all");
-    const [view, setView] = useState("book"); // book | analytics
-    const bookedLoans = loans.filter(l => l.status === "Booked");
-    const activeLoans = loans.filter(l => l.status === "Active");
-    const shown = tab === "booked" ? bookedLoans : tab === "active" ? activeLoans : loans;
 
-    // ── Portfolio Analytics ──
-    const openingBook = activeLoans.reduce((s,l)=>s+l.amount,0);
-    const currentBook = activeLoans.reduce((s,l)=>s+l.balance,0);
-    const newDisb = loans.filter(l=>l.disbursedAt&&l.disbursedAt>Date.now()-30*day).reduce((s,l)=>s+l.amount,0);
-    const nplLoans = activeLoans.filter(l=>l.dpd>90);
-    const grossNPL = nplLoans.reduce((s,l)=>s+l.balance,0);
-    const recoveryRate = 0.55;
-    const recoveries = grossNPL * recoveryRate;
-    const closingBook = currentBook - grossNPL + recoveries;
-    const totalBorrowers = new Set(activeLoans.map(l=>l.custId)).size;
-    const totalInterest = activeLoans.reduce((s,l)=>s+(l.balance*(l.rate/100)/12),0);
-    const totalFees = activeLoans.reduce((s,l)=>s+(l.amount*((l.arrangementFee||0)/100)/Math.max(l.term,1)),0);
-    const portfolioYield = currentBook>0 ? ((totalInterest+totalFees)*12/currentBook) : 0;
-    const effectiveNPL = currentBook>0 ? grossNPL/currentBook : 0;
-    const provisionExp = activeLoans.reduce((s,l)=>{const p=products.find(x=>x.id===l.product);return s+l.balance*((p?.ecl||2)/100);},0);
-    const netCreditLoss = grossNPL*(1-recoveryRate);
-    const wacf = 8.5;
-    const costOfFunds = currentBook*(wacf/100)/12;
-    const netSpread = portfolioYield - (wacf/100);
-    const fundingCap = (settings?.fundingCapacity||currentBook*1.5)||currentBook*1.5;
-    const headroom = fundingCap - currentBook;
-    const facilUtil = fundingCap>0 ? currentBook/fundingCap : 0;
-
-    const row = (label, value, indent=false, accent=false, divider=false) => (
-      <div style={{ display:"flex", justifyContent:"space-between", padding:"8px 0", borderBottom:divider?`2px solid ${C.text}`:`1px solid ${C.border}`, paddingLeft:indent?16:0 }}>
-        <span style={{ fontSize:12, fontWeight:accent?700:indent?400:600, color:accent?C.text:indent?C.textDim:C.text }}>{label}</span>
-        <span style={{ fontSize:12, fontWeight:accent?700:600, fontFamily:"monospace", color:accent?C.text:C.text }}>{value}</span>
-      </div>
-    );
-
-    return (<div>
-      <h2 style={{ margin:"0 0 4px", fontSize:24, fontWeight:700, color:C.text }}>Loans</h2>
-      <p style={{ margin:"0 0 16px", fontSize:13, color:C.textMuted }}>Booking, disbursement, portfolio monitoring & covenant tracking</p>
-
-      <div style={{ display:"flex", gap:8, marginBottom:16 }}>
-        <button onClick={()=>setView("book")} style={{ background:view==="book"?C.accent:"none", color:view==="book"?"#fff":C.textDim, border:`1px solid ${view==="book"?C.text:C.border}`, padding:"8px 14px", fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Loan Book</button>
-        <button onClick={()=>setView("analytics")} style={{ background:view==="analytics"?C.accent:"none", color:view==="analytics"?"#fff":C.textDim, border:`1px solid ${view==="analytics"?C.text:C.border}`, padding:"8px 14px", fontSize:11, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>Portfolio Analytics</button>
-      </div>
-
-      {view === "book" && <div>
-        <div style={{ display:"flex", gap:0, marginBottom:16, background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, overflow:"hidden" }}>
-          <KPI label="Total Portfolio" value={fmt.cur(currentBook)} />
-          <KPI label="Active" value={activeLoans.length} />
-          <KPI label="Booked (Awaiting Disbursement)" value={bookedLoans.length} />
-          <KPI label="Total Monthly PMT" value={fmt.cur(activeLoans.reduce((s,l)=>s+l.monthlyPmt,0))} />
-        </div>
-        <Tab tabs={[{key:"all",label:"All",count:loans.length},{key:"booked",label:"Booked",count:bookedLoans.length},{key:"active",label:"Active",count:activeLoans.length}]} active={tab} onChange={setTab} />
-        <Table columns={[
-          { label:"Loan ID", render:r=>cell.id(r.id) },
-          { label:"Borrower", render:r=>cust(r.custId)?.name },
-          { label:"Product", render:r=>{const p=prod(r.product);return <span style={{fontSize:11}}>{p?.name||"—"}</span>} },
-          { label:"Amount", render:r=>cell.money(r.amount) },
-          { label:"Balance", render:r=>cell.money(r.balance) },
-          { label:"Rate", render:r=>cell.pct(r.rate) },
-          { label:"Status", render:r=>statusBadge(r.status) },
-          { label:"DPD", render:r=>r.status==="Active"?<span style={{ fontWeight:700, color:r.dpd===0?C.green:r.dpd<=30?C.amber:C.red }}>{r.dpd}</span>:<span style={{ color:C.textMuted }}>—</span> },
-          { label:"Stage", render:r=>r.status==="Active"?<Badge color={r.stage===1?"green":r.stage===2?"amber":"red"}>Stage {r.stage}</Badge>:<span style={{ color:C.textMuted }}>—</span> },
-          { label:"Actions", render:r=><div style={{ display:"flex", gap:4 }}>
-            {r.status==="Booked"&&canDoAny("loans",["update"])&&<Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();disburseLoan(r.id)}}>Disburse</Btn>}
-          </div> },
-        ]} rows={shown} onRowClick={r=>setDetail({type:"loan",id:r.id})} />
-      </div>}
-
-      {view === "analytics" && <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
-        {/* Loan Book Movement */}
-        <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"20px" }}>
-          <div style={{ fontSize:14, fontWeight:700, marginBottom:12, color:C.text }}>Loan Book Movement</div>
-          {row("Opening loan book", fmt.cur(openingBook), false, true, true)}
-          {row("New disbursements (30d)", fmt.cur(newDisb), true)}
-          {row("Gross NPL amount", fmt.cur(grossNPL), true)}
-          {row("Recoveries (55%)", fmt.cur(recoveries), true)}
-          {row("Closing loan book", fmt.cur(closingBook), false, true, true)}
-          <div style={{ height:12 }} />
-          {row("Total borrowers", totalBorrowers)}
-        </div>
-
-        {/* Yield & Income */}
-        <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"20px" }}>
-          <div style={{ fontSize:14, fontWeight:700, marginBottom:12, color:C.text }}>Yield & Income</div>
-          {row("Portfolio yield (annualised)", fmt.pct(portfolioYield), false, true, true)}
-          {row("Monthly interest income", fmt.cur(totalInterest), true)}
-          {row("Monthly fee income", fmt.cur(totalFees), true)}
-          <div style={{ height:12 }} />
-          {row("Effective NPL rate", fmt.pct(effectiveNPL))}
-          {row("Provision expense", fmt.cur(provisionExp))}
-          {row("Net credit loss", fmt.cur(netCreditLoss))}
-        </div>
-
-        {/* Funding & Spread */}
-        <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"20px" }}>
-          <div style={{ fontSize:14, fontWeight:700, marginBottom:12, color:C.text }}>Funding & Spread</div>
-          {row("WACF (weighted avg cost of funds)", `${wacf}%`, false, true, true)}
-          {row("Cost of funds (monthly)", fmt.cur(costOfFunds), true)}
-          <div style={{ height:12 }} />
-          {row("Net interest spread", fmt.pct(netSpread), false, true)}
-        </div>
-
-        {/* Facility */}
-        <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"20px" }}>
-          <div style={{ fontSize:14, fontWeight:700, marginBottom:12, color:C.text }}>Funding Capacity</div>
-          {row("Funding headroom", fmt.cur(headroom), false, true, true)}
-          {row("Current book", fmt.cur(currentBook), true)}
-          {row("Facility capacity", fmt.cur(fundingCap), true)}
-          <div style={{ height:12 }} />
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 0" }}>
-            <span style={{ fontSize:12, fontWeight:600 }}>Facility utilisation</span>
-            <span style={{ fontSize:12, fontWeight:700, fontFamily:"monospace", color:facilUtil>0.85?C.red:facilUtil>0.7?C.amber:C.green }}>{fmt.pct(facilUtil)}</span>
-          </div>
-          <div style={{ height:6, background:C.surface2, borderRadius:3, marginTop:4 }}>
-            <div style={{ height:6, borderRadius:3, background:facilUtil>0.85?C.red:facilUtil>0.7?C.amber:C.green, width:`${Math.min(facilUtil*100,100)}%` }} />
-          </div>
-        </div>
-
-        {/* Product Concentration */}
-        <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"20px", gridColumn:"1/-1" }}>
-          <div style={{ fontSize:14, fontWeight:700, marginBottom:12, color:C.text }}>Portfolio by Product</div>
-          <Table columns={[
-            { label:"Product", render:r=>cell.name(r.name) },
-            { label:"Loans", render:r=>r.count },
-            { label:"Book Value", render:r=>cell.money(r.balance) },
-            { label:"% of Book", render:r=><span style={{ fontFamily:"monospace" }}>{currentBook>0?fmt.pct(r.balance/currentBook):"—"}</span> },
-            { label:"Avg DPD", render:r=>r.count>0?Math.round(r.dpd/r.count):0 },
-            { label:"Risk Class", render:r=><Badge color={r.riskClass==="A"?"green":r.riskClass==="B"?"amber":r.riskClass==="C"?"red":"gray"}>{r.riskClass||"—"}</Badge> },
-            { label:"ECL Rate", render:r=><span style={{ fontFamily:"monospace" }}>{r.ecl!=null?`${r.ecl}%`:"—"}</span> },
-          ]} rows={products.filter(p=>p.status==="Active").map(p=>{const pLoans=activeLoans.filter(l=>l.product===p.id);return{id:p.id,name:p.name,count:pLoans.length,balance:pLoans.reduce((s,l)=>s+l.balance,0),dpd:pLoans.reduce((s,l)=>s+l.dpd,0),riskClass:p.riskClass,ecl:p.ecl};})} />
-        </div>
-      </div>}
-    </div>);
-  }
-
-  function Servicing() {
-    const [tab, setTab] = useState("upcoming");
-    const activeLoans = loans.filter(l => l.status === "Active");
-    const overdue = activeLoans.filter(l => l.dpd > 0);
-    const allPmts = loans.flatMap(l => l.payments.map(p => ({ ...p, loanId: l.id }))).sort((a,b) => b.date - a.date);
-    const totalCollected = allPmts.reduce((s,p) => s + p.amount, 0);
-    const totalInterest = allPmts.reduce((s,p) => s + (p.interest||0), 0);
-    const totalPrincipal = allPmts.reduce((s,p) => s + (p.principal||0), 0);
-
-    const genSchedule = (l) => {
-      const rows = [];
-      let bal = l.amount;
-      const r = l.rate / 100 / 12;
-      for (let m = 1; m <= l.term; m++) {
-        const interest = Math.round(bal * r);
-        const principal = Math.max(0, l.monthlyPmt - interest);
-        bal = Math.max(0, bal - principal);
-        const paid = l.payments[m-1];
-        rows.push({ month:m, pmt:l.monthlyPmt, interest, principal, balance:bal, status: paid ? "Paid" : m <= l.payments.length ? "Paid" : bal <= 0 ? "—" : "Pending" });
-      }
-      return rows;
-    };
-
-    return (<div>
-      <h2 style={{ margin:"0 0 4px", fontSize:24, fontWeight:700, color:C.text }}>Loan Servicing</h2>
-      <p style={{ margin:"0 0 16px", fontSize:13, color:C.textMuted }}>Payment processing, amortization schedules, statements & account management</p>
-
-      <div style={{ display:"flex", gap:0, marginBottom:16, background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, overflow:"hidden" }}>
-        <KPI label="Active Loans" value={activeLoans.length} />
-        <KPI label="Total Collected" value={fmt.cur(totalCollected)} />
-        <KPI label="Interest Collected" value={fmt.cur(totalInterest)} />
-        <KPI label="Principal Collected" value={fmt.cur(totalPrincipal)} />
-        <KPI label="Overdue" value={overdue.length} sub={fmt.cur(overdue.reduce((s,l)=>s+l.monthlyPmt,0))} />
-        <KPI label="Monthly Receivable" value={fmt.cur(activeLoans.reduce((s,l)=>s+l.monthlyPmt,0))} />
-      </div>
-
-      <Tab tabs={[
-        {key:"upcoming",label:"Upcoming Payments",count:activeLoans.length},
-        {key:"recent",label:"Payment History",count:allPmts.length},
-        {key:"schedule",label:"Amortization Schedules"},
-        {key:"overdue",label:"Overdue",count:overdue.length},
-      ]} active={tab} onChange={setTab} />
-
-      {tab==="upcoming" && (
-        <Table columns={[
-          { label:"Due Date", render:r=>{ const d=Math.ceil((r.nextDue-Date.now())/day); return <span style={{ fontWeight:d<0?700:400, color:d<0?C.red:d<=7?C.amber:C.textDim }}>{fmt.date(r.nextDue)}{d<0?` (${Math.abs(d)}d overdue)`:""}</span>; }},
-          { label:"Loan", render:r=>cell.id(r.id) },
-          { label:"Borrower", render:r=>cust(r.custId)?.name },
-          { label:"Instalment", render:r=>fmt.cur(r.monthlyPmt) },
-          { label:"Balance", render:r=>cell.money(r.balance) },
-          { label:"DPD", render:r=><span style={{ fontWeight:700, color:r.dpd===0?C.green:C.amber }}>{r.dpd}</span> },
-          { label:"Action", render:r=>canDo("servicing","create")?<Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();recordPayment(r.id, r.monthlyPmt)}}>Record Payment</Btn>:<span style={{fontSize:10,color:C.textMuted}}>View only</span> },
-        ]} rows={[...activeLoans].sort((a,b)=>a.nextDue-b.nextDue)} onRowClick={r=>setDetail({type:"loan",id:r.id})} />
-      )}
-
-      {tab==="recent" && (
-        <Table columns={[
-          { label:"Date", render:r=>fmt.date(r.date) },
-          { label:"Loan", key:"loanId" },
-          { label:"Borrower", render:r=>cust(loans.find(l=>l.id===r.loanId)?.custId)?.name },
-          { label:"Total", render:r=>cell.money(r.amount) },
-          { label:"Interest", render:r=>cell.money(r.interest||0) },
-          { label:"Principal", render:r=>cell.money(r.principal||0) },
-          { label:"Type", key:"type" },
-          { label:"Status", render:r=>statusBadge(r.status) },
-        ]} rows={allPmts.slice(0,20)} />
-      )}
-
-      {tab==="schedule" && (
-        <div>
-          <div style={{ marginBottom:12 }}>
-            <Field label="Select Loan">
-              <Select value={schedLoan||""} onChange={e=>setSchedLoan(e.target.value)} options={[{value:"",label:"— Select —"},...activeLoans.map(l=>({value:l.id,label:`${l.id} – ${cust(l.custId)?.name} – ${fmt.cur(l.amount)} @ ${l.rate}%`}))]} />
-            </Field>
-          </div>
-          {schedLoan && (() => {
-            const l = loans.find(x=>x.id===schedLoan);
-            if (!l) return null;
-            const sched = genSchedule(l);
-            return (<div>
-              <div style={{ fontSize:12, color:C.textDim, marginBottom:8 }}>
-                {cust(l.custId)?.name} · {fmt.cur(l.amount)} @ {l.rate}% over {l.term}m · Monthly: {fmt.cur(l.monthlyPmt)} · Total interest: {fmt.cur(sched.reduce((s,r)=>s+r.interest,0))} · Total cost: {fmt.cur(sched.reduce((s,r)=>s+r.pmt,0))}
-              </div>
-              <div style={{ maxHeight:400, overflow:"auto" }}>
-                <Table columns={[
-                  { label:"#", render:r=>r.month },
-                  { label:"Payment", render:r=>fmt.cur(r.pmt) },
-                  { label:"Interest", render:r=>cell.money(r.interest) },
-                  { label:"Principal", render:r=>cell.money(r.principal) },
-                  { label:"Balance", render:r=>cell.money(r.balance) },
-                  { label:"Status", render:r=>statusBadge(r.status) },
-                ]} rows={sched} />
-              </div>
-            </div>);
-          })()}
-        </div>
-      )}
-
-      {tab==="overdue" && (
-        <Table columns={[
-          { label:"Loan", render:r=>cell.id(r.id) },
-          { label:"Borrower", render:r=>cust(r.custId)?.name },
-          { label:"Balance", render:r=>cell.money(r.balance) },
-          { label:"Instalment", render:r=>fmt.cur(r.monthlyPmt) },
-          { label:"DPD", render:r=><span style={{ fontSize:18, fontWeight:700, color:r.dpd<=30?C.amber:C.red }}>{r.dpd}</span> },
-          { label:"Last Payment", render:r=>r.lastPmt ? fmt.date(r.lastPmt) : <span style={{ color:C.textMuted }}>None</span> },
-          { label:"Action", render:r=>canDo("servicing","create")?<Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();recordPayment(r.id, r.monthlyPmt)}}>Record Payment</Btn>:<span style={{fontSize:10,color:C.textMuted}}>View only</span> },
-        ]} rows={overdue.sort((a,b)=>b.dpd-a.dpd)} onRowClick={r=>setDetail({type:"loan",id:r.id})} />
-      )}
-    </div>);
-  }
 
   function Collections() {
     const activeLoans = loans.filter(l => l.status === "Active");

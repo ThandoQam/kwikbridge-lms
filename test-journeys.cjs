@@ -49,13 +49,14 @@ test('Customers', 'BEE status management', src.includes('updateBeeStatus'));
 test('Customers', 'Customer filter tabs', src.includes('FICA Pending') || src.includes('ficaStatus'));
 
 // ═══ 5. LOAN ORIGINATION ═══
-test('Origination', 'Application list table', src.includes('label:"App ID"'));
+const origExtracted = require('fs').readFileSync('./src/features/origination/components/OriginationPage.tsx', 'utf8');
+test('Origination', 'Application list table', origExtracted.includes("label: 'App ID'"));
 test('Origination', 'New application modal', src.includes('newApp') || src.includes('New Application'));
 test('Origination', 'Application assignment', src.includes('assignApplication'));
 test('Origination', 'QA sign-off', src.includes('qaSignOffApplication'));
 test('Origination', 'Withdrawal', src.includes('withdrawApplication'));
 test('Origination', 'Draft status + expiry', src.includes('Draft') && src.includes('expiresAt'));
-test('Origination', 'Pipeline KPIs', src.includes('Pipeline Value'));
+test('Origination', 'Pipeline KPIs', origExtracted.includes('Pipeline Value'));
 test('Origination', 'Status tabs (all/draft/submitted/etc)', src.includes('Draft (QA Pending)') || src.includes('Submitted'));
 test('Origination', 'Approval authority matrix display', src.includes('APPROVAL_LIMITS'));
 
@@ -230,6 +231,9 @@ const extractedFeatures = {
   'Underwriting': 'features/underwriting',
   'Comms': 'features/comms',
   'Customers': 'features/customers',
+  'Origination': 'features/origination',
+  'Loans': 'features/loans',
+  'Servicing': 'features/servicing',
 };
 pageComponents.forEach(comp => {
   const inline = src.includes(`function ${comp}(`);
