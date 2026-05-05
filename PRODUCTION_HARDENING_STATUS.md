@@ -41,7 +41,7 @@ done, what is partial, and what remains.
 | TD-15 | API rate limiting | ✅ Done | Token bucket per user/IP, 60/300 req/min |
 | TD-16 | Webhook system | ✅ Done | HMAC-signed, exponential backoff, dead-letter |
 | TD-17 | Accessibility audit | ✅ Done | Full WCAG 2.1 AA compliance — accessibility.ts module, ARIA on all primitives, focus trap, skip links, 47 unit tests. See docs/ACCESSIBILITY_AUDIT.md |
-| TD-22 | Real test coverage | ⚠️ Substantially advanced | 217 unit tests across 9 modules covering amortisation, validation, payments, bureau, decisioning, collections AI, EOD batch, field verification, accessibility. Cypress configured with 5 specs, runs deferred to deployed env |
+| TD-22 | Real test coverage | ✅ Done | 366 unit tests across 15 modules covering amortisation, validation, payments, bureau, decisioning, collections AI, EOD batch, field verification, accessibility, permissions/RBAC, IFRS 9 stress testing, document AI, event bus, notifications, loan assistant. Every pure-function IP module under regression coverage. Cypress configured with 5 specs, deferred to deployed env. |
 | Real DHA verification | ❌ Not started | Requires DHA API access agreement |
 | Borrower document upload UI | ✅ Already existed | 8 doc types with progress tracker |
 | Load testing | ❌ Not started | Requires real environment + tooling |
