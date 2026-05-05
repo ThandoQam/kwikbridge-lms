@@ -34,7 +34,7 @@ done, what is partial, and what remains.
 
 | ID | Item | Status | Notes |
 |---|---|---|---|
-| TD-1 | Monolith refactor | ⚠️ Substantially advanced | 12 pages extracted to src/features/, monolith down 1,168 lines (-14.2%). Remaining: renderDetail (951 lines), Dashboard (300 lines) |
+| TD-1 | Monolith refactor | ⚠️ Substantially advanced | 13 pages + NewAppModal extracted to src/features/, monolith down 1,328 lines (-16.2%). DataProvider context wired into monolith — extracted features can now use useData() instead of prop drilling. Remaining (Dashboard 296 lines, Administration 350 lines, renderDetail 951 lines) deferred to focused refactor sprint that adds UI handlers context for setPage/setDetail/setModal. |
 | TD-6 | Payment integration | ⚠️ Adapter built | MockProvider works, real Stitch/Peach swap-in pending |
 | TD-7 | Bureau/KYC integration | ⚠️ Adapter built | MockBureauProvider works, real TransUnion swap-in pending |
 | TD-11 | Mobile responsive audit | ✅ Done | 41 grid layouts classed responsively, 4 fixed-width panels bounded by viewport, breakpoint system documented. See docs/MOBILE_RESPONSIVE_AUDIT.md. Real-device testing deferred to staging QA. |

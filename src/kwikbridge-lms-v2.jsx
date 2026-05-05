@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { ErrorBoundary } from "./components/system/ErrorBoundary";
+import { DataProvider } from "./contexts/DataContext";
 
 /* ═══════════════════════════════════════════════════════════════════
    KWIKBRIDGE LOAN MANAGEMENT SYSTEM v2.0
@@ -6763,8 +6764,19 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
     return { passed, failed: failed.length, total: results.length };
   };
 
+  // ═══ DataProvider context value — exposes shared state to extracted features ═══
+  // Extracted feature components can use useData() instead of receiving data via props.
+  // This is the bridge that lets us continue extracting Dashboard/Administration/renderDetail
+  // without threading 60+ individual props through every call site.
+  const dataContextValue = {
+    customers, applications, loans, products, documents, audit, alerts,
+    provisions, comms, collections, statutoryReports, settings,
+    save, cust, prod, addAudit,
+  };
+
 
   return (
+    <DataProvider value={dataContextValue}>
     <div style={{ fontFamily:"'Outfit','Segoe UI',system-ui,sans-serif", background:C.bg, minHeight:"100vh", display:"flex", color:C.text }}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
       <style>{GLOBAL_CSS}</style>
@@ -6873,5 +6885,6 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
 
       <NewAppModalExtracted modal={modal} setModal={setModal} customers={customers} products={products} cust={cust} prod={prod} submitApp={submitApp} Modal={Modal} Field={Field} Select={Select} Input={Input} Textarea={Textarea} Btn={Btn} fmt={fmt} C={C} />
     </div>
+    </DataProvider>
   );
 }
