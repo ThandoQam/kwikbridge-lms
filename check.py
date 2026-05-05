@@ -153,6 +153,7 @@ EXTRACTED_PAGES = {
     'Administration': 'features/admin',
     'DetailView': 'features/shared',
     'renderDetail': 'features/shared',  # extracted as DetailView component
+    'renderPage': 'features/shared',  # extracted as StaffRouter component
 }
 for p in REQUIRED_PAGES:
     inline = f'function {p}' in t

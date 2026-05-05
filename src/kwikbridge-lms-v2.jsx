@@ -54,6 +54,7 @@ import { StatutoryReportingPage as StatutoryReportingPageExtracted } from "./fea
 import { DashboardPage as DashboardPageExtracted } from "./features/dashboard";
 import { AdministrationPage as AdministrationPageExtracted } from "./features/admin";
 import { DetailView as DetailViewExtracted } from "./features/shared";
+import { StaffRouter as StaffRouterExtracted } from "./features/shared";
 import { LoansPage as LoansPageExtracted } from "./features/loans";
 import { ServicingPage as ServicingPageExtracted } from "./features/servicing";
 import { CollectionsPage as CollectionsPageExtracted } from "./features/collections";
@@ -5019,33 +5020,6 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
     });
   };
 
-  function renderPage() {
-    if (detail) return <ErrorBoundary fallback="page-level" pageName="Detail View"><DetailViewExtracted Btn={Btn} Field={Field} Input={Input} Select={Select} KPI={KPI} Badge={Badge} SectionCard={SectionCard} ProgressBar={ProgressBar} Table={Table} InfoGrid={InfoGrid} I={I} C={C} fmt={fmt} statusBadge={statusBadge} cell={cell} ROLES={ROLES} SECURITY_INSTRUMENTS={SECURITY_INSTRUMENTS} KYB_FICA_DOCS={KYB_FICA_DOCS} ddSteps={ddSteps} getProductSecurity={getProductSecurity} navTo={navTo} /></ErrorBoundary>;
-    // Each page wrapped in its own ErrorBoundary so a crash in one page
-    // doesn't take down the whole app — the user sees a friendly fallback
-    // and can navigate to other pages.
-    const wrap = (name, content) => <ErrorBoundary fallback="page-level" pageName={name}>{content}</ErrorBoundary>;
-    switch (page) {
-      case "dashboard": return wrap("Dashboard", <DashboardPageExtracted KPI={KPI} Btn={Btn} Badge={Badge} SectionCard={SectionCard} ProgressBar={ProgressBar} I={I} C={C} fmt={fmt} statusBadge={statusBadge} predictDelinquency={predictDelinquency} ROLES={ROLES} />);
-      case "customers": return wrap("Customers", <CustomersPageExtracted now={now} day={day} Btn={Btn} SectionCard={SectionCard} Field={Field} Input={Input} Select={Select} Tab={Tab} Table={Table} Badge={Badge} cell={cell} statusBadge={statusBadge} I={I} C={C} />);
-      case "origination": return wrap("Origination", <OriginationPageExtracted SYSTEM_USERS={SYSTEM_USERS} assignApplication={assignApplication} qaSignOffApplication={qaSignOffApplication} withdrawApplication={withdrawApplication} Btn={Btn} KPI={KPI} Tab={Tab} Table={Table} Badge={Badge} Modal={Modal} Field={Field} Textarea={Textarea} cell={cell} statusBadge={statusBadge} fmt={fmt} I={I} C={C} />);
-      case "underwriting": return wrap("Underwriting", <UnderwritingPageExtracted applications={applications} cust={cust} canDo={canDo} moveToUnderwriting={moveToUnderwriting} setDetail={setDetail} SectionCard={SectionCard} Table={Table} Btn={Btn} statusBadge={statusBadge} cell={cell} C={C} />);
-      case "loans": return wrap("Loans", <LoansPageExtracted day={day} canDoAny={canDoAny} KPI={KPI} Tab={Tab} Table={Table} Badge={Badge} Btn={Btn} cell={cell} statusBadge={statusBadge} fmt={fmt} C={C} />);
-      case "servicing": return wrap("Servicing", <ServicingPageExtracted day={day} KPI={KPI} Tab={Tab} Table={Table} Field={Field} Select={Select} Btn={Btn} cell={cell} statusBadge={statusBadge} fmt={fmt} C={C} />);
-      case "collections": return wrap("Collections", <CollectionsPageExtracted KPI={KPI} Tab={Tab} Table={Table} Badge={Badge} Btn={Btn} Modal={Modal} Field={Field} Input={Input} Textarea={Textarea} Select={Select} cell={cell} statusBadge={statusBadge} fmt={fmt} C={C} />);
-      case "provisioning": return wrap("IFRS 9 Provisioning", <ProvisioningPageExtracted KPI={KPI} SectionCard={SectionCard} Table={Table} Badge={Badge} cell={cell} fmt={fmt} C={C} />);
-      case "governance": return wrap("Governance", <GovernancePageExtracted now={now} day={day} PERMS={PERMS} ROLES={ROLES} APPROVAL_LIMITS={APPROVAL_LIMITS} SYSTEM_USERS={SYSTEM_USERS} save={save} KPI={KPI} Tab={Tab} Table={Table} Badge={Badge} SectionCard={SectionCard} InfoGrid={InfoGrid} Btn={Btn} cell={cell} fmt={fmt} C={C} />);
-      case "statutory": return wrap("Statutory Reporting", <StatutoryReportingPageExtracted KPI={KPI} Tab={Tab} Table={Table} Badge={Badge} SectionCard={SectionCard} Btn={Btn} ProgressBar={ProgressBar} statusBadge={statusBadge} fmt={fmt} I={I} C={C} />);
-      case "documents": return wrap("Documents", <DocumentsPageExtracted now={now} day={day} KPI={KPI} Tab={Tab} Table={Table} SectionCard={SectionCard} cell={cell} statusBadge={statusBadge} fmt={fmt} C={C} />);
-      case "reports": return wrap("Reports", <ReportsPageExtracted loans={loans} applications={applications} customers={customers} collections={collections} provisions={provisions} audit={audit} cust={cust} canDo={canDo} Btn={Btn} SectionCard={SectionCard} ProgressBar={ProgressBar} statusBadge={statusBadge} fmt={fmt} C={C} />);
-      case "investor": return wrap("Investor Dashboard", <InvestorDashboardExtracted loans={loans} applications={applications} provisions={provisions} customers={customers} prod={prod} Btn={Btn} fmt={fmt} C={C} />);
-      case "comms": return wrap("Communications", <CommsPageExtracted Table={Table} Badge={Badge} cell={cell} fmt={fmt} C={C} />);
-      case "admin": return wrap("Administration", <AdministrationPageExtracted now={now} day={day} cell={cell} getProductSecurity={getProductSecurity} Btn={Btn} SectionCard={SectionCard} Field={Field} Input={Input} Select={Select} Textarea={Textarea} Tab={Tab} Table={Table} Badge={Badge} InfoGrid={InfoGrid} I={I} C={C} fmt={fmt} statusBadge={statusBadge} ROLES={ROLES} PERMS={PERMS} APPROVAL_LIMITS={APPROVAL_LIMITS} SECURITY_INSTRUMENTS={SECURITY_INSTRUMENTS} />);
-      case "products": return wrap("Products", <AdministrationPageExtracted now={now} day={day} cell={cell} getProductSecurity={getProductSecurity} Btn={Btn} SectionCard={SectionCard} Field={Field} Input={Input} Select={Select} Textarea={Textarea} Tab={Tab} Table={Table} Badge={Badge} InfoGrid={InfoGrid} I={I} C={C} fmt={fmt} statusBadge={statusBadge} ROLES={ROLES} PERMS={PERMS} APPROVAL_LIMITS={APPROVAL_LIMITS} SECURITY_INSTRUMENTS={SECURITY_INSTRUMENTS} />);
-      case "settings": return wrap("Settings", <AdministrationPageExtracted now={now} day={day} cell={cell} getProductSecurity={getProductSecurity} Btn={Btn} SectionCard={SectionCard} Field={Field} Input={Input} Select={Select} Textarea={Textarea} Tab={Tab} Table={Table} Badge={Badge} InfoGrid={InfoGrid} I={I} C={C} fmt={fmt} statusBadge={statusBadge} ROLES={ROLES} PERMS={PERMS} APPROVAL_LIMITS={APPROVAL_LIMITS} SECURITY_INSTRUMENTS={SECURITY_INSTRUMENTS} />);
-      default: return wrap("Dashboard", <Dashboard />);
-    }
-  }
 
 
 
@@ -5324,7 +5298,30 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
 
         <SkipLinks />
         <main id="kb-main-content" style={{ flex:1, overflow:"auto", padding:"20px 24px" }} onClick={()=>notifOpen&&setNotifOpen(false)}>
-          {renderPage()}
+          <StaffRouterExtracted
+            Btn={Btn} Badge={Badge} Field={Field} Input={Input} Textarea={Textarea}
+            Select={Select} KPI={KPI} SectionCard={SectionCard} ProgressBar={ProgressBar}
+            Tab={Tab} Table={Table} InfoGrid={InfoGrid} Modal={Modal}
+            ErrorBoundary={ErrorBoundary}
+            I={I} C={C} fmt={fmt} statusBadge={statusBadge} cell={cell}
+            predictDelinquency={predictDelinquency}
+            getProductSecurity={getProductSecurity}
+            navTo={navTo} canDoAny={canDoAny}
+            ROLES={ROLES} PERMS={PERMS} APPROVAL_LIMITS={APPROVAL_LIMITS}
+            SECURITY_INSTRUMENTS={SECURITY_INSTRUMENTS}
+            KYB_FICA_DOCS={KYB_FICA_DOCS} ddSteps={ddSteps}
+            SYSTEM_USERS={SYSTEM_USERS}
+            now={now} day={day}
+            assignApplication={assignApplication}
+            qaSignOffApplication={qaSignOffApplication}
+            withdrawApplication={withdrawApplication}
+            moveToUnderwriting={moveToUnderwriting}
+            applications={applications} customers={customers}
+            loans={loans} collections={collections}
+            provisions={provisions} audit={audit}
+            cust={cust} prod={prod}
+            canDo={canDo} setDetail={setDetail} save={save}
+          />
         </main>
       </div>
 

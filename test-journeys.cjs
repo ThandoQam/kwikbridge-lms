@@ -266,8 +266,8 @@ pageComponents.forEach(comp => {
 
 // Check detail views render
 test('Render', 'renderDetail function', src.includes('function renderDetail') || src.includes('DetailView'));
-test('Render', 'renderPage function', src.includes('renderPage()'));
-test('Render', 'Detail → renderDetail routing', src.includes('if (detail) return') && src.includes('renderDetail()'));
+test('Render', 'staff router wired', src.includes('renderPage()') || src.includes('StaffRouter'));
+test('Render', 'Detail → renderDetail routing', src.includes('renderDetail()') || src.includes('DetailView'));
 
 // ═══ REPORT ═══
 console.log('\n═══════════════════════════════════════════════════════');
