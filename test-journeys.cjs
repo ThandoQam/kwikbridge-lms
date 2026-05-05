@@ -255,6 +255,7 @@ const extractedFeatures = {
   'Governance': 'features/governance',
   'StatutoryReporting': 'features/statutory',
   'Dashboard': 'features/dashboard',
+  'Administration': 'features/admin',
 };
 pageComponents.forEach(comp => {
   const inline = src.includes(`function ${comp}(`);

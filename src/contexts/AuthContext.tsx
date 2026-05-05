@@ -15,9 +15,13 @@ import { createContext, useContext, type ReactNode } from 'react';
 export interface AuthContextValue {
   authSession: any;
   currentUser: any;
+  setCurrentUser: (u: any) => void;
   role: string;
   canDo: (mod: string, action: string) => boolean;
   signOut: () => void;
+  // System users (also used by Administration for user mgmt + by header impersonation switcher)
+  sysUsers: any[];
+  setSysUsers: (users: any[]) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
