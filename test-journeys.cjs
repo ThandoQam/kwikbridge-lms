@@ -203,7 +203,8 @@ test('Compliance', 'Sanctions screening', src.includes('sanctions') && src.inclu
 test('Compliance', 'NCR registration display', src.includes('NCRCP22396'));
 
 // ═══ 23. DATA INTEGRITY ═══
-test('Data', 'Supabase connection', src.includes('supabase.co'));
+const configSrc = require('fs').readFileSync('src/lib/config.ts', 'utf-8');
+test('Data', 'Supabase connection', configSrc.includes('supabase.co'));
 test('Data', 'Seed data function', src.includes('Reset Demo') || src.includes('localStorage'));
 test('Data', 'Save function', src.includes('const save ='));
 test('Data', 'Audit trail on mutations', (src.match(/addAudit\(/g) || []).length >= 30);
@@ -227,7 +228,7 @@ pageComponents.forEach(comp => {
 // Check detail views render
 test('Render', 'renderDetail function', src.includes('function renderDetail'));
 test('Render', 'renderPage function', src.includes('renderPage()'));
-test('Render', 'Detail → renderDetail routing', src.includes('if (detail) return renderDetail()'));
+test('Render', 'Detail → renderDetail routing', src.includes('if (detail) return') && src.includes('renderDetail()'));
 
 // ═══ REPORT ═══
 console.log('\n═══════════════════════════════════════════════════════');

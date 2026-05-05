@@ -1,7 +1,29 @@
-node_modules/
+# Dependencies
+node_modules
+dist
+build
+
+# Environment
 .env
-.DS_Store
+.env.local
+.env.*.local
+!.env.example
+
+# Logs
 *.log
-dist/
-build/
-.cache/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor
+.vscode
+.idea
+*.swp
+*.swo
+.DS_Store
+
+# Test artifacts
+coverage
+.nyc_output
+playwright-report
+test-results

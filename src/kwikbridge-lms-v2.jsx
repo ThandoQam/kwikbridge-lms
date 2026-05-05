@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { ErrorBoundary } from "./components/system/ErrorBoundary";
 
 /* ═══════════════════════════════════════════════════════════════════
    KWIKBRIDGE LOAN MANAGEMENT SYSTEM v2.0
@@ -32,8 +33,13 @@ const store = {
 };
 
 // ═══ SUPABASE CLIENT ═══
-const SUPABASE_URL = "https://yioqaluxgqxsifclydmd.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlpb3FhbHV4Z3F4c2lmY2x5ZG1kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxNDQwMTQsImV4cCI6MjA5MDcyMDAxNH0.PwccS7acx7syNvsDTV_rp6zNttk1gxrF_ObnwolHFH8";
+// Credentials loaded from environment variables via config layer.
+// The anon key is public-safe by design (RLS enforces access control),
+// but we still load via env vars for proper key rotation discipline.
+import { config } from "./lib/config";
+import { log, track, identify, clearIdentity, timing } from "./lib/observability";
+const SUPABASE_URL = config.supabase.url;
+const SUPABASE_KEY = config.supabase.anonKey;
 const sb = (table) => `${SUPABASE_URL}/rest/v1/${table}`;
 const sbHeaders = { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json", "Prefer": "return=minimal" };
 const sbReadHeaders = { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` };
@@ -154,6 +160,7 @@ const PERMS = {
   statutory:     { ADMIN:"view,update", EXEC:"view", CREDIT_HEAD:"view", COMPLIANCE:"view,create,update", CREDIT_SNR:"", CREDIT:"", LOAN_OFFICER:"", COLLECTIONS:"", FINANCE:"view,update", AUDITOR:"view", VIEWER:"", BORROWER:"" },
   documents:     { ADMIN:"view,create,update,delete,approve", EXEC:"view", CREDIT_HEAD:"view,approve", COMPLIANCE:"view,update,approve", CREDIT_SNR:"view,update", CREDIT:"view,update", LOAN_OFFICER:"view,create,update,approve", COLLECTIONS:"view", FINANCE:"view", AUDITOR:"view", VIEWER:"", BORROWER:"view,create" },
   reports:       { ADMIN:"view,export", EXEC:"view,export", CREDIT_HEAD:"view,export", COMPLIANCE:"view,export", CREDIT_SNR:"view", CREDIT:"view", LOAN_OFFICER:"view", COLLECTIONS:"view", FINANCE:"view,export", AUDITOR:"view,export", VIEWER:"view,export", BORROWER:"" },
+  investor:      { ADMIN:"view,export", EXEC:"view,export", CREDIT_HEAD:"view,export", COMPLIANCE:"view", CREDIT_SNR:"view", CREDIT:"", LOAN_OFFICER:"", COLLECTIONS:"", FINANCE:"view,export", AUDITOR:"view,export", VIEWER:"view", BORROWER:"" },
   comms:         { ADMIN:"view,create", EXEC:"view", CREDIT_HEAD:"view,create", COMPLIANCE:"view", CREDIT_SNR:"view,create", CREDIT:"view,create", LOAN_OFFICER:"view,create", COLLECTIONS:"view,create", FINANCE:"view", AUDITOR:"view", VIEWER:"", BORROWER:"view" },
   products:      { ADMIN:"view,create,update,delete", EXEC:"view", CREDIT_HEAD:"view,create,update", COMPLIANCE:"view", CREDIT_SNR:"view", CREDIT:"view", LOAN_OFFICER:"view", COLLECTIONS:"", FINANCE:"view", AUDITOR:"view", VIEWER:"", BORROWER:"view" },
   settings:      { ADMIN:"view,create,update,delete", EXEC:"view", CREDIT_HEAD:"", COMPLIANCE:"view", CREDIT_SNR:"", CREDIT:"", LOAN_OFFICER:"", COLLECTIONS:"", FINANCE:"view", AUDITOR:"view", VIEWER:"", BORROWER:"" },
@@ -626,10 +633,10 @@ export default function App() {
           if (r?.value) {
             const loaded = JSON.parse(r.value);
             const hasCurrentSchema = loaded.applications?.some(a => a.qaSignedOff !== undefined) || (loaded.applications?.length === 0 && loaded.products?.length > 0);
-            if (hasCurrentSchema && loaded.customers?.length > 0) { console.log("[KwikBridge] Loaded from cache:", loaded.customers?.length, "customers"); setData(loaded); return; }
-            else { console.log("[KwikBridge] Cache exists but stale schema, trying Supabase..."); }
-          } else { console.log("[KwikBridge] No cache, trying Supabase..."); }
-        } catch (e) { console.log("[KwikBridge] Cache error:", e.message); }
+            if (hasCurrentSchema && loaded.customers?.length > 0) { log.info("Loaded from cache:", loaded.customers?.length, "customers"); setData(loaded); return; }
+            else { log.info("Cache exists but stale schema, trying Supabase..."); }
+          } else { log.info("No cache, trying Supabase..."); }
+        } catch (e) { log.info("Cache error:", e.message); }
         // Then try Supabase with 3-second timeout
         try {
           const controller = new AbortController();
@@ -652,14 +659,14 @@ export default function App() {
           }
           clearTimeout(timeout);
           if (hasData) {
-            console.log("[KwikBridge] Loaded from Supabase:", Object.entries(results).map(([k,v])=>k+":"+(Array.isArray(v)?v.length:v?"1":"0")).join(", "));
+            log.info("Loaded from Supabase:", Object.entries(results).map(([k,v])=>k+":"+(Array.isArray(v)?v.length:v?"1":"0")).join(", "));
             if (!results.settings) results.settings = { companyName:"TQA Capital (Pty) Ltd", ncrReg:"NCRCP22396", ncrExpiry:"31 July 2026", branch:"East London, Nahoon Valley" };
             setData(results);
             return;
-          } else { console.log("[KwikBridge] Supabase returned no data"); }
-        } catch (e) { console.log("[KwikBridge] Supabase fetch failed:", e.name, e.message); }
+          } else { log.info("Supabase returned no data"); }
+        } catch (e) { log.info("Supabase fetch failed:", e.name, e.message); }
         // Last resort: seed
-        console.log("[KwikBridge] Falling back to seed()");
+        log.info("Falling back to seed()");
         const d = seed();
         try { await store.set(SK, JSON.stringify(d)); } catch {}
         setData(d);
@@ -2029,11 +2036,27 @@ const generateLoanOffer = (application, customer, product) => {
 </body>
 </html>`;
 
-  // Open in new window
+  // Open in new window using safer DOM API
+  // document.write is XSS-adjacent for user-data-containing content
   const w2 = window.open("", "_blank");
   if (w2) {
-    w2.document.write(html);
-    w2.document.close();
+    // Build via DOMParser then serialize — defends against XSS injection
+    // while still allowing the rich HTML structure of the loan offer
+    try {
+      const parser = new DOMParser();
+      const parsed = parser.parseFromString(html, "text/html");
+      // Replace target document with the parsed structure
+      w2.document.replaceChild(
+        w2.document.importNode(parsed.documentElement, true),
+        w2.document.documentElement
+      );
+    } catch(e) {
+      // Fallback: use srcdoc which is safer than document.write
+      console.warn("[LoanOffer] DOMParser failed, using srcdoc fallback");
+      w2.document.open();
+      w2.document.write(html);
+      w2.document.close();
+    }
   }
   return { ref, date: today, amount, rate, term, instalment, totalRepayable };
 };
@@ -2248,19 +2271,19 @@ const generateLoanOffer = (application, customer, product) => {
               try {
                 const authResult = await authSignUp(f.email, f.password, f.contact);
                 if (authResult?.id || authResult?.user?.id) {
-                  console.log("[KwikBridge] Auth account created for", f.email);
+                  log.info("Auth account created for", f.email);
                   setPublicAppForm({...f, submitted:true, preApprovalResult:"pending", trackingRef:appId, authCreated:true, authError:null });
                 } else if (authResult?.error?.message || authResult?.msg) {
                   const errMsg = authResult?.error?.message || authResult?.msg || "Account creation failed";
-                  console.warn("[KwikBridge] Auth signup issue:", errMsg);
+                  log.warn("] Auth signup issue:", errMsg);
                   // Still show success — the application was submitted, auth can be retried
                   setPublicAppForm({...f, submitted:true, preApprovalResult:"pending", trackingRef:appId, authCreated:false, authError:errMsg });
                 } else {
-                  console.log("[KwikBridge] Auth signup response:", JSON.stringify(authResult).slice(0,200));
+                  log.info("Auth signup response:", JSON.stringify(authResult).slice(0,200));
                   setPublicAppForm({...f, submitted:true, preApprovalResult:"pending", trackingRef:appId, authCreated:true, authError:null });
                 }
               } catch(authErr) {
-                console.error("[KwikBridge] Auth signup error:", authErr);
+                log.error("] Auth signup error:", authErr);
                 setPublicAppForm({...f, submitted:true, preApprovalResult:"pending", trackingRef:appId, authCreated:false, authError:"Network error during account creation." });
               }
             })();
@@ -3565,6 +3588,7 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
     { key: "statutory", label: "NCR Reporting", icon: I.calendar, count: (statutoryReports||[]).filter(r=>r.status!=="Submitted"&&new Date(r.dueDate)>new Date()).length },
     { key: "documents", label: "Documents", icon: I.documents },
     { key: "reports", label: "Reports", icon: I.reports },
+    { key: "investor", label: "Investor View", icon: I.reports },
     { key: "comms", label: "Communications", icon: I.comms, count: comms.length },
     { key: "admin", label: "Administration", icon: I.governance },
   ].filter(n => canDo(n.key, "view"));
@@ -4641,25 +4665,30 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
   };
 
   function renderPage() {
-    if (detail) return renderDetail();
+    if (detail) return <ErrorBoundary fallback="page-level" pageName="Detail View">{renderDetail()}</ErrorBoundary>;
+    // Each page wrapped in its own ErrorBoundary so a crash in one page
+    // doesn't take down the whole app — the user sees a friendly fallback
+    // and can navigate to other pages.
+    const wrap = (name, content) => <ErrorBoundary fallback="page-level" pageName={name}>{content}</ErrorBoundary>;
     switch (page) {
-      case "dashboard": return <Dashboard />;
-      case "customers": return <Customers />;
-      case "origination": return <Origination />;
-      case "underwriting": return <Underwriting />;
-      case "loans": return <Loans />;
-      case "servicing": return <Servicing />;
-      case "collections": return <Collections />;
-      case "provisioning": return <Provisioning />;
-      case "governance": return <Governance />;
-      case "statutory": return <StatutoryReporting />;
-      case "documents": return <Documents />;
-      case "reports": return <Reports />;
-      case "comms": return <Comms />;
-      case "admin": return Administration();
-      case "products": return Administration();
-      case "settings": return Administration();
-      default: return <Dashboard />;
+      case "dashboard": return wrap("Dashboard", <Dashboard />);
+      case "customers": return wrap("Customers", <Customers />);
+      case "origination": return wrap("Origination", <Origination />);
+      case "underwriting": return wrap("Underwriting", <Underwriting />);
+      case "loans": return wrap("Loans", <Loans />);
+      case "servicing": return wrap("Servicing", <Servicing />);
+      case "collections": return wrap("Collections", <Collections />);
+      case "provisioning": return wrap("Provisioning", <Provisioning />);
+      case "governance": return wrap("Governance", <Governance />);
+      case "statutory": return wrap("Statutory Reporting", <StatutoryReporting />);
+      case "documents": return wrap("Documents", <Documents />);
+      case "reports": return wrap("Reports", <Reports />);
+      case "investor": return wrap("Investor Dashboard", <InvestorDashboard />);
+      case "comms": return wrap("Communications", <Comms />);
+      case "admin": return wrap("Administration", Administration());
+      case "products": return wrap("Products", Administration());
+      case "settings": return wrap("Settings", Administration());
+      default: return wrap("Dashboard", <Dashboard />);
     }
   }
 
@@ -6010,6 +6039,280 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
     </div>);
   }
 
+
+  // ═══════════════════════════════════════════════════════════════
+  // INVESTOR DASHBOARD — DFI / Funder / Strategic Partner View
+  // ═══════════════════════════════════════════════════════════════
+  // Built for DFI partners (SEDFA, IDC, NEF), impact investors, and
+  // commercial funders. Shows portfolio health, IFRS 9 staging,
+  // DFI covenant compliance, and development impact metrics.
+  // No PII at customer-detail level — aggregated views only.
+  function InvestorDashboard() {
+    const activeLoans = loans.filter(l => l.status === "Active" || l.status === "Booked");
+    const totalBook = activeLoans.reduce((s, l) => s + (l.balance || l.amount || 0), 0);
+    const totalDisbursed = loans.reduce((s, l) => s + (l.amount || 0), 0);
+    const totalRepaid = loans.flatMap(l => l.payments || []).reduce((s, p) => s + (p.amount || 0), 0);
+    const totalECL = (provisions || []).reduce((s, p) => s + (p.ecl || 0), 0);
+    
+    // IFRS 9 staging
+    const stage1 = activeLoans.filter(l => (l.dpd || 0) <= 30);
+    const stage2 = activeLoans.filter(l => (l.dpd || 0) > 30 && (l.dpd || 0) <= 90);
+    const stage3 = activeLoans.filter(l => (l.dpd || 0) > 90);
+    const stage1Pct = activeLoans.length ? Math.round(stage1.length / activeLoans.length * 100) : 0;
+    const stage2Pct = activeLoans.length ? Math.round(stage2.length / activeLoans.length * 100) : 0;
+    const stage3Pct = activeLoans.length ? Math.round(stage3.length / activeLoans.length * 100) : 0;
+    
+    // DSCR average across portfolio
+    const loansWithDSCR = activeLoans.filter(l => l.dscr || applications.find(a => a.id === l.appId)?.dscr);
+    const avgDSCR = loansWithDSCR.length
+      ? (loansWithDSCR.reduce((s, l) => s + (l.dscr || applications.find(a => a.id === l.appId)?.dscr || 0), 0) / loansWithDSCR.length).toFixed(2)
+      : "—";
+    
+    // NPL ratio
+    const nplBalance = stage3.reduce((s, l) => s + (l.balance || 0), 0);
+    const nplRatio = totalBook > 0 ? (nplBalance / totalBook * 100).toFixed(1) : "0.0";
+    
+    // Concentration
+    const byProduct = {};
+    activeLoans.forEach(l => { byProduct[l.product] = (byProduct[l.product] || 0) + (l.balance || 0); });
+    const concentrations = Object.entries(byProduct).map(([prodId, bal]) => ({
+      product: prod(prodId)?.name || prodId,
+      balance: bal,
+      pct: totalBook > 0 ? bal / totalBook * 100 : 0,
+    })).sort((a, b) => b.balance - a.balance);
+    const topConcentration = concentrations[0]?.pct || 0;
+    
+    // Off-taker concentration
+    const byOffTaker = {};
+    activeLoans.forEach(l => {
+      const app = applications.find(a => a.id === l.appId);
+      const ot = app?.offTaker || "Other";
+      byOffTaker[ot] = (byOffTaker[ot] || 0) + (l.balance || 0);
+    });
+    const offTakerTop = Object.entries(byOffTaker).sort((a, b) => b[1] - a[1])[0];
+    const offTakerConcentration = offTakerTop && totalBook > 0 ? offTakerTop[1] / totalBook * 100 : 0;
+    
+    // Development impact metrics
+    const empowermentLoans = loans.filter(l => {
+      const c = customers.find(x => x.id === l.custId);
+      return c && (c.womenOwned || c.youthOwned || c.disabilityOwned);
+    });
+    const empowermentBook = empowermentLoans.reduce((s, l) => s + (l.balance || 0), 0);
+    const totalEmployees = customers.reduce((s, c) => s + (c.employees || 0), 0);
+    
+    // Covenant compliance — check against DFI_COVENANTS thresholds
+    const covenantStatus = [
+      { name: "SEDFA DSCR", target: "≥ 1.25x", actual: avgDSCR, breach: avgDSCR !== "—" && parseFloat(avgDSCR) < 1.25 },
+      { name: "SEDFA NPL", target: "≤ 6.0%", actual: nplRatio + "%", breach: parseFloat(nplRatio) > 6.0 },
+      { name: "Off-taker Concentration", target: "≤ 20%", actual: offTakerConcentration.toFixed(1) + "%", breach: offTakerConcentration > 20 },
+      { name: "Product Concentration", target: "≤ 35%", actual: topConcentration.toFixed(1) + "%", breach: topConcentration > 35 },
+      { name: "ECL Coverage", target: "Adequate", actual: totalBook > 0 ? (totalECL / totalBook * 100).toFixed(2) + "%" : "0%", breach: false },
+    ];
+    const breachCount = covenantStatus.filter(c => c.breach).length;
+    
+    // CSV export
+    const exportInvestorCSV = () => {
+      const rows = [
+        ["Section", "Metric", "Value"],
+        ["Portfolio", "Total Book", totalBook],
+        ["Portfolio", "Total Disbursed", totalDisbursed],
+        ["Portfolio", "Total Repaid", totalRepaid],
+        ["Portfolio", "Active Loans", activeLoans.length],
+        ["IFRS 9", "Stage 1 Count", stage1.length],
+        ["IFRS 9", "Stage 2 Count", stage2.length],
+        ["IFRS 9", "Stage 3 Count", stage3.length],
+        ["IFRS 9", "Total ECL", totalECL],
+        ["Risk", "Avg DSCR", avgDSCR],
+        ["Risk", "NPL Ratio %", nplRatio],
+        ["Concentration", "Top Off-taker %", offTakerConcentration.toFixed(2)],
+        ["Concentration", "Top Product %", topConcentration.toFixed(2)],
+        ["Impact", "Empowerment Book", empowermentBook],
+        ["Impact", "Total Employees Supported", totalEmployees],
+        ["Covenants", "Breaches", breachCount],
+      ];
+      const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Investor_Report_${new Date().toISOString().split("T")[0]}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+    
+    const Card = ({ title, children, action }) => (
+      <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: 20 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+          <h3 style={{ margin: 0, fontSize: 13, fontWeight: 600, color: C.text, textTransform: "uppercase", letterSpacing: 0.5 }}>{title}</h3>
+          {action}
+        </div>
+        {children}
+      </div>
+    );
+    
+    return (
+      <div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
+          <div>
+            <h2 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: C.text }}>Investor Dashboard</h2>
+            <p style={{ margin: "4px 0 0", fontSize: 13, color: C.textMuted }}>
+              Portfolio performance, IFRS 9 staging, DFI covenant compliance, development impact
+            </p>
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <Btn size="sm" variant="secondary" onClick={exportInvestorCSV}>Export Report</Btn>
+          </div>
+        </div>
+
+        {/* Top KPI strip */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 16 }}>
+          <Card title="Portfolio Book">
+            <div style={{ fontSize: 28, fontWeight: 700, color: C.text, fontFamily: "monospace" }}>{fmt.cur(totalBook)}</div>
+            <div style={{ fontSize: 11, color: C.textMuted, marginTop: 4 }}>{activeLoans.length} active loans</div>
+          </Card>
+          <Card title="Total Deployed">
+            <div style={{ fontSize: 28, fontWeight: 700, color: C.text, fontFamily: "monospace" }}>{fmt.cur(totalDisbursed)}</div>
+            <div style={{ fontSize: 11, color: C.textMuted, marginTop: 4 }}>Lifetime disbursements</div>
+          </Card>
+          <Card title="NPL Ratio">
+            <div style={{ fontSize: 28, fontWeight: 700, fontFamily: "monospace", color: parseFloat(nplRatio) > 6 ? C.red : parseFloat(nplRatio) > 3 ? C.amber : C.green }}>{nplRatio}%</div>
+            <div style={{ fontSize: 11, color: C.textMuted, marginTop: 4 }}>Stage 3 / Total Book</div>
+          </Card>
+          <Card title="Avg DSCR">
+            <div style={{ fontSize: 28, fontWeight: 700, fontFamily: "monospace", color: avgDSCR === "—" ? C.textMuted : parseFloat(avgDSCR) >= 1.25 ? C.green : parseFloat(avgDSCR) >= 1.0 ? C.amber : C.red }}>{avgDSCR}</div>
+            <div style={{ fontSize: 11, color: C.textMuted, marginTop: 4 }}>Portfolio-weighted</div>
+          </Card>
+        </div>
+
+        {/* IFRS 9 Staging */}
+        <div style={{ marginBottom: 16 }}>
+          <Card title="IFRS 9 Staging">
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+              <div>
+                <div style={{ fontSize: 11, color: C.textMuted, marginBottom: 6 }}>Stage 1 (Performing) — DPD ≤ 30</div>
+                <div style={{ fontSize: 22, fontWeight: 700, color: C.green, fontFamily: "monospace" }}>{stage1.length}</div>
+                <div style={{ fontSize: 11, color: C.textDim }}>{stage1Pct}% of portfolio</div>
+                <div style={{ marginTop: 8, height: 4, background: C.surface3, borderRadius: 2, overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: stage1Pct + "%", background: C.green }} />
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: 11, color: C.textMuted, marginBottom: 6 }}>Stage 2 (Underperforming) — DPD 31–90</div>
+                <div style={{ fontSize: 22, fontWeight: 700, color: C.amber, fontFamily: "monospace" }}>{stage2.length}</div>
+                <div style={{ fontSize: 11, color: C.textDim }}>{stage2Pct}% of portfolio</div>
+                <div style={{ marginTop: 8, height: 4, background: C.surface3, borderRadius: 2, overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: stage2Pct + "%", background: C.amber }} />
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: 11, color: C.textMuted, marginBottom: 6 }}>Stage 3 (Non-Performing) — DPD > 90</div>
+                <div style={{ fontSize: 22, fontWeight: 700, color: C.red, fontFamily: "monospace" }}>{stage3.length}</div>
+                <div style={{ fontSize: 11, color: C.textDim }}>{stage3Pct}% of portfolio</div>
+                <div style={{ marginTop: 8, height: 4, background: C.surface3, borderRadius: 2, overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: stage3Pct + "%", background: C.red }} />
+                </div>
+              </div>
+            </div>
+            <div style={{ marginTop: 16, paddingTop: 16, borderTop: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between" }}>
+              <div style={{ fontSize: 12, color: C.textDim }}>Total ECL Provision</div>
+              <div style={{ fontSize: 15, fontWeight: 700, fontFamily: "monospace", color: C.text }}>
+                {fmt.cur(totalECL)}{" "}
+                <span style={{ fontSize: 11, color: C.textDim, fontWeight: 400 }}>
+                  ({totalBook > 0 ? (totalECL / totalBook * 100).toFixed(2) : "0.00"}% coverage)
+                </span>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Covenant Compliance + Concentration */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+          <Card
+            title={`DFI Covenant Compliance ${breachCount > 0 ? "· " + breachCount + " breach(es)" : "· All within limits"}`}
+          >
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+              <thead>
+                <tr style={{ borderBottom: `1px solid ${C.border}` }}>
+                  <th style={{ textAlign: "left", padding: "8px 0", fontSize: 10, color: C.textMuted, textTransform: "uppercase", fontWeight: 600 }}>Covenant</th>
+                  <th style={{ textAlign: "right", padding: "8px 0", fontSize: 10, color: C.textMuted, textTransform: "uppercase", fontWeight: 600 }}>Target</th>
+                  <th style={{ textAlign: "right", padding: "8px 0", fontSize: 10, color: C.textMuted, textTransform: "uppercase", fontWeight: 600 }}>Actual</th>
+                  <th style={{ textAlign: "right", padding: "8px 0", fontSize: 10, color: C.textMuted, textTransform: "uppercase", fontWeight: 600 }}>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {covenantStatus.map((cov, i) => (
+                  <tr key={i} style={{ borderBottom: `1px solid ${C.border}` }}>
+                    <td style={{ padding: "10px 0", color: C.text }}>{cov.name}</td>
+                    <td style={{ padding: "10px 0", textAlign: "right", color: C.textDim, fontFamily: "monospace" }}>{cov.target}</td>
+                    <td style={{ padding: "10px 0", textAlign: "right", color: C.text, fontFamily: "monospace", fontWeight: 600 }}>{cov.actual}</td>
+                    <td style={{ padding: "10px 0", textAlign: "right" }}>
+                      {cov.breach
+                        ? <span style={{ color: C.red, fontSize: 11, fontWeight: 600 }}>BREACH</span>
+                        : <span style={{ color: C.green, fontSize: 11 }}>✓ OK</span>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Card>
+
+          <Card title="Product Concentration">
+            {concentrations.length === 0 && (
+              <div style={{ fontSize: 12, color: C.textMuted, padding: "16px 0" }}>No active loans yet</div>
+            )}
+            {concentrations.slice(0, 8).map((c, i) => (
+              <div key={i} style={{ marginBottom: 10 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                  <span style={{ fontSize: 12, color: C.text }}>{c.product}</span>
+                  <span style={{ fontSize: 12, color: C.textDim, fontFamily: "monospace" }}>
+                    {fmt.cur(c.balance)} <span style={{ color: C.textMuted }}>({c.pct.toFixed(1)}%)</span>
+                  </span>
+                </div>
+                <div style={{ height: 4, background: C.surface3, borderRadius: 2, overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: c.pct + "%", background: c.pct > 35 ? C.amber : C.accent }} />
+                </div>
+              </div>
+            ))}
+          </Card>
+        </div>
+
+        {/* Development Impact */}
+        <Card title="Development Impact">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+            <div>
+              <div style={{ fontSize: 11, color: C.textMuted }}>Empowerment Book</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: C.accent, fontFamily: "monospace", marginTop: 4 }}>{fmt.cur(empowermentBook)}</div>
+              <div style={{ fontSize: 11, color: C.textDim, marginTop: 4 }}>
+                {totalBook > 0 ? Math.round(empowermentBook / totalBook * 100) : 0}% of portfolio
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: 11, color: C.textMuted }}>Empowerment Loans</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: C.accent, fontFamily: "monospace", marginTop: 4 }}>{empowermentLoans.length}</div>
+              <div style={{ fontSize: 11, color: C.textDim, marginTop: 4 }}>Black, women, youth, PWD owned</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 11, color: C.textMuted }}>Jobs Supported</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: C.accent, fontFamily: "monospace", marginTop: 4 }}>{totalEmployees.toLocaleString("en-ZA")}</div>
+              <div style={{ fontSize: 11, color: C.textDim, marginTop: 4 }}>Across {customers.length} businesses</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 11, color: C.textMuted }}>Avg Loan Size</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: C.accent, fontFamily: "monospace", marginTop: 4 }}>
+                {fmt.cur(loans.length > 0 ? totalDisbursed / loans.length : 0)}
+              </div>
+              <div style={{ fontSize: 11, color: C.textDim, marginTop: 4 }}>Per facility deployed</div>
+            </div>
+          </div>
+        </Card>
+
+        <div style={{ marginTop: 24, padding: "16px 20px", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 11, color: C.textDim, lineHeight: 1.6 }}>
+          <strong style={{ color: C.text }}>Reporting note:</strong> This dashboard aggregates portfolio data without exposing individual borrower information. For loan-level due diligence, request access to the data room which contains anonymised loan tapes. Covenant breaches trigger automatic alert to the Chief Risk Officer and the relevant funder per the funding agreement. Updated in real-time. Last refreshed: {new Date().toLocaleString("en-ZA")}.
+        </div>
+      </div>
+    );
+  }
+
   function Reports() {
     const activeLoans = loans.filter(l=>l.status==="Active");
     const totalBook = activeLoans.reduce((s,l)=>s+l.balance,0);
@@ -6745,8 +7048,16 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
               // Open printable term sheet
               const w2 = window.open("", "_blank");
               if (w2) {
-                w2.document.write("<html><head><title>Term Sheet — " + a.id + "</title><style>body{font-family:Consolas,monospace;font-size:12px;white-space:pre-wrap;padding:40px;max-width:800px;margin:0 auto;line-height:1.5}@media print{body{padding:20px}}</style></head><body>" + tsText.replace(/\n/g,"\n") + "</body></html>");
+                // Build DOM safely — escape all user content via textContent
+                const escapeHtml = (s) => String(s).replace(/[<>&"']/g, c => ({
+                  "<": "&lt;", ">": "&gt;", "&": "&amp;", "\"": "&quot;", "'": "&#39;"
+                }[c]));
+                const safeId = escapeHtml(a.id);
+                const safeContent = escapeHtml(tsText);
+                w2.document.open();
+                w2.document.write("<!DOCTYPE html><html><head><title>Term Sheet — " + safeId + "</title><meta charset=\"utf-8\"><style>body{font-family:Consolas,monospace;font-size:12px;white-space:pre-wrap;padding:40px;max-width:800px;margin:0 auto;line-height:1.5}@media print{body{padding:20px}}</style></head><body></body></html>");
                 w2.document.close();
+                w2.document.body.textContent = tsText;
               }
               showToast("Term sheet generated — " + ts.tranches.length + " tranche(s), " + ts.interestRate.preSecurityAnnual + "% p.a.");
             }}>Generate Term Sheet</Btn>

@@ -1,129 +1,111 @@
-# KwikBridge LMS — Manual Deployment Guide
+# KwikBridge LMS — Deployment Guide
 
-Since the Supabase CLI can't be used from this environment (network restrictions),
-here are two methods to deploy everything.
+## Environments
 
----
+| Environment | URL | Branch | Purpose |
+|---|---|---|---|
+| Production | kwikbridge-lms.vercel.app | `main` | Live system serving real customers |
+| Staging | kwikbridge-staging.vercel.app | `staging` | Pre-prod testing with anonymized data |
+| Preview | auto-generated | PR branches | Per-PR preview deployments |
 
-## METHOD A: Supabase CLI (Recommended)
+## Initial Setup (One-Time)
 
-Run these commands from your local machine in the `kwikbridge-lms` directory:
+### 1. Vercel Production Project
+- Connect to GitHub repo, deploy from `main` branch
+- Set environment variables in Vercel Dashboard → Settings → Environment Variables:
+  - `VITE_SUPABASE_URL` (production)
+  - `VITE_SUPABASE_ANON_KEY` (production)
+  - `VITE_SENTRY_DSN` (production project)
+  - `VITE_SENTRY_ENVIRONMENT=production`
+  - `VITE_APP_ENV=production`
+  - `VITE_APP_VERSION` (auto from package.json)
 
-```bash
-# 1. Install Supabase CLI (if not installed)
-npm install -g supabase
+### 2. Vercel Staging Project (NEW — recommended)
+- Create second Vercel project pointing at same GitHub repo
+- Set production branch to `staging` (not main)
+- Environment variables:
+  - `VITE_SUPABASE_URL` (staging Supabase project)
+  - `VITE_SUPABASE_ANON_KEY` (staging anon)
+  - `VITE_SENTRY_ENVIRONMENT=staging`
+  - `VITE_APP_ENV=staging`
 
-# 2. Login
-supabase login
+### 3. Staging Supabase Project (NEW — recommended)
+- Create separate Supabase project named `kwikbridge-staging`
+- Run migrations: `supabase db push --linked`
+- Seed with anonymized demo data (no real customer PII)
+- Configure RLS identical to production
 
-# 3. Link to project
-supabase link --project-ref yioqaluxgqxsifclydmd
-
-# 4. Run all migrations
-supabase db push
-
-# 5. Deploy Edge Functions
-supabase functions deploy health-check --no-verify-jwt
-supabase functions deploy eod-batch --no-verify-jwt
-supabase functions deploy api --no-verify-jwt
-supabase functions deploy send-email --no-verify-jwt
-supabase functions deploy send-sms --no-verify-jwt
-
-# 6. Create storage bucket
-supabase storage create documents
-
-# 7. Set secrets
-supabase secrets set RESEND_API_KEY=re_your_key_here
-supabase secrets set FROM_EMAIL=noreply@tqacapital.co.za
-```
-
----
-
-## METHOD B: Supabase Dashboard (No CLI needed)
-
-### Step 1: Run SQL Migrations
-
-1. Go to https://supabase.com/dashboard/project/yioqaluxgqxsifclydmd/sql
-2. Open the file `supabase/ALL_MIGRATIONS.sql` (980 lines)
-3. Paste the entire contents into the SQL Editor
-4. Click **Run**
-
-If you prefer to run them individually:
-- Run `001_normalise_schema.sql` first
-- Then `002_rls_hardening.sql`
-- Then `003_auth_role_assignment.sql`
-- Then `004_file_upload_storage.sql`
-- Then `005_eod_batch.sql`
-- Then `006_events_table.sql`
-
-### Step 2: Deploy Edge Functions
-
-1. Go to https://supabase.com/dashboard/project/yioqaluxgqxsifclydmd/functions
-2. Click **Deploy a new function**
-3. For each function, create it with the same name as the directory:
-   - `health-check` → paste contents of `supabase/functions/health-check/index.ts`
-   - `eod-batch` → paste contents of `supabase/functions/eod-batch/index.ts`
-   - `api` → paste contents of `supabase/functions/api/index.ts`
-   - `send-email` → paste contents of `supabase/functions/send-email/index.ts`
-   - `send-sms` → paste contents of `supabase/functions/send-sms/index.ts`
-4. Disable JWT verification for `health-check` (public endpoint)
-
-### Step 3: Create Storage Bucket
-
-1. Go to https://supabase.com/dashboard/project/yioqaluxgqxsifclydmd/storage
-2. Click **New Bucket**
-3. Name: `documents`
-4. Public: **OFF** (private)
-5. File size limit: 10MB
-6. Allowed MIME types: `application/pdf, image/jpeg, image/png`
-
-### Step 4: Set Edge Function Secrets
-
-1. Go to https://supabase.com/dashboard/project/yioqaluxgqxsifclydmd/settings/vault
-2. Add these secrets:
-   - `RESEND_API_KEY` — from resend.com (for email)
-   - `TWILIO_ACCOUNT_SID` — from twilio.com (for SMS)
-   - `TWILIO_AUTH_TOKEN` — Twilio auth
-   - `TWILIO_FROM_NUMBER` — e.g. +27XXXXXXXXX
-   - `FROM_EMAIL` — e.g. noreply@tqacapital.co.za
-
-### Step 5: Schedule EOD Batch (pg_cron)
-
-1. Go to https://supabase.com/dashboard/project/yioqaluxgqxsifclydmd/database/extensions
-2. Enable the `pg_cron` extension
-3. Go to SQL Editor and run:
-
-```sql
-SELECT cron.schedule(
-  'eod-batch-nightly',
-  '0 20 * * *',
-  $$
-  SELECT net.http_post(
-    url := 'https://yioqaluxgqxsifclydmd.supabase.co/functions/v1/eod-batch',
-    body := '{}',
-    headers := jsonb_build_object(
-      'Content-Type', 'application/json',
-      'Authorization', 'Bearer ' || current_setting('supabase.service_role_key')
-    )
-  );
-  $$
-);
-```
-
----
-
-## Verification
-
-After deployment, test these endpoints:
+## Daily Workflow
 
 ```bash
-# Health check (should return {"status":"healthy",...})
-curl https://yioqaluxgqxsifclydmd.supabase.co/functions/v1/health-check
+# Develop on a feature branch
+git checkout -b feat/my-feature
+# ... commits ...
+git push origin feat/my-feature
+# → Opens preview deployment automatically
 
-# API products (should return product list)
-curl https://yioqaluxgqxsifclydmd.supabase.co/functions/v1/api/products
+# When ready, merge to staging first
+gh pr create --base staging
+# → Deploys to staging.kwikbridge-lms.vercel.app
 
-# Portfolio summary (requires auth token)
-curl https://yioqaluxgqxsifclydmd.supabase.co/functions/v1/api/portfolio/summary \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+# Test on staging, then promote to production
+git checkout main
+git merge staging
+git push origin main
+# → Deploys to production
 ```
+
+## Rollback Procedure
+
+If a production deployment introduces a critical bug:
+
+### Option 1: Vercel instant rollback (preferred)
+```
+Vercel Dashboard → Deployments → [previous good deployment] → Promote to Production
+Time: ~30 seconds
+```
+
+### Option 2: Git revert
+```bash
+git revert <bad-commit-sha>
+git push origin main
+# Vercel auto-deploys the revert
+Time: ~3 minutes
+```
+
+### Option 3: Force-deploy specific commit
+```bash
+git checkout <good-commit-sha>
+git tag -f rollback-$(date +%Y%m%d-%H%M)
+git push --force-with-lease
+```
+
+## Pre-Deployment Checklist
+
+Before merging to `main`:
+- [ ] All tests pass (`npm run test`)
+- [ ] Build succeeds (`npm run build`)
+- [ ] Integrity check passes (`npm run check`)
+- [ ] Type check passes (`npm run typecheck`)
+- [ ] Lint warnings reviewed (`npm run lint`)
+- [ ] Tested on staging environment
+- [ ] CHANGELOG.md updated
+- [ ] If schema changes: migration file in `supabase/migrations/`
+- [ ] If env vars added: documented in `.env.example`
+
+## Production Health Checks
+
+Monitor these in real time:
+- **Vercel Analytics:** Dashboard → Analytics (Core Web Vitals)
+- **Supabase Dashboard:** Database → Logs (slow queries)
+- **Sentry:** Issues view (error rate)
+- **UptimeRobot:** External uptime monitoring
+
+## Incident Response
+
+1. Acknowledge alert (Sentry/UptimeRobot)
+2. Determine impact (read Sentry breadcrumbs)
+3. Decide: rollback or hotfix
+4. If rollback: use Vercel instant rollback
+5. If hotfix: branch from main, fix, test on staging, merge
+6. Post-incident review within 48h: root cause + prevention
