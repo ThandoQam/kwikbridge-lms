@@ -1,24 +1,25 @@
 /**
  * CustomersPage — customer management with onboarding form.
  *
- * EXTRACTED FROM MONOLITH (Phase 1, May 2026).
- * Larger props surface due to UI building blocks; all dependencies
- * still come from the monolith for now.
+ * MIGRATED to context-based dependencies (Sprint 2/5, May 2026).
+ * Data, actions, UI state, and auth come from context hooks.
+ * UI primitives (Btn, Field, etc.) remain as props until a separate
+ * primitives cleanup pass.
  */
 
 // @ts-nocheck — transitional during monolith extraction.
 
 import React, { useState } from 'react';
+import { useData } from '../../../contexts/DataContext';
+import { useActions } from '../../../contexts/ActionsContext';
+import { useUI } from '../../../contexts/UIContext';
+import { useAuth } from '../../../contexts/AuthContext';
 
 interface CustomersPageProps {
-  customers: any[];
-  search: string;
+  // Time helpers (constants, not in any context — small enough to pass as props)
   now: number;
   day: number;
-  canDo: (mod: string, action: string) => boolean;
-  createCustomer: (data: any) => void;
-  showToast: (msg: string) => void;
-  setDetail: (d: any) => void;
+  // UI primitives
   Btn: any;
   SectionCard: any;
   Field: any;
@@ -34,14 +35,8 @@ interface CustomersPageProps {
 }
 
 export function CustomersPage({
-  customers,
-  search,
   now,
   day,
-  canDo,
-  createCustomer,
-  showToast,
-  setDetail,
   Btn,
   SectionCard,
   Field,
@@ -55,6 +50,12 @@ export function CustomersPage({
   I,
   C,
 }: CustomersPageProps) {
+  // ═══ Context-driven dependencies ═══
+  const { customers } = useData();
+  const { createCustomer } = useActions();
+  const { search, setDetail, showToast } = useUI();
+  const { canDo } = useAuth();
+
   const [tab, setTab] = useState('all');
   const [showCreate, setShowCreate] = useState(false);
   const [cForm, setCForm] = useState({
