@@ -3438,24 +3438,189 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
 
     const renderPortalPage = () => {
       switch(page) {
-        case "portal_dashboard": return (<div>
-          <h2 style={{ margin:"0 0 16px", fontSize:24, fontWeight:700 }}>Welcome{myCustomer ? `, ${myCustomer.contact}` : ""}</h2>
-          {!myCustomer && <div style={{ background:C.amberBg, border:`1px solid ${C.amber}`, padding:"16px 20px", marginBottom:16 }}>
-            <div style={{ fontSize:13, fontWeight:600, color:C.amber }}>Complete Your Profile</div>
-            <div style={{ fontSize:12, color:C.textDim, marginTop:4 }}>Your email ({myEmail}) is not linked to a customer record. Please contact TQA Capital to complete your onboarding.</div>
-          </div>}
-          <div className="kb-grid-3" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12 }}>
-            <div className="kb-kpi" style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding:20, position:"relative", overflow:"hidden", boxShadow:"0 1px 3px rgba(0,0,0,0.04)" }}><div style={{ position:"absolute", top:0, left:0, bottom:0, width:3, background:C.accent, opacity:0.7 }} /><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase", letterSpacing:0.8 }}>Applications</div><div style={{ fontSize:28, fontWeight:700, color:C.accent, marginTop:8 }}>{myApps.length}</div><div style={{ fontSize:10, color:C.textDim, marginTop:4 }}>{myApps.filter(a=>a.status==="Approved").length} approved</div></div>
-            <div className="kb-kpi" style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding:20, position:"relative", overflow:"hidden", boxShadow:"0 1px 3px rgba(0,0,0,0.04)" }}><div style={{ position:"absolute", top:0, left:0, bottom:0, width:3, background:C.accent, opacity:0.7 }} /><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase", letterSpacing:0.8 }}>Active Loans</div><div style={{ fontSize:28, fontWeight:700, color:C.green, marginTop:8 }}>{myLoans.filter(l=>l.status==="Active").length}</div><div style={{ fontSize:10, color:C.textDim, marginTop:4 }}>{myLoans.filter(l=>l.dpd===0).length} current</div></div>
-            <div className="kb-card-hover" style={{ background:C.surface, border:`1px solid ${C.border}`, padding:20, borderRadius:8 }}><div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase" }}>Total Balance</div><div style={{ fontSize:28, fontWeight:700, color:C.blue, marginTop:4 }}>{fmt.cur(myLoans.reduce((s,l)=>s+l.balance,0))}</div></div>
-          </div>
-          {myApps.length > 0 && <div style={{ marginTop:16 }}><h3 style={{ fontSize:14, fontWeight:600, margin:"0 0 8px" }}>Recent Applications</h3>
-            {myApps.slice(0,3).map(a=><div key={a.id} style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"12px 16px", marginBottom:8, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-              <div><div style={{ fontSize:13, fontWeight:600 }}>{a.id} — {a.purpose?.substring(0,50)}</div><div style={{ fontSize:11, color:C.textMuted }}>{fmt.cur(a.amount)} · {a.term}m · {fmt.date(a.submitted||a.createdAt)}</div></div>
-              <Badge color={a.status==="Approved"?"green":a.status==="Declined"?"red":a.status==="Draft"?"gray":"blue"}>{a.status}</Badge>
-            </div>)}
-          </div>}
-        </div>);
+        case "portal_dashboard": {
+          // Application status timeline — shows where each app is in the lifecycle
+          const APP_STAGES = [
+            { key: "Pre-Approval", label: "Pre-Approval Review", desc: "Initial assessment of your application" },
+            { key: "Submitted", label: "Documents Required", desc: "Upload your KYB/FICA documents" },
+            { key: "Underwriting", label: "Full Assessment", desc: "Credit team is reviewing your application" },
+            { key: "Pending Approval", label: "Approval Pending", desc: "Awaiting credit committee decision" },
+            { key: "Approved", label: "Approved", desc: "Loan agreement ready to sign" },
+            { key: "Booked", label: "Pending Disbursement", desc: "Final pre-disbursement checks" },
+            { key: "Active", label: "Loan Active", desc: "Loan disbursed — view in My Loans" },
+          ];
+          const stageIdx = (status) => {
+            const i = APP_STAGES.findIndex(s => s.key === status);
+            return i >= 0 ? i : 0;
+          };
+          const totalDocsRequired = myApps.filter(a => ["Submitted", "Pre-Approval"].includes(a.status)).length > 0 ? 5 : 0;
+          const totalDocsUploaded = myDocs.length;
+          
+          return (<div>
+            <h2 style={{ margin:"0 0 4px", fontSize:24, fontWeight:700 }}>Welcome{myCustomer ? `, ${myCustomer.contact}` : ""}</h2>
+            <p style={{ margin:"0 0 20px", fontSize:13, color:C.textMuted }}>{myCustomer?.name || "Borrower Portal"} · Track your applications, manage your loans, upload documents</p>
+            
+            {!myCustomer && <div style={{ background:C.amberBg, border:`1px solid ${C.amber}`, padding:"16px 20px", marginBottom:16 }}>
+              <div style={{ fontSize:13, fontWeight:600, color:C.amber }}>Complete Your Profile</div>
+              <div style={{ fontSize:12, color:C.textDim, marginTop:4 }}>Your email ({myEmail}) is not linked to a customer record. Please contact TQA Capital to complete your onboarding.</div>
+            </div>}
+            
+            {/* KPI strip */}
+            <div className="kb-grid-3" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:20 }}>
+              <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding:20, position:"relative", overflow:"hidden" }}>
+                <div style={{ position:"absolute", top:0, left:0, bottom:0, width:3, background:C.accent }} />
+                <div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase", letterSpacing:0.8 }}>Applications</div>
+                <div style={{ fontSize:28, fontWeight:700, color:C.accent, marginTop:8 }}>{myApps.length}</div>
+                <div style={{ fontSize:10, color:C.textDim, marginTop:4 }}>
+                  {myApps.filter(a=>a.status==="Approved").length} approved · {myApps.filter(a=>!["Approved","Declined","Active"].includes(a.status)).length} in progress
+                </div>
+              </div>
+              <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, padding:20, position:"relative", overflow:"hidden" }}>
+                <div style={{ position:"absolute", top:0, left:0, bottom:0, width:3, background:C.green }} />
+                <div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase", letterSpacing:0.8 }}>Active Loans</div>
+                <div style={{ fontSize:28, fontWeight:700, color:C.green, marginTop:8 }}>{myLoans.filter(l=>l.status==="Active").length}</div>
+                <div style={{ fontSize:10, color:C.textDim, marginTop:4 }}>
+                  {myLoans.filter(l=>l.dpd===0).length} current · {myLoans.filter(l=>l.dpd>0).length} arrears
+                </div>
+              </div>
+              <div style={{ background:C.surface, border:`1px solid ${C.border}`, padding:20, borderRadius:6, position:"relative", overflow:"hidden" }}>
+                <div style={{ position:"absolute", top:0, left:0, bottom:0, width:3, background:C.blue }} />
+                <div style={{ fontSize:10, color:C.textMuted, textTransform:"uppercase", letterSpacing:0.8 }}>Outstanding Balance</div>
+                <div style={{ fontSize:28, fontWeight:700, color:C.text, marginTop:8 }}>{fmt.cur(myLoans.reduce((s,l)=>s+l.balance,0))}</div>
+                <div style={{ fontSize:10, color:C.textDim, marginTop:4 }}>Across all active facilities</div>
+              </div>
+            </div>
+
+            {/* Application timeline — for the most recent active application */}
+            {(() => {
+              const activeApp = myApps.find(a => !["Declined", "Withdrawn"].includes(a.status) && a.status !== "Active");
+              if (!activeApp) return null;
+              const currentIdx = stageIdx(activeApp.status);
+              return (
+                <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:24, marginBottom:20 }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 }}>
+                    <div>
+                      <h3 style={{ margin:0, fontSize:14, fontWeight:600 }}>Application Progress — {activeApp.id}</h3>
+                      <p style={{ margin:"4px 0 0", fontSize:11, color:C.textDim }}>{prod(activeApp.product)?.name || activeApp.product} · {fmt.cur(activeApp.amount)} · Submitted {fmt.date(activeApp.submitted||activeApp.createdAt)}</p>
+                    </div>
+                    <Badge color={activeApp.status==="Approved"?"green":activeApp.status==="Declined"?"red":"blue"}>{activeApp.status}</Badge>
+                  </div>
+                  
+                  {/* Visual timeline */}
+                  <div style={{ display:"flex", alignItems:"flex-start", gap:0, marginTop:20, marginBottom:20, position:"relative" }}>
+                    {APP_STAGES.slice(0, 7).map((stage, i) => {
+                      const isDone = i < currentIdx;
+                      const isCurrent = i === currentIdx;
+                      const isFuture = i > currentIdx;
+                      return (
+                        <div key={stage.key} style={{ flex:1, position:"relative", textAlign:"center" }}>
+                          {/* Connector line to next */}
+                          {i < APP_STAGES.length - 1 && (
+                            <div style={{
+                              position:"absolute",
+                              top:14,
+                              left:"50%",
+                              right:"-50%",
+                              height:2,
+                              background: isDone ? C.green : C.border,
+                              zIndex:0,
+                            }} />
+                          )}
+                          {/* Circle */}
+                          <div style={{
+                            width:28, height:28, borderRadius:14,
+                            background: isDone ? C.green : isCurrent ? C.accent : C.surface2,
+                            border:`2px solid ${isDone ? C.green : isCurrent ? C.accent : C.border}`,
+                            margin:"0 auto",
+                            display:"flex", alignItems:"center", justifyContent:"center",
+                            fontSize:11, fontWeight:700,
+                            color: isDone || isCurrent ? "#fff" : C.textMuted,
+                            position:"relative",
+                            zIndex:1,
+                            boxShadow: isCurrent ? "0 0 0 4px rgba(27,122,110,0.15)" : "none",
+                          }}>
+                            {isDone ? "✓" : i + 1}
+                          </div>
+                          {/* Label */}
+                          <div style={{
+                            fontSize:10,
+                            fontWeight: isCurrent ? 700 : 500,
+                            color: isDone ? C.green : isCurrent ? C.text : C.textMuted,
+                            marginTop:6,
+                            padding:"0 4px",
+                          }}>
+                            {stage.label}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  
+                  {/* Current stage description + next action */}
+                  <div style={{ background: C.surface2, padding: "14px 18px", borderRadius: 6, fontSize: 12, color: C.textDim }}>
+                    <div style={{ fontWeight:600, color:C.text, marginBottom:4 }}>
+                      {APP_STAGES[currentIdx]?.label || activeApp.status}
+                    </div>
+                    {APP_STAGES[currentIdx]?.desc || "Your application is being processed."}
+                    {activeApp.status === "Submitted" && (
+                      <div style={{ marginTop:10 }}>
+                        <button onClick={() => setPage("portal_documents")} style={{ background:C.accent, color:"#fff", border:"none", padding:"8px 14px", fontSize:11, fontWeight:600, cursor:"pointer", borderRadius:4 }}>
+                          Upload Documents →
+                        </button>
+                      </div>
+                    )}
+                    {activeApp.status === "Approved" && (
+                      <div style={{ marginTop:10, fontSize:12, color:C.green, fontWeight:600 }}>
+                        Your loan agreement has been issued. Please check your email or the Communications page.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Recent applications list */}
+            {myApps.length > 0 && (
+              <div style={{ marginBottom:20 }}>
+                <h3 style={{ fontSize:14, fontWeight:600, margin:"0 0 8px" }}>All Applications</h3>
+                {myApps.slice(0, 5).map(a => (
+                  <div key={a.id} style={{ background:C.surface, border:`1px solid ${C.border}`, padding:"12px 16px", marginBottom:8, display:"flex", justifyContent:"space-between", alignItems:"center", borderRadius:6 }}>
+                    <div>
+                      <div style={{ fontSize:13, fontWeight:600 }}>{a.id} — {(a.purpose||"").substring(0,60)}</div>
+                      <div style={{ fontSize:11, color:C.textMuted, marginTop:2 }}>
+                        {prod(a.product)?.name || a.product} · {fmt.cur(a.amount)} · {a.term}m · {fmt.date(a.submitted||a.createdAt)}
+                      </div>
+                    </div>
+                    <Badge color={a.status==="Approved"?"green":a.status==="Declined"?"red":a.status==="Draft"?"gray":"blue"}>{a.status}</Badge>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Quick actions */}
+            <div style={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:8, padding:20 }}>
+              <h3 style={{ fontSize:13, fontWeight:600, margin:"0 0 12px", color:C.text }}>Quick Actions</h3>
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(180px, 1fr))", gap:10 }}>
+                <button onClick={() => setPage("portal_documents")} style={{ background:C.surface2, border:`1px solid ${C.border}`, padding:"12px 14px", borderRadius:6, cursor:"pointer", textAlign:"left", fontFamily:"inherit" }}>
+                  <div style={{ fontSize:13, fontWeight:600, color:C.text }}>📄 Upload Documents</div>
+                  <div style={{ fontSize:11, color:C.textDim, marginTop:2 }}>{totalDocsUploaded} of {totalDocsRequired || 5} uploaded</div>
+                </button>
+                <button onClick={() => setPage("portal_loans")} style={{ background:C.surface2, border:`1px solid ${C.border}`, padding:"12px 14px", borderRadius:6, cursor:"pointer", textAlign:"left", fontFamily:"inherit" }}>
+                  <div style={{ fontSize:13, fontWeight:600, color:C.text }}>💰 Make Payment</div>
+                  <div style={{ fontSize:11, color:C.textDim, marginTop:2 }}>Pay against active loans</div>
+                </button>
+                <button onClick={() => setPage("portal_comms")} style={{ background:C.surface2, border:`1px solid ${C.border}`, padding:"12px 14px", borderRadius:6, cursor:"pointer", textAlign:"left", fontFamily:"inherit" }}>
+                  <div style={{ fontSize:13, fontWeight:600, color:C.text }}>📨 Messages</div>
+                  <div style={{ fontSize:11, color:C.textDim, marginTop:2 }}>Communications from TQA</div>
+                </button>
+                <button onClick={() => setPage("portal_profile")} style={{ background:C.surface2, border:`1px solid ${C.border}`, padding:"12px 14px", borderRadius:6, cursor:"pointer", textAlign:"left", fontFamily:"inherit" }}>
+                  <div style={{ fontSize:13, fontWeight:600, color:C.text }}>👤 Profile</div>
+                  <div style={{ fontSize:11, color:C.textDim, marginTop:2 }}>Update your details</div>
+                </button>
+              </div>
+            </div>
+          </div>);
+        }
         case "portal_applications": return (<div>
           <h2 style={{ margin:"0 0 16px", fontSize:24, fontWeight:700 }}>My Applications</h2>
           <Table columns={[
