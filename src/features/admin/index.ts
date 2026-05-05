@@ -1,2 +1,1 @@
-// KwikBridge LMS — Administration Feature
-export { Administration as AdministrationPage } from "./components/AdministrationPage";
+// KwikBridge LMS — Administration feature (extraction in progress)

@@ -60,6 +60,9 @@ export interface ActionsContextValue {
   saveProduct: (prod: any) => void;
   toggleProductStatus: (prodId: string) => void;
 
+  // Alerts
+  markRead: (id: string) => void;
+
   // System / utility
   reset: () => Promise<void>;
 }

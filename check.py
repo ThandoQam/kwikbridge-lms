@@ -149,6 +149,7 @@ EXTRACTED_PAGES = {
     'Documents': 'features/documents',
     'Governance': 'features/governance',
     'StatutoryReporting': 'features/statutory',
+    'Dashboard': 'features/dashboard',
 }
 for p in REQUIRED_PAGES:
     inline = f'function {p}' in t

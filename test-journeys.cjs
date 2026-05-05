@@ -5,7 +5,21 @@
 // ═══════════════════════════════════════════════════════════════
 
 const fs = require('fs');
-const src = fs.readFileSync('src/kwikbridge-lms-v2.jsx', 'utf8');
+const monolith = fs.readFileSync('src/kwikbridge-lms-v2.jsx', 'utf8');
+// Also scan extracted feature files — tests against feature content
+// should pass whether the code is inline or extracted.
+const featureFiles = [];
+function walk(dir) {
+  fs.readdirSync(dir, { withFileTypes: true }).forEach(d => {
+    const p = require('path').join(dir, d.name);
+    if (d.isDirectory()) walk(p);
+    else if (d.name.endsWith('.tsx') || d.name.endsWith('.ts')) {
+      featureFiles.push(fs.readFileSync(p, 'utf8'));
+    }
+  });
+}
+try { walk('src/features'); } catch {}
+const src = monolith + '\n/* ─── EXTRACTED FEATURES ─── */\n' + featureFiles.join('\n');
 
 let pass = 0, fail = 0, warn = 0;
 const results = [];
@@ -240,6 +254,7 @@ const extractedFeatures = {
   'Documents': 'features/documents',
   'Governance': 'features/governance',
   'StatutoryReporting': 'features/statutory',
+  'Dashboard': 'features/dashboard',
 };
 pageComponents.forEach(comp => {
   const inline = src.includes(`function ${comp}(`);
