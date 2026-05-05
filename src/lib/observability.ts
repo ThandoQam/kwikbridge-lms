@@ -142,6 +142,7 @@ export const log = {
 // Event tracking (PostHog) — for product analytics, NOT for errors
 export const track = (event: string, properties?: LogContext): void => {
   if (!isProduction()) return;
+  if (typeof window === "undefined") return;
   const ph = (window as any).posthog;
   if (ph) {
     ph.capture(event, properties);
@@ -153,6 +154,7 @@ export const identify = (userId: string, traits?: LogContext): void => {
   if (sentryRef) {
     sentryRef.setUser({ id: userId });
   }
+  if (typeof window === "undefined") return;
   const ph = (window as any).posthog;
   if (ph && isProduction()) {
     ph.identify(userId, scrubPII(traits || {}) as any);
@@ -164,6 +166,7 @@ export const clearIdentity = (): void => {
   if (sentryRef) {
     sentryRef.setUser(null);
   }
+  if (typeof window === "undefined") return;
   const ph = (window as any).posthog;
   if (ph) {
     ph.reset();

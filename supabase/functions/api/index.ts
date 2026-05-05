@@ -136,6 +136,69 @@ function paginate(url: URL) {
   return { page, limit, offset };
 }
 
+// ═══ Rate Limiting (token bucket per IP/user) ═══
+// In-memory rate limiter — resets when Edge Function instance recycles.
+// For production-grade limiting, swap for Redis or Supabase realtime channel.
+
+interface RateBucket {
+  tokens: number;
+  lastRefill: number;
+}
+
+const rateBuckets = new Map<string, RateBucket>();
+const RATE_LIMIT_PER_MINUTE = 60;       // 60 requests per minute default
+const RATE_LIMIT_PER_MINUTE_AUTH = 300;  // 300 for authenticated users
+const REFILL_INTERVAL_MS = 60_000;
+
+function checkRateLimit(key: string, isAuthenticated = false): { allowed: boolean; remaining: number; resetAt: number } {
+  const now = Date.now();
+  const limit = isAuthenticated ? RATE_LIMIT_PER_MINUTE_AUTH : RATE_LIMIT_PER_MINUTE;
+
+  let bucket = rateBuckets.get(key);
+  if (!bucket) {
+    bucket = { tokens: limit, lastRefill: now };
+    rateBuckets.set(key, bucket);
+  }
+
+  // Refill tokens based on elapsed time
+  const elapsed = now - bucket.lastRefill;
+  if (elapsed >= REFILL_INTERVAL_MS) {
+    bucket.tokens = limit;
+    bucket.lastRefill = now;
+  } else {
+    // Partial refill
+    const refillRate = limit / REFILL_INTERVAL_MS;
+    const refilled = Math.floor(elapsed * refillRate);
+    if (refilled > 0) {
+      bucket.tokens = Math.min(limit, bucket.tokens + refilled);
+      bucket.lastRefill = now;
+    }
+  }
+
+  if (bucket.tokens <= 0) {
+    return { allowed: false, remaining: 0, resetAt: bucket.lastRefill + REFILL_INTERVAL_MS };
+  }
+
+  bucket.tokens -= 1;
+  return { allowed: true, remaining: bucket.tokens, resetAt: bucket.lastRefill + REFILL_INTERVAL_MS };
+}
+
+function getRateLimitKey(req: Request, user: UserContext | null): string {
+  // Authenticated users: limit per user
+  if (user?.userId) return `user:${user.userId}`;
+  // Anonymous: limit per IP (Cloudflare/Supabase forwards real IP in CF-Connecting-IP)
+  const ip = req.headers.get("cf-connecting-ip") || req.headers.get("x-forwarded-for") || "unknown";
+  return `ip:${ip.split(",")[0].trim()}`;
+}
+
+// Cleanup stale buckets periodically (prevent memory leak in long-running instances)
+setInterval(() => {
+  const cutoff = Date.now() - 5 * 60_000; // 5 minutes
+  for (const [key, bucket] of rateBuckets.entries()) {
+    if (bucket.lastRefill < cutoff) rateBuckets.delete(key);
+  }
+}, 60_000);
+
 // ═══ Route Handler ═══
 
 serve(async (req: Request) => {
