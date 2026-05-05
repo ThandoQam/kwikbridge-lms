@@ -1,2 +1,1 @@
-// KwikBridge LMS — Governance Feature
-export { Governance as GovernancePage } from "./components/GovernancePage";
+export { GovernancePage } from './components/GovernancePage';

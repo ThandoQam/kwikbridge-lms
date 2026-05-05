@@ -133,7 +133,8 @@ test('IFRS 9', 'Provisioning table', src.includes('label:"ECL"') || src.includes
 // ═══ 13. GOVERNANCE ═══
 test('Governance', 'Audit trail', src.includes('addAudit') && src.includes('audit'));
 test('Governance', 'Alert system', src.includes('addAlert'));
-test('Governance', 'Control points', src.includes('controlPoints') || src.includes('Controls Active'));
+const govExtracted = require('fs').readFileSync('./src/features/governance/components/GovernancePage.tsx', 'utf8');
+test('Governance', 'Control points', govExtracted.includes('controlPoints') || govExtracted.includes('Controls Active'));
 test('Governance', 'Business rules', src.includes('businessRules') || src.includes('Business Rules'));
 
 // ═══ 14. STATUTORY REPORTING ═══
@@ -236,6 +237,8 @@ const extractedFeatures = {
   'Loans': 'features/loans',
   'Servicing': 'features/servicing',
   'Collections': 'features/collections',
+  'Documents': 'features/documents',
+  'Governance': 'features/governance',
 };
 pageComponents.forEach(comp => {
   const inline = src.includes(`function ${comp}(`);

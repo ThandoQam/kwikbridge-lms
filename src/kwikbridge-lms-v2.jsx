@@ -48,6 +48,8 @@ import { OriginationPage as OriginationPageExtracted } from "./features/originat
 import { LoansPage as LoansPageExtracted } from "./features/loans";
 import { ServicingPage as ServicingPageExtracted } from "./features/servicing";
 import { CollectionsPage as CollectionsPageExtracted } from "./features/collections";
+import { DocumentsPage as DocumentsPageExtracted } from "./features/documents";
+import { GovernancePage as GovernancePageExtracted } from "./features/governance";
 const SUPABASE_URL = config.supabase.url;
 const SUPABASE_KEY = config.supabase.anonKey;
 const sb = (table) => `${SUPABASE_URL}/rest/v1/${table}`;
@@ -529,7 +531,6 @@ export default function App() {
   const [settingsForm, setSettingsForm] = useState({});
   const [withdrawId, setWithdrawId] = useState(null);
   const [withdrawReason, setWithdrawReason] = useState("");
-  const [auditFilter, setAuditFilter] = useState({category:"",user:"",entity:""});
   const [viewingDoc, setViewingDoc] = useState(null);
   const [authSession, setAuthSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -4967,9 +4968,9 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
       case "servicing": return wrap("Servicing", <ServicingPageExtracted loans={loans} day={day} cust={cust} canDo={canDo} setDetail={setDetail} recordPayment={recordPayment} KPI={KPI} Tab={Tab} Table={Table} Field={Field} Select={Select} Btn={Btn} cell={cell} statusBadge={statusBadge} fmt={fmt} C={C} />);
       case "collections": return wrap("Collections", <CollectionsPageExtracted loans={loans} collections={collections} cust={cust} canDo={canDo} setDetail={setDetail} addCollectionAction={addCollectionAction} createPTP={createPTP} proposeRestructure={proposeRestructure} proposeWriteOff={proposeWriteOff} approveWriteOff={approveWriteOff} KPI={KPI} Tab={Tab} Table={Table} Badge={Badge} Btn={Btn} Modal={Modal} Field={Field} Input={Input} Textarea={Textarea} Select={Select} cell={cell} statusBadge={statusBadge} fmt={fmt} C={C} />);
       case "provisioning": return wrap("IFRS 9 Provisioning", <ProvisioningPageExtracted loans={loans} provisions={provisions} cust={cust} KPI={KPI} SectionCard={SectionCard} Table={Table} Badge={Badge} cell={cell} fmt={fmt} C={C} />);
-      case "governance": return wrap("Governance", <Governance />);
+      case "governance": return wrap("Governance", <GovernancePageExtracted audit={audit} alerts={alerts} customers={customers} applications={applications} provisions={provisions} statutoryReports={statutoryReports} data={data} settings={settings} now={now} day={day} PERMS={PERMS} ROLES={ROLES} APPROVAL_LIMITS={APPROVAL_LIMITS} SYSTEM_USERS={SYSTEM_USERS} canDo={canDo} save={save} markRead={markRead} KPI={KPI} Tab={Tab} Table={Table} Badge={Badge} SectionCard={SectionCard} InfoGrid={InfoGrid} Btn={Btn} cell={cell} fmt={fmt} C={C} />);
       case "statutory": return wrap("Statutory Reporting", <StatutoryReporting />);
-      case "documents": return wrap("Documents", <Documents />);
+      case "documents": return wrap("Documents", <DocumentsPageExtracted documents={documents} search={search} now={now} day={day} cust={cust} KPI={KPI} Tab={Tab} Table={Table} SectionCard={SectionCard} cell={cell} statusBadge={statusBadge} fmt={fmt} C={C} />);
       case "reports": return wrap("Reports", <ReportsPageExtracted loans={loans} applications={applications} customers={customers} collections={collections} provisions={provisions} audit={audit} cust={cust} canDo={canDo} Btn={Btn} SectionCard={SectionCard} ProgressBar={ProgressBar} statusBadge={statusBadge} fmt={fmt} C={C} />);
       case "investor": return wrap("Investor Dashboard", <InvestorDashboardExtracted loans={loans} applications={applications} provisions={provisions} customers={customers} prod={prod} Btn={Btn} fmt={fmt} C={C} />);
       case "comms": return wrap("Communications", <CommsPageExtracted comms={comms} cust={cust} Table={Table} Badge={Badge} cell={cell} fmt={fmt} C={C} />);
@@ -5286,134 +5287,6 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
 
 
 
-  function Governance() {
-    const [tab, setTab] = useState("audit");
-    const categories = [...new Set(audit.map(a=>a.category).filter(Boolean))].sort();
-    const users = [...new Set(audit.map(a=>a.user).filter(Boolean))].sort();
-    let filteredAudit = [...audit].sort((a,b)=>b.ts-a.ts);
-    if (auditFilter.category) filteredAudit = filteredAudit.filter(a=>a.category===auditFilter.category);
-    if (auditFilter.user) filteredAudit = filteredAudit.filter(a=>a.user===auditFilter.user);
-    if (auditFilter.entity) filteredAudit = filteredAudit.filter(a=>a.entity?.toLowerCase().includes(auditFilter.entity.toLowerCase()));
-
-    const controlPoints = [
-      { control:"FICA Verification", module:"Onboarding", status: customers.every(c=>c.ficaStatus==="Verified") ? "All Verified" : `${customers.filter(c=>c.ficaStatus!=="Verified").length} pending`, ok: customers.filter(c=>c.ficaStatus!=="Verified").length === 0 },
-      { control:"Approval Authority Limits", module:"Underwriting", status:"Enforced in code", ok:true },
-      { control:"Separation of Duties", module:"Underwriting", status:"Creator ≠ Approver enforced", ok:true },
-      { control:"Dual Disbursement Auth", module:"Disbursement", status:"Booker ≠ Disburser enforced", ok:true },
-      { control:"Sanctions Screening", module:"Origination", status: applications.some(a=>a.sanctionsFlag) ? "HITS DETECTED" : "All clear", ok: !applications.some(a=>a.sanctionsFlag) },
-      { control:"BEE Certificate Monitoring", module:"Compliance", status: `${customers.filter(c=>c.beeExpiry&&c.beeExpiry<now+90*day).length} expiring within 90 days`, ok: customers.filter(c=>c.beeExpiry&&c.beeExpiry<now+90*day).length === 0 },
-      { control:"RBAC Enforcement", module:"System-wide", status:`${Object.keys(PERMS).length} modules × ${Object.keys(ROLES).length} roles`, ok:true },
-      { control:"Immutable Audit Trail", module:"System-wide", status:`${audit.length} entries recorded`, ok:true },
-      { control:"NCR Statutory Reporting", module:"Compliance", status: `${(statutoryReports||[]).filter(r=>r.status!=="Submitted").length} pending`, ok: (statutoryReports||[]).filter(r=>r.status!=="Submitted"&&new Date(r.dueDate)<new Date()).length === 0 },
-      { control:"IFRS 9 Provisioning", module:"Finance", status: `${provisions.length} loans provisioned. ECL: ${fmt.cur(provisions.reduce((s,p)=>s+p.ecl,0))}`, ok:true },
-    ];
-
-    return (<div>
-      <h2 style={{ margin:"0 0 4px", fontSize:24, fontWeight:700, color:C.text }}>Governance, Risk & Compliance</h2>
-      <p style={{ margin:"0 0 16px", fontSize:13, color:C.textMuted }}>Audit trail, control points, approval authorities, regulatory compliance & alerts</p>
-      <div style={{ display:"flex", gap:0, marginBottom:16, background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, overflow:"hidden" }}>
-        <KPI label="Audit Entries" value={audit.length} />
-        <KPI label="Controls Active" value={controlPoints.filter(c=>c.ok).length} sub={`of ${controlPoints.length}`} />
-        <KPI label="Unread Alerts" value={alerts.filter(a=>!a.read).length} />
-        <KPI label="Critical Alerts" value={alerts.filter(a=>a.severity==="critical"&&!a.read).length} />
-      </div>
-      <Tab tabs={[
-        {key:"audit",label:"Audit Trail",count:audit.length},
-        {key:"controls",label:"Control Points",count:controlPoints.length},
-        {key:"authority",label:"Approval Matrix"},
-        {key:"regulatory",label:"Regulatory Framework"},
-        {key:"alerts",label:"All Alerts",count:alerts.length},
-      ]} active={tab} onChange={setTab} />
-
-      {tab==="audit" && <div>
-        <div style={{ display:"flex", gap:8, marginBottom:12 }}>
-          <select value={auditFilter.category} onChange={e=>setAuditFilter({...auditFilter,category:e.target.value})} style={{ padding:"4px 6px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:11, fontFamily:"inherit" }}>
-            <option value="">All Categories</option>
-            {categories.map(c=><option key={c} value={c}>{c}</option>)}
-          </select>
-          <select value={auditFilter.user} onChange={e=>setAuditFilter({...auditFilter,user:e.target.value})} style={{ padding:"4px 6px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:11, fontFamily:"inherit" }}>
-            <option value="">All Users</option>
-            {users.map(u=><option key={u} value={u}>{u}</option>)}
-          </select>
-          <input value={auditFilter.entity} onChange={e=>setAuditFilter({...auditFilter,entity:e.target.value})} placeholder="Filter by entity ID..." style={{ padding:"4px 6px", border:`1px solid ${C.border}`, background:C.surface, color:C.text, fontSize:11, fontFamily:"inherit", width:160 }} />
-          {(auditFilter.category||auditFilter.user||auditFilter.entity) && <Btn size="sm" variant="ghost" onClick={()=>setAuditFilter({category:"",user:"",entity:""})}>Clear</Btn>}
-          <span style={{ fontSize:10, color:C.textMuted, alignSelf:"center" }}>{filteredAudit.length} of {audit.length} entries</span>
-        </div>
-        <Table columns={[
-          { label:"Timestamp", render:r=>fmt.dateTime(r.ts) },
-          { label:"Category", render:r=><Badge color={r.category==="Risk"||r.category==="Collections"?"red":r.category==="Compliance"?"amber":r.category==="Decision"?"purple":"cyan"}>{r.category}</Badge> },
-          { label:"Action", render:r=>cell.name(r.action) },
-          { label:"Entity", render:r=>cell.mono(r.entity) },
-          { label:"User", key:"user" },
-          { label:"Detail", render:r=><span style={{ fontSize:11, color:C.textDim, maxWidth:300, overflow:"hidden", textOverflow:"ellipsis", display:"inline-block", whiteSpace:"nowrap" }}>{r.detail}</span> },
-        ]} rows={filteredAudit.slice(0,50)} />
-        {filteredAudit.length > 50 && <div style={{ fontSize:11, color:C.textMuted, marginTop:8 }}>Showing 50 of {filteredAudit.length} entries. Use filters to narrow.</div>}
-      </div>}
-
-      {tab==="controls" && <div>
-        <Table columns={[
-          { label:"Control", render:r=>cell.name(r.control) },
-          { label:"Module", render:r=>cell.dim(r.module) },
-          { label:"Status", render:r=><span style={{ fontSize:12, color:r.ok?C.green:C.red, fontWeight:500 }}>{r.status}</span> },
-          { label:"Health", render:r=>r.ok ? <Badge color="green">OK</Badge> : <Badge color="red">Attention</Badge> },
-        ]} rows={controlPoints} />
-      </div>}
-
-      {tab==="authority" && <SectionCard title="Credit Approval Authority Matrix (Live)">
-        <Table columns={[
-          { label:"Role", render:r=>cell.name(ROLES[r.role]?.label) },
-          { label:"Approval Limit", render:r=>r.limit===Infinity ? "Unlimited" : r.limit > 0 ? fmt.cur(r.limit) : <span style={{ color:C.textMuted }}>No approval authority</span> },
-          { label:"Current Users", render:r=>SYSTEM_USERS.filter(u=>u.role===r.role).map(u=>u.name).join(", ") || <span style={{ color:C.textMuted }}>—</span> },
-          { label:"Tier", render:r=>ROLES[r.role]?.tier },
-        ]} rows={Object.keys(ROLES).map(k=>({role:k,limit:APPROVAL_LIMITS[k]||0}))} />
-      </SectionCard>}
-
-      {tab==="regulatory" && <div>
-        <SectionCard title="Regulatory Status">
-          <InfoGrid items={[
-            ["NCR Registration", settings?.ncrReg],
-            ["NCR Expiry", settings?.ncrExpiry],
-            ["FICA Compliance", customers.every(c=>c.ficaStatus==="Verified") ? "Fully Compliant" : `${customers.filter(c=>c.ficaStatus!=="Verified").length} customers pending`],
-            ["POPIA Compliance", "Active"],
-            ["NCA Registration", "Active – Section 40"],
-            ["BEE Monitoring", `${customers.filter(c=>c.beeStatus==="Verified").length}/${customers.length} verified`],
-            ["Last NCR Submission", (statutoryReports||[]).filter(r=>r.status==="Submitted").sort((a,b)=>new Date(b.submittedDate||0)-new Date(a.submittedDate||0))[0]?.name || "—"],
-          ]} />
-        </SectionCard>
-        <SectionCard title="Regulatory Framework">
-          {[
-            ["National Credit Act (NCA) 34 of 2005","Governs credit agreements, affordability assessments, consumer protection. Enforced: affordability checks in underwriting, NCA demand letters in collections."],
-            ["Financial Intelligence Centre Act (FICA) 38 of 2001","KYC/CDD, suspicious transaction reporting. Enforced: FICA status workflow on customers, sanctions screening on applications."],
-            ["Protection of Personal Information Act (POPIA) 4 of 2013","Data privacy, consent. Enforced: data access via RBAC, audit trail on all data changes."],
-            ["Companies Act 71 of 2008","Corporate governance, director responsibilities. Enforced: approval authority matrix, separation of duties."],
-            ["BB-BEE Act 53 of 2003","Empowerment verification. Enforced: BEE verification workflow, eligibility checks in product selection."],
-            ["Debt Collectors Act 114 of 1998","Collection conduct standards. Enforced: staged collections, NCA-compliant demand process."],
-          ].map(([name, desc], i) => (
-            <div key={i} style={{ padding:"10px 0", borderBottom:`1px solid ${C.border}` }}>
-              <div style={{ fontSize:13, fontWeight:600, color:C.accent }}>{name}</div>
-              <div style={{ fontSize:12, color:C.textDim, marginTop:2 }}>{desc}</div>
-            </div>
-          ))}
-        </SectionCard>
-      </div>}
-
-      {tab==="alerts" && <div>
-        <div style={{ display:"flex", gap:8, marginBottom:12 }}>
-          <span style={{ fontSize:11, color:C.textMuted }}>{alerts.filter(a=>!a.read).length} unread of {alerts.length} total</span>
-          {canDo("governance","update") && alerts.some(a=>!a.read) && <Btn size="sm" variant="ghost" onClick={()=>save({...data,alerts:alerts.map(a=>({...a,read:true}))})}>Mark All Read</Btn>}
-        </div>
-        <Table columns={[
-          { label:"Date", render:r=>fmt.dateTime(r.ts) },
-          { label:"Severity", render:r=><Badge color={r.severity==="critical"?"red":r.severity==="warning"?"amber":"blue"}>{r.severity}</Badge> },
-          { label:"Type", render:r=><Badge color="cyan">{r.type}</Badge> },
-          { label:"Title", render:r=>cell.name(r.title) },
-          { label:"Message", render:r=><span style={{ fontSize:11, color:C.textDim, maxWidth:300, overflow:"hidden", textOverflow:"ellipsis", display:"inline-block", whiteSpace:"nowrap" }}>{r.msg}</span> },
-          { label:"Status", render:r=>r.read?<Badge color="slate">Read</Badge>:<Badge color="amber">Unread</Badge> },
-          { label:"", render:r=>!r.read && canDo("governance","update") ? <Btn size="sm" variant="ghost" onClick={e=>{e.stopPropagation();markRead(r.id)}}>Dismiss</Btn> : null },
-        ]} rows={[...alerts].sort((a,b)=>b.ts-a.ts)} />
-      </div>}
-    </div>);
-  }
 
   const updateStatutoryStatus = (reportId, newStatus) => {
     const updated = (statutoryReports||[]).map(r => r.id === reportId ? { ...r, status: newStatus, ...(newStatus === "Submitted" ? { submittedDate: new Date().toISOString().split("T")[0] } : {}) } : r);
@@ -5633,111 +5506,6 @@ const calcCompositeAIScore = (app, customer, loan, collections, comms) => {
     </div>);
   }
 
-  function Documents() {
-    const docs = documents || [];
-    const [tab, setTab] = useState("all");
-    const [catFilter, setCatFilter] = useState("All");
-    const categories = ["All", "KYC", "KYB", "Financial", "Legal", "Collateral", "Compliance", "Collections"];
-    const filtered = docs
-      .filter(d => tab === "all" ? true : tab === "pending" ? ["Pending","Received","Under Review"].includes(d.status) : tab === "expiring" ? (d.expiryDate && d.expiryDate < now + 90*day) : tab === "verified" ? d.status === "Verified" : true)
-      .filter(d => catFilter === "All" || d.category === catFilter)
-      .filter(d => !search || [d.name, d.custId, d.type, cust(d.custId)?.name].some(f => f?.toLowerCase().includes(search.toLowerCase())));
-    const pending = docs.filter(d => ["Pending","Received","Under Review"].includes(d.status));
-    const expiring = docs.filter(d => d.expiryDate && d.expiryDate < now + 90*day && d.status === "Verified");
-    const verified = docs.filter(d => d.status === "Verified");
-
-    return (<div>
-      <h2 style={{ margin:"0 0 4px", fontSize:24, fontWeight:700, color:C.text }}>Document Management</h2>
-      <p style={{ margin:"0 0 16px", fontSize:13, color:C.textMuted }}>Centralised document registry — KYC/KYB, financial, legal, collateral & compliance</p>
-
-      <div style={{ display:"flex", gap:0, marginBottom:16, background:C.surface, border:`1px solid ${C.border}`, borderRadius:6, overflow:"hidden" }}>
-        <KPI label="Total Documents" value={docs.length} />
-        <KPI label="Verified" value={verified.length} sub={`${Math.round(verified.length/docs.length*100)}% complete`} />
-        <KPI label="Pending Action" value={pending.length} sub={pending.length > 0 ? `${pending.filter(d=>d.status==="Pending").length} outstanding` : "All received"} />
-        <KPI label="Expiring (90d)" value={expiring.length} sub={expiring.length > 0 ? `Earliest: ${Math.ceil((Math.min(...expiring.map(d=>d.expiryDate)) - now) / day)}d` : "None"} />
-      </div>
-
-      <Tab tabs={[
-        { key:"all", label:"All Documents", count:docs.length },
-        { key:"pending", label:"Pending Action", count:pending.length },
-        { key:"expiring", label:"Expiring Soon", count:expiring.length },
-        { key:"verified", label:"Verified", count:verified.length },
-      ]} active={tab} onChange={setTab} />
-
-      {/* Category filter */}
-      <div style={{ display:"flex", gap:0, marginBottom:16, borderBottom:`1px solid ${C.border}` }}>
-        {categories.map(c => (
-          <button key={c} onClick={()=>setCatFilter(c)} style={{ padding:"4px 12px", border:"none", borderBottom: catFilter===c?`2px solid ${C.textDim}`:"2px solid transparent", background:"transparent", color:catFilter===c?C.text:C.textMuted, fontSize:11, fontWeight:catFilter===c?600:400, cursor:"pointer", fontFamily:"inherit", marginBottom:-1 }}>{c}</button>
-        ))}
-      </div>
-
-      <Table columns={[
-        { label:"Doc ID", render:r=>cell.mono(r.id) },
-        { label:"Document Name", render:r=>cell.name(r.name) },
-        { label:"Category", render:r=>cell.text(r.category) },
-        { label:"Type", render:r=>cell.dim(r.type) },
-        { label:"Customer", render:r=>cell.text(cust(r.custId)?.name) },
-        { label:"Linked To", render:r=><span style={{ fontFamily:"monospace", fontSize:10, color:C.textDim }}>{[r.appId, r.loanId].filter(Boolean).join(" / ") || "—"}</span> },
-        { label:"Status", render:r=>statusBadge(r.status) },
-        { label:"Uploaded", render:r=>r.uploadedAt ? fmt.date(r.uploadedAt) : "—" },
-        { label:"Verified By", render:r=>cell.dim(r.verifiedBy || "—") },
-        { label:"Expiry", render:r=>{
-          if (!r.expiryDate) return <span style={{ color:C.textMuted, fontSize:11 }}>N/A</span>;
-          const d = Math.ceil((r.expiryDate - now) / day);
-          return <span style={{ fontSize:11, fontWeight:d<=30?600:400, color:d<=30?C.red:d<=90?C.amber:C.textDim }}>{fmt.date(r.expiryDate)} ({d}d)</span>;
-        }},
-        { label:"Req", render:r=>r.required ? <span style={{ fontSize:10, fontWeight:500 }}>Yes</span> : <span style={{ fontSize:10, color:C.textMuted }}>No</span> },
-      ]} rows={filtered} />
-
-      {/* Document checklist by customer */}
-      {tab === "pending" && pending.length > 0 && (
-        <div style={{ marginTop:20 }}>
-          <SectionCard title="Outstanding Documents by Customer">
-            {Object.entries(pending.reduce((acc, d) => { const n = cust(d.custId)?.name || d.custId; (acc[n] = acc[n] || []).push(d); return acc; }, {})).map(([name, docs], i) => (
-              <div key={i} style={{ marginBottom:12 }}>
-                <div style={{ fontSize:13, fontWeight:600, color:C.text, marginBottom:8 }}>{name}</div>
-                {docs.map((d, j) => (
-                  <div key={j} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"4px 0", borderBottom:`1px solid ${C.border}`, fontSize:12 }}>
-                    <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                      <span style={{ color:C.textDim, width:60, fontSize:10 }}>{d.category}</span>
-                      <span>{d.name}</span>
-                    </div>
-                    <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                      {statusBadge(d.status)}
-                      {d.notes && <span style={{ fontSize:10, color:C.textMuted, maxWidth:200, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", display:"inline-block" }}>{d.notes}</span>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ))}
-          </SectionCard>
-        </div>
-      )}
-
-      {/* Expiry schedule */}
-      {tab === "expiring" && expiring.length > 0 && (
-        <div style={{ marginTop:20 }}>
-          <SectionCard title="Document Expiry Schedule">
-            {expiring.sort((a,b)=>a.expiryDate-b.expiryDate).map((d, i) => {
-              const daysLeft = Math.ceil((d.expiryDate - now) / day);
-              return (
-                <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 0", borderBottom:`1px solid ${C.border}` }}>
-                  <div>
-                    <div style={{ fontSize:12, fontWeight:500, color:C.text }}>{d.name}</div>
-                    <div style={{ fontSize:11, color:C.textMuted }}>{cust(d.custId)?.name} · {d.type}</div>
-                  </div>
-                  <div style={{ textAlign:"right" }}>
-                    <div style={{ fontSize:12, fontWeight:600, color:daysLeft<=30?C.red:C.amber }}>{daysLeft} days</div>
-                    <div style={{ fontSize:10, color:C.textMuted }}>Expires {fmt.date(d.expiryDate)}</div>
-                  </div>
-                </div>
-              );
-            })}
-          </SectionCard>
-        </div>
-      )}
-    </div>);
-  }
 
 
   // ═══════════════════════════════════════════════════════════════

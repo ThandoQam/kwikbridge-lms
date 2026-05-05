@@ -1,2 +1,1 @@
-// KwikBridge LMS — Documents Feature
-export { Documents as DocumentsPage } from "./components/DocumentsPage";
+export { DocumentsPage } from './components/DocumentsPage';
