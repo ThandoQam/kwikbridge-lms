@@ -4,6 +4,7 @@ import { DataProvider } from "./contexts/DataContext";
 import { UIProvider } from "./contexts/UIContext";
 import { ActionsProvider } from "./contexts/ActionsContext";
 import { AuthProvider } from "./contexts/AuthContext";
+import { Badge, statusBadge, Btn, EmptyState, Field, InfoGrid, Input, KPI, Modal, ProgressBar, SectionCard, Select, SkipLinks, StepTracker, Tab, Table, Textarea, C, T, I } from './components/ui';
 
 /* ═══════════════════════════════════════════════════════════════════
    KWIKBRIDGE LOAN MANAGEMENT SYSTEM v2.0
@@ -163,27 +164,8 @@ const stage = d => d <= 30 ? 1 : d <= 90 ? 2 : 3;
 const now = Date.now();
 const day = 864e5;
 
-const C = {
-  bg: "#f8f9fb", surface: "#ffffff", surface2: "#f5f6f8", surface3: "#f3f4f6",
-  border: "#e2e5ea", borderLight: "#d1d5db",
-  text: "#111827", textDim: "#4b5563", textMuted: "#9ca3af",
-  accent: "#1e3a5f", accentDim: "#2d5487", accentGlow: "#eef2f7",
-  green: "#059669", greenDim: "#047857", greenBg: "#ecfdf5",
-  amber: "#d97706", amberDim: "#b45309", amberBg: "#fffbeb",
-  red: "#dc2626", redDim: "#b91c1c", redBg: "#fef2f2",
-  purple: "#7c3aed", purpleBg: "#f5f3ff",
-  blue: "#2563eb", blueBg: "#eff6ff",
-  white: "#ffffff",
-};
 
 // ═══ DESIGN TOKENS — Single Source of Truth ═══
-const T = {
-  fontSize: { xs:10, sm:11, base:12, md:13, lg:14, xl:16, h3:18, h2:22, h1:28 },
-  fontWeight: { normal:400, medium:500, semi:600, bold:700 },
-  spacing: { xs:4, sm:8, md:12, lg:16, xl:20, xxl:24, xxxl:32 },
-  radius: { sm:2, md:4, lg:8, pill:10 },
-  shadow: { none:"none", sm:"0 1px 3px rgba(0,0,0,0.04)", md:"0 2px 8px rgba(0,0,0,0.06)", lg:"0 4px 16px rgba(0,0,0,0.08)" },
-};
 
 // ═══ CELL RENDERERS — Universal table cell formatters ═══
 const cell = {
@@ -307,284 +289,20 @@ function seed() {
   };
 }
 
-const I = {
-  dashboard:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" width="18" height="18"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>,
-  customers:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" width="18" height="18"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
-  origination:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>,
-  underwriting:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" width="18" height="18"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>,
-  loans:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" width="18" height="18"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>,
-  servicing:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" width="18" height="18"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
-  collections:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" width="18" height="18"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>,
-  provisioning:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" width="18" height="18"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>,
-  governance:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" width="18" height="18"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
-  documents:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" width="18" height="18"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>,
-  reports:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" width="18" height="18"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
-  comms:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" width="18" height="18"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
-  bell:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" width="18" height="18"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>,
-  search:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" width="16" height="16"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
-  check:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>,
-  x:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
-  chev:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="12" height="12"><polyline points="9 18 15 12 9 6"/></svg>,
-  back:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg>,
-  plus:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
-  arrow:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="12" height="12"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>,
-  eye:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" width="16" height="16"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
-  download:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
-  filter:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" width="16" height="16"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>,
-  clock:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" width="14" height="14"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
-  warning:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" width="16" height="16"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,
-  refresh:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" width="16" height="16"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>,
-  calendar:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" width="18" height="18"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
-};
-
-function Badge({ children, color = "slate" }) {
-  const map = {
-    green: { text: C.green, bg: C.greenBg },
-    amber: { text: C.amber, bg: C.amberBg },
-    red: { text: C.red, bg: C.redBg },
-    blue: { text: C.blue, bg: C.blueBg },
-    purple: { text: C.purple, bg: C.purpleBg },
-    cyan: { text: C.textDim, bg: C.surface3 },
-    slate: { text: C.textMuted, bg: C.surface3 },
-  };
-  const s = map[color] || map.slate;
-  return <span style={{ display:"inline-flex", alignItems:"center", padding:"2px 8px", borderRadius:4, fontSize:11, fontWeight:500, letterSpacing:0.2, background:s.bg, color:s.text, whiteSpace:"nowrap", lineHeight:"16px" }}>{children}</span>;
-}
-function statusBadge(s) {
-  const m = { Approved:"green", Active:"green", Disbursed:"green", Verified:"green", Compliant:"green", Cleared:"green", Settled:"green", Submitted:"blue", Underwriting:"cyan", Booked:"purple", "Pre-Approval":"cyan", "Pending Approval":"purple", Pending:"amber", "Pending Review":"amber", Due:"amber", Draft:"slate", Overdue:"red", Early:"amber", Mid:"amber", Late:"red", Declined:"red", Breach:"red", "Written Off":"red", Expired:"red", Withdrawn:"slate", Received:"blue", "Under Review":"cyan" };
-  return <Badge color={m[s] || "slate"}>{s}</Badge>;
-}
-
-function KPI({ label, value, sub, trend, color, accent, sparkData, alert }) {
-  const trendColor = trend === "up" ? C.green : trend === "down" ? C.red : C.textDim;
-  const trendIcon = trend === "up" ? "↑" : trend === "down" ? "↓" : "";
-  const valueColor = alert ? C.red : C.text;
-  return (
-    <div className="kb-kpi" style={{ padding: "14px 0", transition: "opacity .15s ease-out" }}>
-      <div style={{ fontSize: 10, fontWeight: 500, color: C.textMuted, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>{label}</div>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-        <div style={{ fontSize: 22, fontWeight: 700, color: valueColor, letterSpacing: -0.5, lineHeight: 1, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>{value}</div>
-        {trendIcon && <span style={{ fontSize: 11, fontWeight: 600, color: trendColor }}>{trendIcon}</span>}
-      </div>
-      {sub && <div style={{ fontSize: 11, color: C.textDim, marginTop: 4 }}>{sub}</div>}
-    </div>
-  );
-}
 
 
-function SkipLinks() {
-  return (
-    <a href="#kb-main-content" className="kb-skip-link">Skip to main content</a>
-  );
-}
 
-function Btn({ children, onClick, variant = "primary", size = "md", icon, disabled, ariaLabel, ariaPressed, ariaExpanded, ariaControls, type = "button" }) {
-  const styles = {
-    primary: { bg: C.accent, color: "#ffffff", border: "none" },
-    secondary: { bg: "transparent", color: C.text, border: `1px solid ${C.border}` },
-    danger: { bg: "transparent", color: C.red, border: `1px solid ${C.border}` },
-    ghost: { bg: "transparent", color: C.textDim, border: "none" },
-  };
-  const s = styles[variant];
-  const pad = size === "sm" ? "5px 10px" : size === "lg" ? "10px 20px" : "7px 14px";
-  const fs = size === "sm" ? 12 : 13;
-  const aria = ariaButton({ label: ariaLabel, pressed: ariaPressed, expanded: ariaExpanded, controls: ariaControls, disabled });
-  return <button type={type} disabled={disabled} onClick={onClick} {...aria} style={{ display:"inline-flex", alignItems:"center", gap:8, padding:pad, background:s.bg, color:s.color, border:s.border, borderRadius:3, fontSize:fs, fontWeight:500, cursor:disabled?"not-allowed":"pointer", opacity:disabled?0.4:1, transition:"all .15s", fontFamily:"inherit", letterSpacing:0.1 }}>{icon}{children}</button>;
-}
 
-function Table({ columns, rows, onRowClick, emptyMsg = "No records found", caption }) {
-  return (
-    <div style={{ overflowX: "auto", border: `1px solid ${C.border}`, borderRadius: 6 }}>
-      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }} aria-label={caption} aria-rowcount={rows.length}>
-        {caption && <caption style={{ position: "absolute", width: 1, height: 1, padding: 0, margin: -1, overflow: "hidden", clip: "rect(0,0,0,0)", whiteSpace: "nowrap", border: 0 }}>{caption}</caption>}
-        <thead><tr style={{ background: C.surface2 }}>
-          {columns.map((c, i) => <th key={i} scope="col" style={{ padding: "8px 14px", textAlign: "left", fontWeight: 500, color: C.textMuted, borderBottom: `1px solid ${C.border}`, whiteSpace: "nowrap", fontSize: T.fontSize.sm, textTransform: "uppercase", letterSpacing: 0.6 }}>{c.label}</th>)}
-        </tr></thead>
-        <tbody>
-          {rows.map((row, ri) => (
-            <tr key={ri} onClick={() => onRowClick?.(row)} style={{ cursor: onRowClick ? "pointer" : "default", borderBottom: `1px solid ${C.border}` }}
-              tabIndex={onRowClick ? 0 : -1}
-              onKeyDown={e => { if (onRowClick && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); onRowClick(row); } }}
-              onMouseEnter={e => { if (onRowClick) e.currentTarget.style.background = C.surface2; e.currentTarget.style.transition = 'background .12s ease-out'; }}
-              onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-              {columns.map((c, ci) => <td key={ci} style={{ padding: "8px 14px", color: C.text, whiteSpace: "nowrap", fontSize: T.fontSize.base }}>{c.render ? c.render(row) : row[c.key]}</td>)}
-            </tr>
-          ))}
-          {rows.length === 0 && <tr><td colSpan={columns.length} style={{ padding: 32, textAlign: "center", color: C.textMuted, fontSize: 12 }}>{emptyMsg}</td></tr>}
-        </tbody>
-      </table>
-    </div>
-  );
-}
 
-function Modal({ open, onClose, title, width = 520, children }) {
-  const titleId = useMemo(() => `kb-modal-title-${Math.random().toString(36).slice(2, 9)}`, []);
-  const dialogRef = useRef(null);
-  const previousFocus = useRef(null);
 
-  useEffect(() => {
-    if (!open) return;
-    // Save focus origin and set focus inside the dialog
-    previousFocus.current = document.activeElement;
-    const dialog = dialogRef.current;
-    if (dialog) {
-      // Focus first focusable element or the dialog itself
-      const focusable = dialog.querySelector("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])");
-      (focusable || dialog).focus();
-    }
 
-    const handleKey = (e) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        onClose?.();
-      } else if (e.key === "Tab" && dialog) {
-        trapFocus(dialog, e);
-      }
-    };
 
-    document.addEventListener("keydown", handleKey);
-    return () => {
-      document.removeEventListener("keydown", handleKey);
-      // Restore focus to the trigger element
-      if (previousFocus.current && previousFocus.current.focus) {
-        previousFocus.current.focus();
-      }
-    };
-  }, [open, onClose]);
 
-  if (!open) return null;
-  const dialogProps = ariaDialog(titleId);
-  return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.25)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={onClose}>
-      <div ref={dialogRef} {...dialogProps} tabIndex={-1} style={{ background: C.surface, borderRadius: 2, padding: 0, width, maxWidth: "95vw", maxHeight: "90vh", overflow: "hidden", border: `1px solid ${C.borderLight}`, boxShadow: "0 8px 30px rgba(0,0,0,0.08)", outline: "none" }} onClick={e => e.stopPropagation()}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderBottom: `1px solid ${C.border}` }}>
-          <h3 id={titleId} style={{ margin: 0, fontSize:14, fontWeight: 600, color: C.text }}>{title}</h3>
-          <button onClick={onClose} aria-label="Close dialog" style={{ background: "none", border: "none", color: C.textMuted, cursor: "pointer", padding: 4 }}>{I.x}</button>
-        </div>
-        <div style={{ padding: 20, overflowY: "auto", maxHeight: "calc(90vh - 60px)" }}>{children}</div>
-      </div>
-    </div>
-  );
-}
 
-function Field({ label, children, htmlFor, hint, error }) {
-  const fieldId = htmlFor || (label ? `kb-field-${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}` : undefined);
-  return (
-    <div style={{ marginBottom: 16 }}>
-      {label && (
-        <label htmlFor={fieldId} style={{ display: "block", fontSize: 11, fontWeight: 600, color: C.textMuted, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>
-          {label}
-        </label>
-      )}
-      {children}
-      {hint && !error && <div id={fieldId ? `${fieldId}-hint` : undefined} style={{ fontSize: 11, color: C.textMuted, marginTop: 4 }}>{hint}</div>}
-      {error && <div id={fieldId ? `${fieldId}-err` : undefined} role="alert" style={{ fontSize: 11, color: C.red, marginTop: 4 }}>{error}</div>}
-    </div>
-  );
-}
-function Input(props) {
-  return <input {...props} style={{ width: "100%", padding: "8px 10px", borderRadius: 2, border: `1px solid ${C.border}`, background: C.surface, color: C.text, fontSize: 13, fontFamily: "inherit", outline: "none", boxSizing: "border-box", ...props.style }} />;
-}
-function Select({ value, onChange, options, ...rest }) {
-  return <select value={value} onChange={onChange} {...rest} style={{ width: "100%", padding: "8px 10px", borderRadius: 2, border: `1px solid ${C.border}`, background: C.surface, color: C.text, fontSize: 13, fontFamily: "inherit", outline: "none", boxSizing: "border-box" }}>{options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select>;
-}
-function Textarea(props) {
-  return <textarea {...props} style={{ width: "100%", padding: "8px 10px", borderRadius: 2, border: `1px solid ${C.border}`, background: C.surface, color: C.text, fontSize: 13, fontFamily: "inherit", outline: "none", resize: "vertical", boxSizing: "border-box", ...props.style }} />;
-}
 
-function Tab({ tabs, active, onChange, label = "Sections" }) {
-  const tablistProps = ariaTablist(label);
-  return (
-    <div {...tablistProps} style={{ display: "flex", gap: 0, borderBottom: `1px solid ${C.border}`, marginBottom: 20 }}>
-      {tabs.map((t, i) => {
-        const tabProps = ariaTab({ selected: active === t.key, controls: `panel-${t.key}`, id: `tab-${t.key}` });
-        return (
-          <button key={t.key} {...tabProps}
-            onClick={() => onChange(t.key)}
-            onKeyDown={e => {
-              if (e.key === "ArrowRight") { e.preventDefault(); const next = tabs[(i + 1) % tabs.length]; onChange(next.key); }
-              else if (e.key === "ArrowLeft") { e.preventDefault(); const prev = tabs[(i - 1 + tabs.length) % tabs.length]; onChange(prev.key); }
-              else if (e.key === "Home") { e.preventDefault(); onChange(tabs[0].key); }
-              else if (e.key === "End") { e.preventDefault(); onChange(tabs[tabs.length - 1].key); }
-            }}
-            style={{ padding: "8px 16px", border: "none", borderBottom: active === t.key ? `2px solid ${C.text}` : "2px solid transparent", background: "transparent", color: active === t.key ? C.text : C.textMuted, fontSize: 12, fontWeight: active === t.key ? 600 : 400, cursor: "pointer", fontFamily: "inherit", marginBottom: -1 }}>
-            {t.label}{t.count != null && <span style={{ marginLeft: 6, color: C.textMuted, fontWeight: 400 }}>({t.count})</span>}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
 
-function ProgressBar({ value, max = 100, color = C.textMuted, height = 4 }) {
-  const pct = Math.min(100, Math.max(0, (value / max) * 100));
-  return (
-    <div style={{ height, borderRadius: 0, background: "C.surface3", overflow: "hidden" }}>
-      <div style={{ height: "100%", borderRadius: 0, background: color, width: `${pct}%`, transition: "width .5s ease" }} />
-    </div>
-  );
-}
 
-function InfoGrid({ items }) {
-  return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 0, border: `1px solid ${C.border}` }}>
-      {items.map(([l, v], i) => (
-        <div key={i} style={{ padding: "8px 12px", borderBottom: `1px solid ${C.border}`, borderRight: `1px solid ${C.border}` }}>
-          <div style={{ fontSize: 10, fontWeight: 600, color: C.textMuted, textTransform: "uppercase", letterSpacing: 0.5 }}>{l}</div>
-          <div style={{ fontSize: 13, fontWeight: 500, color: C.text, marginTop: 2 }}>{v}</div>
-        </div>
-      ))}
-    </div>
-  );
-}
 
-function SectionCard({ title, children, actions }) {
-  return (
-    <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, overflow: "hidden" }}>
-      {title && <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 20px 8px", borderBottom: "none" }}>
-        <h3 style={{ margin: 0, fontSize: 11, fontWeight: 600, color: C.textMuted, textTransform: "uppercase", letterSpacing: 0.8 }}>{title}</h3>
-        {actions && <div style={{ display: "flex", gap: 8 }}>{actions}</div>}
-      </div>}
-      <div style={{ padding: title ? "4px 20px 16px" : "16px 20px" }}>{children}</div>
-    </div>
-  );
-}
-
-function StepTracker({ steps, current }) {
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-      {steps.map((s, i) => {
-        const done = i < current;
-        const active = i === current;
-        return (
-          <div key={i} style={{ display: "flex", gap:12, alignItems: "flex-start" }}>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-              <div style={{ width: 22, height: 22, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, background: done ? C.accent : "transparent", color: done ? "#fff" : active ? C.text : C.textMuted, fontSize: 10, fontWeight: 600, border: `1px solid ${done ? C.accent : C.border}` }}>
-                {done ? I.check : i + 1}
-              </div>
-              {i < steps.length - 1 && <div style={{ width: 1, height: 20, background: C.border }} />}
-            </div>
-            <div style={{ paddingBottom: 8 }}>
-              <div style={{ fontSize: 12, fontWeight: active ? 600 : 400, color: done ? C.text : active ? C.text : C.textMuted }}>{s.label}</div>
-              {s.detail && <div style={{ fontSize: 11, color: C.textMuted, marginTop: 1 }}>{s.detail}</div>}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function EmptyState({ icon, title, message, action, onAction }) {
-  return (
-    <div className="kb-animate" style={{ textAlign:"center", padding:"48px 24px" }}>
-      <div style={{ fontSize:36, marginBottom:12, opacity:0.3 }}>{icon || "📋"}</div>
-      <div style={{ fontSize:14, fontWeight:600, color:C.text, marginBottom:8 }}>{title || "Nothing here yet"}</div>
-      <div style={{ fontSize:12, color:C.textMuted, maxWidth:300, margin:"0 auto", lineHeight:1.5, marginBottom:16 }}>{message || ""}</div>
-      {action && onAction && <Btn onClick={onAction} size="sm">{action}</Btn>}
-    </div>
-  );
-}
 
 export default function App() {
   const [data, setData] = useState(null);
