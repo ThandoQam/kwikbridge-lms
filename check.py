@@ -145,6 +145,7 @@ EXTRACTED_PAGES = {
     'Origination': 'features/origination',
     'Loans': 'features/loans',
     'Servicing': 'features/servicing',
+    'Collections': 'features/collections',
 }
 for p in REQUIRED_PAGES:
     inline = f'function {p}' in t

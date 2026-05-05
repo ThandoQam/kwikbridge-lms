@@ -110,7 +110,8 @@ test('Servicing', 'DPD tracking', src.includes('dpd'));
 test('Servicing', 'Covenant monitoring', src.includes('covenants'));
 
 // ═══ 11. COLLECTIONS ═══
-test('Collections', 'Delinquent accounts table', src.includes('Delinquent Accounts'));
+const collExtracted = require('fs').readFileSync('./src/features/collections/components/CollectionsPage.tsx', 'utf8');
+test('Collections', 'Delinquent accounts table', collExtracted.includes('Delinquent Accounts'));
 test('Collections', 'Collection action logging', src.includes('addCollectionAction'));
 test('Collections', 'Phone call action', src.includes('Phone Call'));
 test('Collections', 'Letter of Demand', src.includes('Letter of Demand'));
@@ -121,7 +122,7 @@ test('Collections', 'Write-off approval', src.includes('approveWriteOff'));
 test('Collections', 'Legal handover', src.includes('Legal Handover') || src.includes('Legal Department'));
 test('Collections', 'Collections in loan detail', src.includes('Collections Actions'));
 test('Collections', 'Stage-based action visibility', src.includes('l.dpd>30') && src.includes('l.dpd>90'));
-test('Collections', 'Activity log tab', src.includes('"activity"') && src.includes('Activity Log'));
+test('Collections', 'Activity log tab', collExtracted.includes("'activity'") && collExtracted.includes('Activity Log'));
 
 // ═══ 12. IFRS 9 PROVISIONING ═══
 test('IFRS 9', 'ECL calculation', src.includes('ecl') && (src.includes('Expected Credit Loss') || require('fs').readFileSync('./src/features/provisioning/components/ProvisioningPage.tsx', 'utf8').includes('Expected Credit Loss')));
@@ -234,6 +235,7 @@ const extractedFeatures = {
   'Origination': 'features/origination',
   'Loans': 'features/loans',
   'Servicing': 'features/servicing',
+  'Collections': 'features/collections',
 };
 pageComponents.forEach(comp => {
   const inline = src.includes(`function ${comp}(`);
