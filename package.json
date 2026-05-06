@@ -22,7 +22,9 @@
     "e2e:headless": "cypress run --headless --browser chrome",
     "test:component": "vitest run --config vitest.components.config.ts",
     "test:component:watch": "vitest --config vitest.components.config.ts",
-    "test:all-vitest": "npm run test:unit && npm run test:component"
+    "test:all-vitest": "npm run test:unit && npm run test:component",
+    "rls:analyse": "python3 scripts/security/analyse_rls.py",
+    "rls:verify": "node scripts/security/verify_rls.mjs"
   },
   "dependencies": {
     "react": "^18.3.1",

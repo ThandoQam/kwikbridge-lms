@@ -1,121 +1,162 @@
-# RLS Verification Procedure
+# RLS Verification
 
 ## Purpose
+
 Verify that Row-Level Security policies in `migrations/002_rls_hardening.sql`
 are correctly applied and enforcing access control in production.
 
-## Why This Matters
-Without RLS, a borrower with a valid auth token could query the database directly
-via the Supabase REST API and see other borrowers' loans, customers' PII, and
-audit trail. RLS is the only layer between authenticated users and full data access.
+## Why this matters
 
-## Verification Steps
+Without RLS, a borrower with a valid auth token could query the database
+directly via the Supabase REST API and see other borrowers' loans, customers'
+PII, and audit trail. RLS is the only layer between authenticated users and
+full data access.
 
-### 1. Confirm Migration Applied (Supabase Dashboard)
+## Two-stage verification
 
-```
-Supabase Dashboard → Database → Migrations
-Confirm 002_rls_hardening.sql is in "Applied" state
-```
+This project uses a two-stage approach:
 
-If not applied:
+### Stage 1 — Static analysis (runs in CI)
+
+`scripts/security/analyse_rls.py` parses the migration SQL and verifies
+the policy matrix is complete:
+
+- Every table has at least one SELECT policy
+- Every table has appropriate write policies
+- Borrower-scoped tables have isolation policies (NOT public.is_staff() guard)
+- `audit_trail` has no UPDATE/DELETE policies (append-only)
+- Anonymous access is bounded to the expected 7 tables only
+- Loans never have anon access
+- All five helper functions (get_app_role, get_user_email, is_staff,
+  is_admin, is_read_only) are referenced
+
+Run locally:
+
 ```bash
-supabase db push --linked
+npm run rls:analyse
 ```
 
-### 2. Confirm RLS Enabled on All Tables
+This catches authoring mistakes before they ship — for example, forgetting
+to add a borrower-scoped policy when adding a new table, or accidentally
+giving anon access to loans.
 
-Run in SQL Editor:
-```sql
-SELECT schemaname, tablename, rowsecurity
-FROM pg_tables
-WHERE schemaname = 'public'
-  AND tablename IN (
-    'customers', 'products', 'applications', 'loans',
-    'documents', 'collections', 'audit_trail', 'alerts',
-    'provisions', 'comms', 'statutory_reports', 'settings'
-  );
+**Runs automatically in CI on every push.** A failure here blocks merge.
+
+### Stage 2 — Runtime verification (manual, against production)
+
+`scripts/security/verify_rls.mjs` is an adversarial probe that signs in
+as test borrowers and attempts unauthorised access. It produces a
+pass/fail report and exits with a non-zero code on failure.
+
+Run on demand:
+
+```bash
+npm run rls:verify
 ```
 
-Expected: every row shows `rowsecurity = true`.
+Exit codes:
+- `0` — all checks passed
+- `1` — one or more checks failed (RLS broken — investigate immediately)
+- `2` — environment misconfigured (missing env vars or test data)
 
-### 3. Confirm Helper Functions Exist
+**Does not run in CI** because it requires production credentials and
+test borrower accounts. Schedule:
 
-```sql
-SELECT proname, prosrc
-FROM pg_proc
-WHERE proname IN (
-  'get_app_role', 'get_user_email',
-  'is_staff', 'is_admin', 'is_read_only'
-);
+- **Initial verification:** before first production user
+- **Quarterly:** part of compliance audit cycle
+- **Post-migration:** any time a new table is added or migration applied
+- **After any RLS-related change:** before merging to main
+
+## Setup for runtime verification
+
+One-time setup:
+
+1. **Create test accounts in Supabase Auth dashboard:**
+   - `rls-borrower-1@kwikbridge.test`
+   - `rls-borrower-2@kwikbridge.test`
+
+   The script uses these exact email addresses to verify isolation.
+
+2. **Insert customer rows for each test account:**
+
+   ```sql
+   INSERT INTO customers (id, name, email)
+   VALUES
+     ('RLS-CUST-1', 'RLS Test 1', 'rls-borrower-1@kwikbridge.test'),
+     ('RLS-CUST-2', 'RLS Test 2', 'rls-borrower-2@kwikbridge.test');
+   ```
+
+3. **Optionally insert a loan row for B2** (so the script can verify B1
+   doesn't see it):
+
+   ```sql
+   INSERT INTO loans (id, cust_id, amount, balance, status)
+   VALUES ('RLS-LOAN-2', 'RLS-CUST-2', 100000, 100000, 'Active');
+   ```
+
+4. **Set environment variables:**
+
+   ```bash
+   export SUPABASE_URL=https://xxx.supabase.co
+   export SUPABASE_ANON_KEY=eyJhbGc...
+   export RLS_BORROWER_1_PWD=<password set in auth>
+   export RLS_BORROWER_2_PWD=<password set in auth>
+
+   # Optional — enables additional staff-side checks:
+   export RLS_STAFF_EMAIL=admin@example.com
+   export RLS_STAFF_PWD=<password>
+   ```
+
+## What the runtime script verifies
+
+### Anonymous access boundary
+
+- ✓ GET /products returns data (public)
+- ✓ GET /customers blocked (anon SELECT not allowed)
+- ✓ GET /loans blocked (no anon access at all)
+- ✓ GET /audit_trail blocked
+- ✓ POST /customers allowed (public application form)
+
+### Borrower isolation
+
+- ✓ Borrower 1 sees only own customer record
+- ✓ Borrower 1 cannot read Borrower 2's loans
+- ✓ Borrower 1 cannot UPDATE Borrower 2's customer record
+
+### Append-only audit trail
+
+- ✓ audit_trail rows cannot be UPDATEd (no UPDATE policy)
+- ✓ audit_trail rows cannot be DELETEd (no DELETE policy)
+
+### Staff access (if `RLS_STAFF_EMAIL`/`PWD` set)
+
+- ✓ Staff can read all customers (more than 1 row)
+- ✓ Staff can read loans
+- ✓ Staff can read provisions
+
+## Failure response
+
+If runtime RLS verification fails:
+
+1. **Immediately disable public access** to the affected table by removing
+   the anon read policy via Supabase SQL Editor.
+2. **Audit access logs** in Supabase Dashboard → Logs → API Logs to
+   determine if any unauthorised access occurred during the window the
+   policy was broken.
+3. **Apply the migration fix** to correct the policy.
+4. **Re-run** `npm run rls:verify` to confirm.
+5. **POPIA notification:** if any borrower PII was accessible to other
+   borrowers, the Information Officer must be notified within 72 hours
+   per POPIA Section 22.
+
+## Files
+
 ```
+scripts/security/
+├── analyse_rls.py          # Static analyser (CI-runnable)
+└── verify_rls.mjs           # Runtime probe (production-only)
 
-Expected: 5 rows returned.
-
-### 4. Test Borrower Isolation (Critical)
-
-Create two test borrower accounts with different emails. Sign in as
-borrower-1 and attempt to query customer records belonging to borrower-2.
-
-```javascript
-// Sign in as borrower-1
-const { access_token } = await authSignIn("borrower1@example.com", "password");
-
-// Try to read all customers (should only return borrower-1's record)
-const r = await fetch(
-  "https://YOUR-PROJECT.supabase.co/rest/v1/customers?select=*",
-  { headers: { apikey: ANON, Authorization: `Bearer ${access_token}` } }
-);
-const data = await r.json();
-// Expected: data.length === 1 (only borrower-1's record)
-// FAIL: data.length > 1 (RLS broken — escalate immediately)
+supabase/
+├── migrations/002_rls_hardening.sql   # The policies themselves
+└── RLS_VERIFICATION.md     # This document
 ```
-
-### 5. Test Anonymous Insert (Public Application)
-
-The public application form must be able to create customer + application
-records WITHOUT auth. Test:
-
-```javascript
-const r = await fetch(
-  "https://YOUR-PROJECT.supabase.co/rest/v1/customers",
-  {
-    method: "POST",
-    headers: { apikey: ANON, "Content-Type": "application/json" },
-    body: JSON.stringify({ id: "TEST-001", name: "Test", email: "test@test.com" }),
-  }
-);
-// Expected: 201 Created (customers_anon_create policy allows INSERT)
-```
-
-### 6. Test Staff Read
-
-Sign in with a staff account (admin@thandoq.com → ADMIN role).
-Verify the staff user can see all customers, all loans, all applications.
-
-```javascript
-// Should return all rows
-const r = await fetch(
-  "https://YOUR-PROJECT.supabase.co/rest/v1/customers?select=*",
-  { headers: { apikey: ANON, Authorization: `Bearer ${staffToken}` } }
-);
-```
-
-## Failure Response
-
-If RLS is NOT correctly applied:
-
-1. **Immediately disable public access** to the affected table by removing the
-   anon read policy
-2. **Audit access logs** in Supabase Dashboard → Logs → API Logs to determine
-   if any unauthorised access occurred
-3. **Apply the migration** to fix
-4. **Re-test** with the procedure above
-5. **POPIA notification:** if any borrower PII was accessible to other borrowers,
-   the Information Officer must be notified within 72 hours
-
-## Schedule
-
-- **Initial verification:** Before first production user
-- **Quarterly re-verification:** Part of compliance audit cycle
-- **Post-migration:** Any time a new table is added or migration applied

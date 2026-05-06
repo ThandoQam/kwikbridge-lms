@@ -151,6 +151,9 @@ jobs:
       - name: Run journey tests
         run: node test-journeys.cjs
 
+      - name: Static RLS analysis
+        run: python3 scripts/security/analyse_rls.py
+
           echo ""
           echo "✓ All test suites passed"
 

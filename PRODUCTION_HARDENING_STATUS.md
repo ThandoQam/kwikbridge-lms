@@ -19,7 +19,7 @@ done, what is partial, and what remains.
 | TD-3 | Secrets removed from source | ✅ Done | env-driven config, .env.example documented |
 | TD-4 | Deployment runbook | ✅ Done | DEPLOY.md + RUNBOOK.md with full procedures |
 | TD-5 | Observability foundation | ✅ Done | Structured logging, PII scrubbing, Sentry adapter |
-| TD-9 | RLS hardening | ⚠️ Documented + playbook expanded | Verification procedure in supabase/RLS_VERIFICATION.md and step-by-step procedure in docs/INTEGRATION_PLAYBOOK.md. Blocked by production Supabase project admin access. Local dev project has policies in place per migrations. |
+| TD-9 | RLS hardening | ⚠️ Tooling complete, runtime check pending | Static analysis (scripts/security/analyse_rls.py) verifies policy completeness — runs in CI, all 12 tables pass. Runtime verification (scripts/security/verify_rls.mjs) is an adversarial probe ready to run against production once test borrower accounts are seeded. Step-by-step setup in supabase/RLS_VERIFICATION.md. Migration 002_rls_hardening.sql defines 38 policies covering 12 tables with borrower isolation, append-only audit, and bounded anon access. |
 | TD-12 | Investor Dashboard | ✅ Done | Sidebar entry, IFRS 9 staging, covenant compliance, CSV export |
 | TD-13 | XSS hardening | ✅ Done | document.write replaced with DOMParser/textContent |
 | TD-14 | Auth flow fix | ✅ Done | Normalised error responses, friendly messages, observability |
